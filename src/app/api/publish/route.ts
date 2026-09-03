@@ -56,7 +56,9 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     await deleteImages([bg_url, token_url]);
-    throw err;
+    const message =
+      err instanceof Error ? err.message : "Could not leave it here.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
   if ("conflict" in result) {
     await deleteImages([bg_url, token_url]);

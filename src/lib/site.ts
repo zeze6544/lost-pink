@@ -11,6 +11,10 @@ export function isPolarConfigured(): boolean {
   );
 }
 
+export function isBlobConfigured(): boolean {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
 export function isSupabaseConfigured(): boolean {
   return Boolean(
     process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,

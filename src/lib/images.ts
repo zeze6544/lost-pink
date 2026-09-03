@@ -1,11 +1,13 @@
+import { del, put } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { isSupabaseConfigured } from "./site";
+import { isBlobConfigured, isSupabaseConfigured } from "./site";
 
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const IMAGE_DIR = path.join(process.cwd(), ".data", "images");
 const BUCKET = "shrine-images";
+const BLOB_PREFIX = "shrines/";
 
 export type ImageKind = "jpeg" | "png" | "webp";
 
@@ -59,14 +61,29 @@ export function imageKeyFromUrl(url: string): string | null {
       })()
     : url;
   const match = pathPart.match(
-    /(?:\/api\/images\/|\/shrine-images\/)([A-Za-z0-9._-]+)$/,
+    /(?:\/api\/images\/|\/shrine-images\/|\/shrines\/)([A-Za-z0-9._-]+)$/,
   );
   return match?.[1] ?? null;
+}
+
+function isBlobUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return (
+      host.endsWith(".blob.vercel-storage.com") ||
+      host.endsWith(".public.blob.vercel-storage.com")
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function isAllowedImageUrl(url: string | null | undefined): boolean {
   if (!url) return true;
   if (url.startsWith("/api/images/")) {
+    return Boolean(imageKeyFromUrl(url));
+  }
+  if (isBlobUrl(url)) {
     return Boolean(imageKeyFromUrl(url));
   }
   const base = process.env.SUPABASE_URL?.replace(/\/$/, "");
@@ -84,6 +101,15 @@ export async function saveImage(
   sniff: SniffedImage,
 ): Promise<string> {
   const key = `${crypto.randomUUID()}.${sniff.ext}`;
+
+  if (isBlobConfigured()) {
+    const blob = await put(`${BLOB_PREFIX}${key}`, buf, {
+      access: "public",
+      contentType: sniff.mime,
+      addRandomSuffix: false,
+    });
+    return blob.url;
+  }
 
   if (isSupabaseConfigured()) {
     const { error } = await supabaseAdmin()
@@ -120,6 +146,12 @@ export async function deleteImageByUrl(
   url: string | null | undefined,
 ): Promise<void> {
   if (!url) return;
+
+  if (isBlobConfigured() && isBlobUrl(url)) {
+    await del(url);
+    return;
+  }
+
   const key = imageKeyFromUrl(url);
   if (!key) return;
 

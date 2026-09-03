@@ -10,7 +10,15 @@ import {
   type Palette,
   type Treatment,
 } from "./looks";
-import { isSupabaseConfigured } from "./site";
+import {
+  blobExpireFreePages,
+  blobGetPageById,
+  blobIncrementFound,
+  blobMarkKept,
+  blobPeekSlug,
+  blobPublishPage,
+} from "./pages-blob";
+import { isBlobConfigured, isSupabaseConfigured } from "./site";
 
 export type PageStatus = "free" | "kept";
 
@@ -76,6 +84,12 @@ async function writeLocal(pages: LostPage[]): Promise<void> {
   await fs.writeFile(DATA_FILE, JSON.stringify(pages, null, 2), "utf8");
 }
 
+function pageStore(): "supabase" | "blob" | "local" {
+  if (isSupabaseConfigured()) return "supabase";
+  if (isBlobConfigured()) return "blob";
+  return "local";
+}
+
 function supabaseAdmin(): SupabaseClient {
   return createClient(
     process.env.SUPABASE_URL!,
@@ -119,7 +133,7 @@ export function pageLook(page: LostPage): Look {
 }
 
 export async function getPageBySlug(slug: string): Promise<LostPage | null> {
-  if (isSupabaseConfigured()) {
+  if (pageStore() === "supabase") {
     const { data, error } = await supabaseAdmin()
       .from("pages")
       .select("*")
@@ -131,6 +145,12 @@ export async function getPageBySlug(slug: string): Promise<LostPage | null> {
     return isActive(page) ? page : null;
   }
 
+  if (pageStore() === "blob") {
+    const page = await blobPeekSlug(slug);
+    if (!page || !isActive(page)) return null;
+    return page;
+  }
+
   const pages = await readLocal();
   const page = pages.find((p) => p.slug === slug) ?? null;
   if (!page || !isActive(page)) return null;
@@ -138,7 +158,7 @@ export async function getPageBySlug(slug: string): Promise<LostPage | null> {
 }
 
 export async function getPageById(id: string): Promise<LostPage | null> {
-  if (isSupabaseConfigured()) {
+  if (pageStore() === "supabase") {
     const { data, error } = await supabaseAdmin()
       .from("pages")
       .select("*")
@@ -146,6 +166,10 @@ export async function getPageById(id: string): Promise<LostPage | null> {
       .maybeSingle();
     if (error) throw error;
     return data ? mapRow(data) : null;
+  }
+
+  if (pageStore() === "blob") {
+    return blobGetPageById(id);
   }
 
   const pages = await readLocal();
@@ -205,7 +229,7 @@ export async function publishPage(
     await deleteImages([existing.bg_url, existing.token_url]);
   }
 
-  if (isSupabaseConfigured()) {
+  if (pageStore() === "supabase") {
     if (existing) {
       await supabaseAdmin().from("pages").delete().eq("slug", fields.slug);
     }
@@ -223,6 +247,10 @@ export async function publishPage(
     return { page: mapRow(data) };
   }
 
+  if (pageStore() === "blob") {
+    return blobPublishPage(page, existing);
+  }
+
   const pages = await readLocal();
   const next = pages.filter((p) => p.slug !== fields.slug);
   next.push(page);
@@ -231,7 +259,7 @@ export async function publishPage(
 }
 
 async function peekSlug(slug: string): Promise<LostPage | null> {
-  if (isSupabaseConfigured()) {
+  if (pageStore() === "supabase") {
     const { data, error } = await supabaseAdmin()
       .from("pages")
       .select("*")
@@ -239,6 +267,9 @@ async function peekSlug(slug: string): Promise<LostPage | null> {
       .maybeSingle();
     if (error) throw error;
     return data ? mapRow(data) : null;
+  }
+  if (pageStore() === "blob") {
+    return blobPeekSlug(slug);
   }
   const pages = await readLocal();
   return pages.find((p) => p.slug === slug) ?? null;
@@ -248,7 +279,7 @@ export async function markKept(
   pageId: string,
   polarOrderId: string | null,
 ): Promise<LostPage | null> {
-  if (isSupabaseConfigured()) {
+  if (pageStore() === "supabase") {
     const { data, error } = await supabaseAdmin()
       .from("pages")
       .update({
@@ -261,6 +292,10 @@ export async function markKept(
       .single();
     if (error) throw error;
     return data ? mapRow(data) : null;
+  }
+
+  if (pageStore() === "blob") {
+    return blobMarkKept(pageId, polarOrderId);
   }
 
   const pages = await readLocal();
@@ -277,7 +312,7 @@ export async function markKept(
 }
 
 export async function incrementFound(slug: string): Promise<number | null> {
-  if (isSupabaseConfigured()) {
+  if (pageStore() === "supabase") {
     const page = await getPageBySlug(slug);
     if (!page) return null;
     const next = page.found_count + 1;
@@ -289,6 +324,10 @@ export async function incrementFound(slug: string): Promise<number | null> {
       .single();
     if (error) throw error;
     return Number(data?.found_count ?? next);
+  }
+
+  if (pageStore() === "blob") {
+    return blobIncrementFound(slug, isActive);
   }
 
   const pages = await readLocal();
@@ -304,7 +343,7 @@ export async function incrementFound(slug: string): Promise<number | null> {
 export async function expireFreePages(): Promise<number> {
   const now = new Date().toISOString();
 
-  if (isSupabaseConfigured()) {
+  if (pageStore() === "supabase") {
     const { data: doomed, error: selectError } = await supabaseAdmin()
       .from("pages")
       .select("id, bg_url, token_url")
@@ -325,6 +364,10 @@ export async function expireFreePages(): Promise<number> {
       .select("id");
     if (error) throw error;
     return data?.length ?? 0;
+  }
+
+  if (pageStore() === "blob") {
+    return blobExpireFreePages(now);
   }
 
   const pages = await readLocal();

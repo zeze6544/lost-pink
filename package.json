@@ -11,7 +11,10 @@
   "dependencies": {
     "@polar-sh/nextjs": "^0.9.6",
     "@polar-sh/sdk": "^0.49.0",
+    "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.114.0",
+    "@vercel/blob": "^2.8.0",
+    "@vercel/speed-insights": "^2.0.0",
     "next": "^15.5.24",
     "react": "19.2.8",
     "react-dom": "19.2.8"

@@ -104,6 +104,46 @@ export async function blobIncrementFound(
   return next.found_count;
 }
 
+export async function blobUpdatePage(
+  page: LostPage,
+  oldSlug: string,
+): Promise<void> {
+  await writeJson(idPath(page.id), page, true);
+  if (oldSlug !== page.slug) {
+    await del(slugPath(oldSlug)).catch(() => undefined);
+  }
+  await writeJson(slugPath(page.slug), { id: page.id }, true);
+}
+
+export async function blobListAll(): Promise<LostPage[]> {
+  const found: LostPage[] = [];
+  let cursor: string | undefined;
+  do {
+    const result = await list({ prefix: ID_PREFIX, cursor, limit: 1000 });
+    for (const blob of result.blobs) {
+      const page = await readJson<LostPage>(blob.pathname);
+      if (page) found.push(page);
+    }
+    cursor = result.hasMore ? result.cursor : undefined;
+  } while (cursor);
+  return found;
+}
+
+export async function blobListByOwner(ownerId: string): Promise<LostPage[]> {
+  const found: LostPage[] = [];
+  let cursor: string | undefined;
+  do {
+    const result = await list({ prefix: ID_PREFIX, cursor, limit: 1000 });
+    for (const blob of result.blobs) {
+      const page = await readJson<LostPage>(blob.pathname);
+      if (page?.owner_id === ownerId) found.push(page);
+    }
+    cursor = result.hasMore ? result.cursor : undefined;
+  } while (cursor);
+  found.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  return found;
+}
+
 export async function blobExpireFreePages(
   now: string,
 ): Promise<number> {

@@ -1,11 +1,10 @@
-import type { Metadata } from "next";
 import { Absence } from "@/components/Absence";
-import { PageActions } from "@/components/PageActions";
-import { PinkStage } from "@/components/PinkStage";
+import { ShrineView } from "@/components/ShrineView";
 import { getPageBySlug, pageLook } from "@/lib/pages";
-import { siteUrl } from "@/lib/site";
+import { isAuthConfigured, siteUrl } from "@/lib/site";
 import { validateSlug } from "@/lib/slug";
-import { formatLeftHere } from "@/lib/voice";
+import { getAuthUserId } from "@/lib/supabase/server";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
@@ -49,42 +48,28 @@ export default async function SlugPage({ params }: Props) {
   }
 
   const look = pageLook(page);
-  const kept = page.status === "kept";
+  const userId = await getAuthUserId();
+  const owned = Boolean(page.owner_id && userId && page.owner_id === userId);
 
   return (
-    <main
-      className="relative min-h-[100dvh] overflow-hidden"
-        style={{ ["--tray-h" as string]: "8rem" }}
-    >
-      <PinkStage
-        word={page.word}
-        look={look}
-        line={page.line}
-        bgUrl={page.bg_url}
-        tokenUrl={page.token_url}
-        caption={formatLeftHere(page.created_at)}
-        animate
-      />
-      <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
-        <a
-          href="/"
-          className="font-display text-lg text-[var(--ink)]/70 transition hover:text-[var(--ink)]"
-        >
-          lost.pink
-        </a>
-      </div>
-      <PageActions
-        pageId={page.id}
-        slug={page.slug}
-        word={page.word}
-        line={page.line}
-        look={look}
-        bgUrl={page.bg_url}
-        tokenUrl={page.token_url}
-        kept={kept}
-        expiresAt={page.expires_at}
-        foundCount={page.found_count}
-      />
-    </main>
+    <ShrineView
+      look={look}
+      owned={owned}
+      canComeBack={isAuthConfigured() && !owned}
+      page={{
+        id: page.id,
+        slug: page.slug,
+        word: page.word,
+        line: page.line,
+        look,
+        bgUrl: page.bg_url,
+        tokenUrl: page.token_url,
+        emailLocal: page.email_local,
+        kept: page.status === "kept",
+        expiresAt: page.expires_at,
+        foundCount: page.found_count,
+        createdAt: page.created_at,
+      }}
+    />
   );
 }

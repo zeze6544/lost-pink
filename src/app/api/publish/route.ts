@@ -1,10 +1,23 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  CLAIM_COOKIE,
+  CLAIM_MAX_AGE,
+  claimCookieValue,
+  newClaimToken,
+  hashClaimToken,
+} from "@/lib/claim";
 import { deleteImages, isAllowedImageUrl } from "@/lib/images";
 import { parseLook, sanitizeLine, defaultLookForSlug } from "@/lib/looks";
-import { publishPage } from "@/lib/pages";
-import { normalizeWord, validateSlug } from "@/lib/slug";
+import { isEmailLocalTaken, publishPage } from "@/lib/pages";
+import {
+  normalizeEmailLocal,
+  normalizeWord,
+  validateEmailLocal,
+  validateSlug,
+} from "@/lib/slug";
+import { getAuthUserId } from "@/lib/supabase/server";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   let body: {
     word?: string;
     line?: unknown;
@@ -14,6 +27,7 @@ export async function POST(request: Request) {
     font?: unknown;
     bg_url?: unknown;
     token_url?: unknown;
+    email_local?: unknown;
   };
   try {
     body = await request.json();
@@ -44,6 +58,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid photo URL." }, { status: 400 });
   }
 
+  let email_local: string | null = null;
+  if (typeof body.email_local === "string" && body.email_local.trim()) {
+    email_local = normalizeEmailLocal(body.email_local);
+    const emailCheck = validateEmailLocal(email_local);
+    if (!emailCheck.ok) {
+      return NextResponse.json({ error: emailCheck.error }, { status: 400 });
+    }
+    if (await isEmailLocalTaken(email_local)) {
+      return NextResponse.json(
+        { error: "that alias is already spoken for." },
+        { status: 409 },
+      );
+    }
+  }
+
+  const ownerId = await getAuthUserId();
+  const claimToken = ownerId ? null : newClaimToken();
+
   let result: Awaited<ReturnType<typeof publishPage>>;
   try {
     result = await publishPage({
@@ -53,6 +85,9 @@ export async function POST(request: Request) {
       look,
       bg_url,
       token_url,
+      owner_id: ownerId,
+      email_local,
+      claim_token_hash: claimToken ? hashClaimToken(claimToken) : null,
     });
   } catch (err) {
     await deleteImages([bg_url, token_url]);
@@ -72,9 +107,24 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     id: result.page.id,
     slug: result.page.slug,
     expiresAt: result.page.expires_at,
+    owned: Boolean(ownerId),
   });
+  if (claimToken) {
+    res.cookies.set(
+      CLAIM_COOKIE,
+      claimCookieValue(result.page.id, claimToken),
+      {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: CLAIM_MAX_AGE,
+      },
+    );
+  }
+  return res;
 }

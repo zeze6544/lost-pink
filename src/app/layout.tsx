@@ -60,13 +60,13 @@ export const metadata: Metadata = {
     default: "lost.pink",
     template: "%s · lost.pink",
   },
-  description: "A shrine you gift. Type a name. Dress it. Send it.",
+  description: "A shrine you leave. Type a name. Dress it. Send it.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   ),
   openGraph: {
     title: "lost.pink",
-    description: "A shrine you gift. Type a name. Dress it. Send it.",
+    description: "A shrine you leave. Type a name. Dress it. Send it.",
     siteName: "lost.pink",
     type: "website",
   },

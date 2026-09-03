@@ -13,6 +13,7 @@ export type ExportPayload = {
   word: string;
   look: Look;
   line?: string | null;
+  alias?: string | null;
   bgUrl?: string | null;
   tokenUrl?: string | null;
   watermark?: boolean;
@@ -38,7 +39,7 @@ async function paintShrine(
   ctx: CanvasRenderingContext2D,
   payload: ExportPayload,
 ) {
-  const { word, look, line, bgUrl, tokenUrl, watermark } = payload;
+  const { word, look, line, alias, bgUrl, tokenUrl, watermark } = payload;
   const colors = PALETTE_COLORS[look.palette];
   const shown = displayWord(word, look.treatment);
 
@@ -149,6 +150,13 @@ async function paintShrine(
     ctx.globalAlpha = 0.32;
     ctx.font = `400 26px system-ui, sans-serif`;
     ctx.fillText("lost.pink", WIDTH / 2, HEIGHT - 110);
+    ctx.globalAlpha = 1;
+  }
+
+  if (alias) {
+    ctx.globalAlpha = 0.32;
+    ctx.font = `400 22px system-ui, sans-serif`;
+    ctx.fillText(`${alias}@lost.pink`, WIDTH / 2, HEIGHT - (watermark ? 160 : 110));
     ctx.globalAlpha = 1;
   }
 }

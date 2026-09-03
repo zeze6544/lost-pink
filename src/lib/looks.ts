@@ -1,4 +1,13 @@
-export const PALETTES = ["soft", "bloom", "dusk", "ink", "pearl"] as const;
+export const PALETTES = [
+  "soft",
+  "bloom",
+  "dusk",
+  "ink",
+  "pearl",
+  "veil",
+  "wine",
+  "gilt",
+] as const;
 export type Palette = (typeof PALETTES)[number];
 
 export const TREATMENTS = ["display", "whisper", "shout"] as const;
@@ -65,6 +74,27 @@ export const PALETTE_COLORS: Record<
     ink: "#4a3038",
     swatch: "#f4ecef",
   },
+  veil: {
+    a: "#d4c0d8",
+    b: "#8b6b92",
+    c: "#e8dcec",
+    ink: "#1c1222",
+    swatch: "#8b6b92",
+  },
+  wine: {
+    a: "#5c2438",
+    b: "#8b3048",
+    c: "#3a1424",
+    ink: "#f4d0da",
+    swatch: "#5c2438",
+  },
+  gilt: {
+    a: "#f3dcc8",
+    b: "#e8b89a",
+    c: "#fbf0e4",
+    ink: "#3a2418",
+    swatch: "#e8c4a8",
+  },
 };
 
 export const FONT_META: Record<
@@ -120,7 +150,7 @@ export const DEFAULT_LOOK: Look = {
   font: "fraunces",
 };
 
-const LINE_MAX = 80;
+export const LINE_MAX = 120;
 
 export function isPalette(v: unknown): v is Palette {
   return typeof v === "string" && (PALETTES as readonly string[]).includes(v);
@@ -206,12 +236,8 @@ export function lookFromStored(
 
 export function sanitizeLine(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
-  let s = raw.replace(/\s+/g, " ").trim().slice(0, LINE_MAX);
-  s = s.replace(/https?:\/\/\S+/gi, " ");
-  s = s.replace(/\bwww\.\S+/gi, " ");
-  s = s.replace(/\b\S+\.[a-z]{2,}(?:\/\S*)?/gi, " ");
-  s = s.replace(/\s+/g, " ").trim();
-  return s.length ? s.slice(0, LINE_MAX) : null;
+  const s = raw.replace(/\s+/g, " ").trim().slice(0, LINE_MAX);
+  return s.length ? s : null;
 }
 
 export function fontWeightFor(font: FontId, treatment: Treatment): number {

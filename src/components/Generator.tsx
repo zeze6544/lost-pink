@@ -7,6 +7,7 @@ import {
   DEFAULT_LOOK,
   FONTS,
   FONT_META,
+  LINE_MAX,
   MOTIFS,
   PALETTE_COLORS,
   PALETTES,
@@ -18,11 +19,21 @@ import {
   type Palette,
   type Treatment,
 } from "@/lib/looks";
-import { normalizeWord } from "@/lib/slug";
-import { JUST_LEFT_KEY } from "@/lib/voice";
+import { displayLostEmail, normalizeEmailLocal, normalizeWord } from "@/lib/slug";
+import { JUST_LEFT_KEY, keepLabel, shareOrCopy } from "@/lib/voice";
 
-const MAX_LINE = 80;
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+
+export type GeneratorPage = {
+  id: string;
+  word: string;
+  line: string | null;
+  look: Look;
+  bgUrl: string | null;
+  tokenUrl: string | null;
+  emailLocal: string | null;
+  kept: boolean;
+};
 
 type Picked = {
   palette: boolean;
@@ -34,26 +45,31 @@ type Picked = {
 type Panel = "word" | "style" | "photo" | "line" | null;
 type StylePane = "color" | "type" | "font" | "motif";
 
-export function Generator() {
+export function Generator({ page }: { page?: GeneratorPage }) {
+  const editing = Boolean(page);
   const router = useRouter();
   const trayRef = useRef<HTMLDivElement>(null);
   const [trayH, setTrayH] = useState(88);
-  const [raw, setRaw] = useState("");
-  const [line, setLine] = useState("");
-  const [look, setLook] = useState<Look>(DEFAULT_LOOK);
+  const [raw, setRaw] = useState(page?.word ?? "");
+  const [line, setLine] = useState(page?.line ?? "");
+  const [emailLocal, setEmailLocal] = useState(page?.emailLocal ?? "");
+  const [look, setLook] = useState<Look>(page?.look ?? DEFAULT_LOOK);
   const [panel, setPanel] = useState<Panel>("word");
   const [stylePane, setStylePane] = useState<StylePane>("color");
   const [picked, setPicked] = useState<Picked>({
-    palette: false,
-    treatment: false,
-    motif: false,
-    font: false,
+    palette: Boolean(page),
+    treatment: Boolean(page),
+    motif: Boolean(page),
+    font: Boolean(page),
   });
   const [bgFile, setBgFile] = useState<File | null>(null);
   const [tokenFile, setTokenFile] = useState<File | null>(null);
-  const [bgPreview, setBgPreview] = useState<string | null>(null);
-  const [tokenPreview, setTokenPreview] = useState<string | null>(null);
+  const [bgPreview, setBgPreview] = useState<string | null>(page?.bgUrl ?? null);
+  const [tokenPreview, setTokenPreview] = useState<string | null>(
+    page?.tokenUrl ?? null,
+  );
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const slug = useMemo(() => normalizeWord(raw), [raw]);
@@ -155,34 +171,80 @@ export function Generator() {
     setError(null);
     startTransition(async () => {
       try {
-        const bg_url = bgFile ? await uploadImage(bgFile) : null;
-        const token_url = tokenFile ? await uploadImage(tokenFile) : null;
-        const res = await fetch("/api/publish", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            word: raw,
-            line,
-            palette: look.palette,
-            treatment: look.treatment,
-            motif: look.motif,
-            font: look.font,
-            bg_url,
-            token_url,
-          }),
-        });
+        const bg_url = bgFile
+          ? await uploadImage(bgFile)
+          : bgPreview && !bgPreview.startsWith("blob:")
+            ? bgPreview
+            : null;
+        const token_url = tokenFile
+          ? await uploadImage(tokenFile)
+          : tokenPreview && !tokenPreview.startsWith("blob:")
+            ? tokenPreview
+            : null;
+        const alias = normalizeEmailLocal(emailLocal);
+        const payload = {
+          word: raw,
+          line,
+          palette: look.palette,
+          treatment: look.treatment,
+          motif: look.motif,
+          font: look.font,
+          bg_url,
+          token_url,
+          email_local: alias || null,
+        };
+        const res = await fetch(
+          editing && page ? `/api/pages/${page.id}` : "/api/publish",
+          {
+            method: editing ? "PATCH" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          },
+        );
         const data = (await res.json()) as { slug?: string; error?: string };
         if (!res.ok) {
-          setError(data.error ?? "couldn't leave it.");
+          setError(data.error ?? (editing ? "couldn't tend it." : "couldn't leave it."));
           return;
         }
         if (data.slug) {
-          sessionStorage.setItem(JUST_LEFT_KEY, data.slug);
+          if (!editing) sessionStorage.setItem(JUST_LEFT_KEY, data.slug);
+          if (editing && data.slug !== slug) {
+            router.replace(`/${data.slug}`);
+            return;
+          }
           router.push(`/${data.slug}`);
+          if (editing) router.refresh();
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "couldn't leave it.");
       }
+    });
+  }
+
+  async function share() {
+    const url = `${window.location.origin}/${slug || page?.word || ""}`;
+    const result = await shareOrCopy(url, `lost.pink/${slug}`);
+    if (result === "copied") {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    }
+  }
+
+  function keepIt() {
+    if (!page) return;
+    setError(null);
+    startTransition(async () => {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pageId: page.id }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        setError(data.error ?? "couldn't keep it.");
+        return;
+      }
+      window.location.href = data.url;
     });
   }
 
@@ -195,6 +257,7 @@ export function Generator() {
         word={display}
         look={look}
         line={line.trim() || null}
+        alias={normalizeEmailLocal(emailLocal) || null}
         bgUrl={bgPreview}
         tokenUrl={tokenPreview}
         animate
@@ -204,7 +267,7 @@ export function Generator() {
           lost.pink
         </p>
         <p className="hidden max-w-[11rem] text-right text-[11px] leading-relaxed text-[var(--ink)]/40 sm:block">
-          A shrine you gift. Frozen when you publish.
+          {editing ? "yours to tend." : "A shrine you leave. Frozen when you publish."}
         </p>
       </header>
 
@@ -230,6 +293,23 @@ export function Generator() {
                     lost.pink/{slug}
                   </p>
                 ) : null}
+                <label htmlFor="alias" className="sr-only">
+                  optional alias
+                </label>
+                <input
+                  id="alias"
+                  value={emailLocal}
+                  onChange={(e) => setEmailLocal(e.target.value.slice(0, 24))}
+                  placeholder="optional · you@lost.pink"
+                  autoComplete="off"
+                  className="mt-2 w-full border-0 bg-transparent text-[12px] text-[var(--ink)]/70 outline-none placeholder:text-[var(--ink-faint)]"
+                />
+                {normalizeEmailLocal(emailLocal) ? (
+                  <p className="mt-0.5 text-[11px] text-[var(--ink-faint)]">
+                    {displayLostEmail(normalizeEmailLocal(emailLocal))}
+                    <span className="ml-1 opacity-70">display only</span>
+                  </p>
+                ) : null}
               </div>
             ) : null}
 
@@ -241,10 +321,10 @@ export function Generator() {
                 <input
                   id="line"
                   value={line}
-                  onChange={(e) => setLine(e.target.value.slice(0, MAX_LINE))}
+                  onChange={(e) => setLine(e.target.value.slice(0, LINE_MAX))}
                   placeholder="one optional line"
                   autoComplete="off"
-                  maxLength={MAX_LINE}
+                  maxLength={LINE_MAX}
                   autoFocus
                   className="w-full border-0 bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
                 />
@@ -431,12 +511,39 @@ export function Generator() {
                 disabled={pending || slug.length < 2}
                 className="ml-auto min-h-9 px-2.5 py-1 text-[13px] text-[var(--ink)] transition enabled:hover:opacity-70 disabled:opacity-30"
               >
-                {pending ? "leaving…" : "leave it here"}
+                {pending
+                  ? editing
+                    ? "saving…"
+                    : "leaving…"
+                  : editing
+                    ? "save it here"
+                    : "leave it here"}
               </button>
             </div>
           </form>
           <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[10px] text-[var(--ink)]/35">
-            <span>no account · frozen when published</span>
+            {editing ? (
+              <>
+                <button type="button" onClick={() => void share()}>
+                  {copied ? "copied" : "share"}
+                </button>
+                {page && !page.kept ? (
+                  <button type="button" onClick={keepIt} disabled={pending}>
+                    {keepLabel(display)}
+                  </button>
+                ) : null}
+                <a href="/you" className="underline-offset-2 hover:underline">
+                  yours
+                </a>
+              </>
+            ) : (
+              <>
+                <span>frozen when published</span>
+                <a href="/come" className="underline-offset-2 hover:underline">
+                  come back
+                </a>
+              </>
+            )}
             <a href="/privacy" className="underline-offset-2 hover:underline">
               privacy
             </a>
@@ -506,7 +613,7 @@ function PhotoPick({
           onChange={(e) => onChange(e.target.files?.[0] ?? null)}
         />
       </label>
-      {file ? (
+      {preview || file ? (
         <button
           type="button"
           className="text-[11px] text-[var(--ink-faint)]"

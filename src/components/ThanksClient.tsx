@@ -13,6 +13,7 @@ type Props = {
   look: Look;
   bgUrl: string | null;
   tokenUrl: string | null;
+  alias?: string | null;
   caption?: string | null;
 };
 
@@ -23,6 +24,7 @@ export function ThanksClient({
   look,
   bgUrl,
   tokenUrl,
+  alias = null,
   caption = null,
 }: Props) {
   const [copied, setCopied] = useState(false);
@@ -47,6 +49,7 @@ export function ThanksClient({
         word={shown}
         look={look}
         line={line}
+        alias={alias}
         bgUrl={bgUrl}
         tokenUrl={tokenUrl}
         caption={caption}
@@ -79,6 +82,7 @@ export function ThanksClient({
                       word: shown,
                       look,
                       line,
+                      alias,
                       bgUrl,
                       tokenUrl,
                       watermark: false,

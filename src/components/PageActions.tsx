@@ -21,6 +21,10 @@ type Props = {
   kept: boolean;
   expiresAt: string | null;
   foundCount: number;
+  alias?: string | null;
+  owned?: boolean;
+  canComeBack?: boolean;
+  onDismissJustLeft?: () => void;
 };
 
 export function PageActions({
@@ -34,6 +38,10 @@ export function PageActions({
   kept,
   expiresAt,
   foundCount,
+  alias = null,
+  owned = false,
+  canComeBack = false,
+  onDismissJustLeft,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -63,6 +71,7 @@ export function PageActions({
   function openShrine() {
     sessionStorage.removeItem(JUST_LEFT_KEY);
     setJustLeft(false);
+    onDismissJustLeft?.();
   }
 
   async function share() {
@@ -96,6 +105,7 @@ export function PageActions({
       word,
       look,
       line,
+      alias,
       bgUrl,
       tokenUrl,
       watermark: !kept,
@@ -152,8 +162,21 @@ export function PageActions({
             </button>
           </div>
           <p className="mt-2 text-[11px] text-[var(--ink-faint)]">
-            here for 48 hours unless someone keeps it.
+            {owned
+              ? "yours to tend."
+              : "here for 48 hours unless someone keeps it."}
           </p>
+          {!owned && canComeBack ? (
+            <p className="mt-1.5 text-[12px] text-[var(--ink)]">
+              <a href={`/come?next=/${encodeURIComponent(slug)}`}>
+                come back to tend this
+              </a>
+              <span className="mx-2 text-[var(--ink-faint)]">·</span>
+              <span className="text-[var(--ink-faint)]">
+                keep is different — it preserves the name
+              </span>
+            </p>
+          ) : null}
         </div>
       </div>
     );

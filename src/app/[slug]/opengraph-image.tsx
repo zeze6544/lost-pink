@@ -187,6 +187,19 @@ export default async function Image({ params }: Props) {
               {page.line}
             </div>
           ) : null}
+          {page.email_local ? (
+            <div
+              style={{
+                display: "flex",
+                marginTop: 20,
+                fontSize: 22,
+                opacity: 0.35,
+                letterSpacing: 3,
+              }}
+            >
+              {page.email_local}@lost.pink
+            </div>
+          ) : null}
         </div>
         {page.status === "free" ? (
           <div

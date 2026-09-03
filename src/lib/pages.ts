@@ -14,10 +14,14 @@ import {
   blobExpireFreePages,
   blobGetPageById,
   blobIncrementFound,
+  blobListAll,
+  blobListByOwner,
   blobMarkKept,
   blobPeekSlug,
   blobPublishPage,
+  blobUpdatePage,
 } from "./pages-blob";
+import { hashClaimToken } from "./claim";
 import { isBlobConfigured, isSupabaseConfigured } from "./site";
 
 export type PageStatus = "free" | "kept";
@@ -38,6 +42,9 @@ export type LostPage = {
   expires_at: string | null;
   polar_order_id: string | null;
   created_at: string;
+  owner_id: string | null;
+  email_local: string | null;
+  claim_token_hash?: string | null;
 };
 
 export type PublishFields = {
@@ -47,6 +54,19 @@ export type PublishFields = {
   look: Look;
   bg_url: string | null;
   token_url: string | null;
+  owner_id?: string | null;
+  email_local?: string | null;
+  claim_token_hash?: string | null;
+};
+
+export type UpdateOwnedFields = {
+  slug: string;
+  word: string;
+  line: string | null;
+  look: Look;
+  bg_url: string | null;
+  token_url: string | null;
+  email_local: string | null;
 };
 
 const FREE_HOURS = 48;
@@ -120,6 +140,15 @@ function mapRow(row: Record<string, unknown>): LostPage {
     expires_at: (row.expires_at as string | null) ?? null,
     polar_order_id: (row.polar_order_id as string | null) ?? null,
     created_at: String(row.created_at),
+    owner_id: typeof row.owner_id === "string" && row.owner_id ? row.owner_id : null,
+    email_local:
+      typeof row.email_local === "string" && row.email_local
+        ? row.email_local
+        : null,
+    claim_token_hash:
+      typeof row.claim_token_hash === "string" && row.claim_token_hash
+        ? row.claim_token_hash
+        : null,
   };
 }
 
@@ -193,6 +222,8 @@ function toInsert(page: LostPage) {
     expires_at: page.expires_at,
     polar_order_id: page.polar_order_id,
     created_at: page.created_at,
+    owner_id: page.owner_id,
+    email_local: page.email_local,
   };
 }
 
@@ -223,6 +254,9 @@ export async function publishPage(
     ).toISOString(),
     polar_order_id: null,
     created_at: now.toISOString(),
+    owner_id: fields.owner_id ?? null,
+    email_local: fields.email_local ?? null,
+    claim_token_hash: fields.claim_token_hash ?? null,
   };
 
   if (existing) {
@@ -244,6 +278,7 @@ export async function publishPage(
       }
       throw error;
     }
+    await writeClaim(page.id, page.claim_token_hash);
     return { page: mapRow(data) };
   }
 
@@ -384,4 +419,221 @@ export async function expireFreePages(): Promise<number> {
   const removed = pages.length - kept.length;
   await writeLocal(kept);
   return removed;
+}
+
+async function writeClaim(pageId: string, tokenHash: string | null | undefined) {
+  if (!tokenHash) return;
+  if (pageStore() === "supabase") {
+    await supabaseAdmin().from("page_claims").upsert({
+      page_id: pageId,
+      token_hash: tokenHash,
+    });
+  }
+}
+
+export async function isEmailLocalTaken(
+  local: string,
+  exceptId?: string,
+): Promise<boolean> {
+  if (pageStore() === "supabase") {
+    let q = supabaseAdmin()
+      .from("pages")
+      .select("id")
+      .eq("email_local", local)
+      .limit(1);
+    if (exceptId) q = q.neq("id", exceptId);
+    const { data, error } = await q;
+    if (error) throw error;
+    return Boolean(data?.length);
+  }
+  if (pageStore() === "blob") {
+    const pages = await blobListAll();
+    return pages.some(
+      (p) => p.email_local === local && p.id !== exceptId && isActive(p),
+    );
+  }
+  const pages = await readLocal();
+  return pages.some(
+    (p) => p.email_local === local && p.id !== exceptId && isActive(p),
+  );
+}
+
+export async function listOwnedPages(ownerId: string): Promise<LostPage[]> {
+  if (pageStore() === "supabase") {
+    const { data, error } = await supabaseAdmin()
+      .from("pages")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((row) => mapRow(row)).filter((p) => isActive(p));
+  }
+  if (pageStore() === "blob") {
+    return (await blobListByOwner(ownerId)).filter((p) => isActive(p));
+  }
+  const pages = await readLocal();
+  return pages
+    .filter((p) => p.owner_id === ownerId && isActive(p))
+    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+}
+
+export async function claimPage(
+  pageId: string,
+  userId: string,
+  token: string,
+): Promise<LostPage | null> {
+  const page = await getPageById(pageId);
+  if (!page || !isActive(page)) return null;
+  if (page.owner_id && page.owner_id !== userId) return null;
+  if (page.owner_id === userId) return page;
+
+  const tokenHash = hashClaimToken(token);
+
+  if (pageStore() === "supabase") {
+    const { data: claim, error: claimError } = await supabaseAdmin()
+      .from("page_claims")
+      .select("token_hash")
+      .eq("page_id", pageId)
+      .maybeSingle();
+    if (claimError) throw claimError;
+    if (!claim || claim.token_hash !== tokenHash) return null;
+    const { data, error } = await supabaseAdmin()
+      .from("pages")
+      .update({ owner_id: userId, updated_at: new Date().toISOString() })
+      .eq("id", pageId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    await supabaseAdmin().from("page_claims").delete().eq("page_id", pageId);
+    return data ? mapRow(data) : null;
+  }
+
+  const storedHash = page.claim_token_hash;
+  if (!storedHash || storedHash !== tokenHash) return null;
+  const next: LostPage = {
+    ...page,
+    owner_id: userId,
+    claim_token_hash: null,
+  };
+
+  if (pageStore() === "blob") {
+    await blobUpdatePage(next, page.slug);
+    return next;
+  }
+
+  const pages = await readLocal();
+  const idx = pages.findIndex((p) => p.id === pageId);
+  if (idx < 0) return null;
+  pages[idx] = next;
+  await writeLocal(pages);
+  return next;
+}
+
+export async function updateOwnedPage(
+  pageId: string,
+  ownerId: string,
+  fields: UpdateOwnedFields,
+): Promise<
+  | { page: LostPage }
+  | { error: string; status: number }
+> {
+  const current = await getPageById(pageId);
+  if (!current || !isActive(current)) {
+    return { error: "gone.", status: 404 };
+  }
+  if (current.owner_id !== ownerId) {
+    return { error: "not yours.", status: 403 };
+  }
+
+  if (fields.slug !== current.slug) {
+    const taken = await peekSlug(fields.slug);
+    if (taken && taken.id !== pageId && isActive(taken)) {
+      return {
+        error: taken.status === "kept"
+          ? "that word is already kept."
+          : "Someone just claimed that. Try another.",
+        status: 409,
+      };
+    }
+  }
+
+  if (fields.email_local) {
+    const taken = await isEmailLocalTaken(fields.email_local, pageId);
+    if (taken) {
+      return { error: "that alias is already spoken for.", status: 409 };
+    }
+  }
+
+  const oldImages = [current.bg_url, current.token_url];
+  const next: LostPage = {
+    ...current,
+    slug: fields.slug,
+    word: fields.word,
+    line: fields.line,
+    palette: fields.look.palette,
+    treatment: fields.look.treatment,
+    motif: fields.look.motif,
+    font: fields.look.font,
+    bg_url: fields.bg_url,
+    token_url: fields.token_url,
+    email_local: fields.email_local,
+  };
+
+  if (pageStore() === "supabase") {
+    if (fields.slug !== current.slug) {
+      const leftover = await peekSlug(fields.slug);
+      if (leftover && leftover.id !== pageId) {
+        await supabaseAdmin().from("pages").delete().eq("id", leftover.id);
+      }
+    }
+    const { data, error } = await supabaseAdmin()
+      .from("pages")
+      .update({
+        slug: next.slug,
+        word: next.word,
+        line: next.line,
+        palette: next.palette,
+        treatment: next.treatment,
+        motif: next.motif,
+        font: next.font,
+        bg_url: next.bg_url,
+        token_url: next.token_url,
+        email_local: next.email_local,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", pageId)
+      .eq("owner_id", ownerId)
+      .select("*")
+      .single();
+    if (error) {
+      if (error.code === "23505") {
+        return { error: "that word or alias is already spoken for.", status: 409 };
+      }
+      throw error;
+    }
+    await deleteReplacedImages(oldImages, [next.bg_url, next.token_url]);
+    return { page: mapRow(data) };
+  }
+
+  if (pageStore() === "blob") {
+    await blobUpdatePage(next, current.slug);
+    await deleteReplacedImages(oldImages, [next.bg_url, next.token_url]);
+    return { page: next };
+  }
+
+  const pages = await readLocal();
+  const idx = pages.findIndex((p) => p.id === pageId);
+  if (idx < 0) return { error: "gone.", status: 404 };
+  pages[idx] = next;
+  await writeLocal(pages);
+  await deleteReplacedImages(oldImages, [next.bg_url, next.token_url]);
+  return { page: next };
+}
+
+async function deleteReplacedImages(
+  previous: Array<string | null>,
+  next: Array<string | null>,
+) {
+  const keep = new Set(next.filter(Boolean));
+  await deleteImages(previous.filter((url) => url && !keep.has(url)));
 }

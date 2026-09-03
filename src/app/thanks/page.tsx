@@ -46,6 +46,7 @@ export default async function ThanksPage({ searchParams }: Props) {
         look={page ? pageLook(page) : DEFAULT_LOOK}
         bgUrl={page?.bg_url ?? null}
         tokenUrl={page?.token_url ?? null}
+        alias={page?.email_local ?? null}
         caption={page ? formatLeftHere(page.created_at) : null}
       />
     </Suspense>

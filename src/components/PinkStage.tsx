@@ -6,6 +6,8 @@ import {
   PALETTE_COLORS,
   type Look,
 } from "@/lib/looks";
+import { displayLostEmail } from "@/lib/slug";
+import { SafeLine } from "@/components/SafeLine";
 
 type Props = {
   word: string;
@@ -13,6 +15,7 @@ type Props = {
   line?: string | null;
   bgUrl?: string | null;
   tokenUrl?: string | null;
+  alias?: string | null;
   caption?: string | null;
   animate?: boolean;
   className?: string;
@@ -24,6 +27,7 @@ export function PinkStage({
   line,
   bgUrl,
   tokenUrl,
+  alias = null,
   caption = null,
   animate = false,
   className = "",
@@ -112,8 +116,14 @@ export function PinkStage({
           </h1>
         </div>
         {line ? (
-          <p className="stage-line relative z-[1] mt-5 max-w-md text-center text-sm leading-relaxed tracking-[0.04em] text-[var(--stage-ink)]/70 sm:text-base">
-            {line}
+          <SafeLine
+            text={line}
+            className="stage-line relative z-[1] mt-5 max-w-md text-center text-sm leading-relaxed tracking-[0.04em] text-[var(--stage-ink)]/70 sm:text-base"
+          />
+        ) : null}
+        {alias ? (
+          <p className="relative z-[1] mt-3 text-[10px] tracking-[0.16em] text-[var(--stage-ink)]/35">
+            {displayLostEmail(alias)}
           </p>
         ) : null}
       </div>

@@ -9,7 +9,8 @@ export default function TermsPage() {
         <p>
           lost.pink lets you publish a short word as a pink shrine. Free pages last
           48 hours. A one-time keep fee makes a name permanent. Looks, photos, and
-          the optional line freeze at publish.
+          the optional line freeze at publish, unless you come back to tend your
+          own shrine. Keep is separate: it preserves the name from expiry.
         </p>
         <p>
           Do not publish illegal content, harassment, or anyone else’s personal
@@ -17,8 +18,8 @@ export default function TermsPage() {
           the law.
         </p>
         <p>
-          Words are first-come for kept pages. We do not guarantee availability of
-          any particular slug forever if it was never kept.
+          Words are first come first serve for kept pages. We do not guarantee
+          availability of any particular slug forever if it was never kept.
         </p>
         <p>
           The service is provided as-is. Refunds for keep purchases follow Polar’s

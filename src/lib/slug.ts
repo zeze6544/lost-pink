@@ -24,6 +24,11 @@ const RESERVED = new Set([
   "found",
   "null",
   "undefined",
+  "come",
+  "you",
+  "auth",
+  "callback",
+  "enter",
 ]);
 
 const BLOCKLIST = new Set([
@@ -60,4 +65,41 @@ export function validateSlug(
     return { ok: false, error: "That one’s taken by the void. Try another." };
   }
   return { ok: true };
+}
+
+const EMAIL_RESERVED = new Set([
+  "postmaster",
+  "abuse",
+  "webmaster",
+  "hostmaster",
+  "noreply",
+  "mail",
+  "email",
+  "support",
+  "hello",
+  "info",
+  "contact",
+  "root",
+  "privacy",
+]);
+
+/** Optional shrine alias, shown as {local}@lost.pink. Display only. */
+export function normalizeEmailLocal(input: string): string {
+  const cut = input.trim().toLowerCase().split("@")[0] ?? "";
+  return normalizeWord(cut);
+}
+
+export function validateEmailLocal(
+  local: string,
+): { ok: true } | { ok: false; error: string } {
+  const check = validateSlug(local);
+  if (!check.ok) return check;
+  if (EMAIL_RESERVED.has(local)) {
+    return { ok: false, error: "That one’s taken by the void. Try another." };
+  }
+  return { ok: true };
+}
+
+export function displayLostEmail(local: string): string {
+  return `${local}@lost.pink`;
 }

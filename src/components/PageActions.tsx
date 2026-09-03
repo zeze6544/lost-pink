@@ -3,6 +3,12 @@
 import { useEffect, useState, useTransition } from "react";
 import { downloadLockScreen } from "@/lib/export-png";
 import type { Look } from "@/lib/looks";
+import {
+  formatHereFor,
+  JUST_LEFT_KEY,
+  keepLabel,
+  shareOrCopy,
+} from "@/lib/voice";
 
 type Props = {
   pageId: string;
@@ -35,26 +41,40 @@ export function PageActions({
   const [found, setFound] = useState(foundCount);
   const [tapped, setTapped] = useState(false);
   const [now, setNow] = useState<number | null>(null);
+  const [justLeft, setJustLeft] = useState(false);
 
   useEffect(() => {
     setTapped(localStorage.getItem(foundKey(slug)) === "1");
   }, [slug]);
 
   useEffect(() => {
+    if (sessionStorage.getItem(JUST_LEFT_KEY) === slug) {
+      setJustLeft(true);
+    }
+  }, [slug]);
+
+  useEffect(() => {
     if (kept || !expiresAt) return;
     setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    const id = setInterval(() => setNow(Date.now()), 60_000);
     return () => clearInterval(id);
   }, [kept, expiresAt]);
 
-  async function copyLink() {
-    const url = `${window.location.origin}/${slug}`;
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
+  function openShrine() {
+    sessionStorage.removeItem(JUST_LEFT_KEY);
+    setJustLeft(false);
   }
 
-  function keepForever() {
+  async function share() {
+    const url = `${window.location.origin}/${slug}`;
+    const result = await shareOrCopy(url, `lost.pink/${slug}`);
+    if (result === "copied") {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    }
+  }
+
+  function keepIt() {
     setError(null);
     startTransition(async () => {
       const res = await fetch("/api/checkout", {
@@ -64,7 +84,7 @@ export function PageActions({
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) {
-        setError(data.error ?? "Checkout failed.");
+        setError(data.error ?? "couldn't keep it.");
         return;
       }
       window.location.href = data.url;
@@ -103,67 +123,84 @@ export function PageActions({
   }
 
   const countdown =
-    !kept && expiresAt && now
-      ? formatCountdown(expiresAt, now)
-      : null;
+    !kept && expiresAt && now ? formatHereFor(expiresAt, now) : null;
+  const hereLabel = kept
+    ? "kept"
+    : (countdown ?? (expiresAt ? formatHereFor(expiresAt, Date.now()) : null));
+
+  if (justLeft) {
+    return (
+      <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-6">
+        <div className="quiet-tray mx-auto w-full max-w-md px-3.5 py-3">
+          <p className="text-sm text-[var(--ink)]">{word} is somewhere now.</p>
+          <p className="mt-0.5 text-[12px] text-[var(--ink-faint)]">
+            lost.pink/{slug}
+          </p>
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[var(--ink)]">
+            <button type="button" onClick={() => void share()}>
+              {copied ? "copied" : "share"}
+            </button>
+            <button type="button" onClick={savePng}>
+              save 9:16
+            </button>
+            <button
+              type="button"
+              onClick={openShrine}
+              className="ml-auto text-[var(--ink-muted)]"
+            >
+              open {word} →
+            </button>
+          </div>
+          <p className="mt-2 text-[11px] text-[var(--ink-faint)]">
+            here for 48 hours unless someone keeps it.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-20 p-4 sm:p-6">
-      <div className="mx-auto flex w-full max-w-lg flex-col gap-3 rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper)]/80 p-4 backdrop-blur-md">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-[var(--ink-muted)]">
+    <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-6">
+      <div className="quiet-tray mx-auto w-full max-w-md px-3.5 py-2.5">
+        <div className="flex items-baseline justify-between gap-3 text-[12px] text-[var(--ink-muted)]">
           <span>lost.pink/{slug}</span>
-          {kept ? (
-            <span>Kept forever</span>
-          ) : (
-            <span>{countdown ?? "Free for 48 hours"}</span>
-          )}
+          {hereLabel ? <span>{hereLabel}</span> : null}
         </div>
-        <div className="flex items-center justify-between gap-2 text-sm">
+        <div className="mt-1.5 flex items-center justify-between gap-3 text-[13px]">
           <button
             type="button"
             onClick={foundThis}
-            className="text-[var(--ink)] underline-offset-4 hover:underline"
+            className="text-[var(--ink)] transition-opacity duration-200"
           >
-            {tapped ? "You found this" : "Found this"}
+            {tapped ? "♥ found this" : "♡ found this"}
             {found >= 10 ? (
-              <span className="ml-1 text-[var(--ink-muted)]">· {found}</span>
+              <span className="text-[var(--ink-faint)]"> · {found}</span>
             ) : null}
           </button>
-          <a
-            href="/"
-            className="text-[var(--ink-muted)] underline-offset-4 hover:underline"
-          >
+          <a href="/" className="text-[var(--ink-faint)]">
             make one for someone else
           </a>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={copyLink}
-            className="h-11 flex-1 rounded-full border border-[var(--ink)]/15 bg-white/50 text-sm text-[var(--ink)] transition hover:bg-white/80"
-          >
-            {copied ? "Copied" : "Copy link"}
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[var(--ink)]">
+          <button type="button" onClick={() => void share()}>
+            {copied ? "copied" : "share"}
           </button>
-          <button
-            type="button"
-            onClick={savePng}
-            className="h-11 flex-1 rounded-full border border-[var(--ink)]/15 bg-white/50 text-sm text-[var(--ink)] transition hover:bg-white/80"
-          >
-            Save 9:16
+          <button type="button" onClick={savePng}>
+            save 9:16
           </button>
+          {!kept ? (
+            <button
+              type="button"
+              onClick={keepIt}
+              disabled={pending}
+              className="ml-auto disabled:opacity-50"
+            >
+              {pending ? "keeping…" : keepLabel(word)}
+            </button>
+          ) : null}
         </div>
-        {!kept ? (
-          <button
-            type="button"
-            onClick={keepForever}
-            disabled={pending}
-            className="h-11 rounded-full bg-[var(--ink)] text-sm text-[var(--blush)] transition enabled:hover:opacity-90 disabled:opacity-50"
-          >
-            {pending ? "Opening…" : "Keep this name · $5"}
-          </button>
-        ) : null}
         {error ? (
-          <p className="text-sm text-[#8a2f45]" role="alert">
+          <p className="mt-1.5 text-xs text-[var(--ink-muted)]" role="alert">
             {error}
           </p>
         ) : null}
@@ -174,16 +211,4 @@ export function PageActions({
 
 function foundKey(slug: string) {
   return `lost.pink:found:${slug}`;
-}
-
-function formatCountdown(expiresAt: string, now: number): string {
-  const ms = new Date(expiresAt).getTime() - now;
-  if (ms <= 0) return "Expiring…";
-  const total = Math.floor(ms / 1000);
-  const d = Math.floor(total / 86400);
-  const h = Math.floor((total % 86400) / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
-  if (d > 0) return `Gone in ${d}d ${h}h`;
-  return `Gone in ${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }

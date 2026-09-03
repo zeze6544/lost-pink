@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: result.kept
-          ? "Already lost — that word is kept forever."
+          ? "that word is already kept."
           : "Someone just claimed that. Try again in a moment or pick another.",
       },
       { status: 409 },

@@ -77,7 +77,7 @@ export const FONT_META: Record<
     google: "Fraunces",
   },
   playfair: {
-    label: "Playfair",
+    label: "Playfair Display",
     cssVar: "--font-playfair",
     google: "Playfair Display",
   },
@@ -87,7 +87,7 @@ export const FONT_META: Record<
     google: "Cormorant Garamond",
   },
   instrument: {
-    label: "Instrument",
+    label: "Instrument Serif",
     cssVar: "--font-instrument",
     google: "Instrument Serif",
   },
@@ -97,7 +97,7 @@ export const FONT_META: Record<
     google: "Outfit",
   },
   plex: {
-    label: "Plex Mono",
+    label: "IBM Plex Mono",
     cssVar: "--font-plex",
     google: "IBM Plex Mono",
   },

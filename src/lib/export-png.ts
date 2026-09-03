@@ -68,13 +68,13 @@ async function paintShrine(
   const weight = fontWeightFor(look.font, look.treatment);
   const tracking =
     look.treatment === "whisper"
-      ? 0.22
+      ? 0.3
       : look.treatment === "shout"
-        ? -0.06
-        : -0.04;
+        ? 0.04
+        : -0.045;
 
   let size =
-    look.treatment === "whisper" ? 96 : look.treatment === "shout" ? 200 : 220;
+    look.treatment === "whisper" ? 72 : look.treatment === "shout" ? 288 : 196;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `${weight} ${size}px ${family}`;
@@ -84,35 +84,54 @@ async function paintShrine(
   }
 
   const token = tokenUrl ? await loadImage(tokenUrl) : null;
-  const tokenSize = 220;
-  const wordY = token ? HEIGHT * 0.52 : HEIGHT * 0.48;
-  const tokenY = wordY - size * 0.7 - tokenSize / 2 - 36;
+  const tokenW = 200;
+  const tokenH = 258;
+  const wordY =
+    look.treatment === "whisper"
+      ? HEIGHT * 0.55
+      : look.treatment === "shout"
+        ? HEIGHT * 0.44
+        : HEIGHT * 0.48;
+  const tokenY = wordY - size * 0.7 - tokenH / 2 - 28;
 
   if (token) {
-    roundRectImage(
-      ctx,
-      token,
-      WIDTH / 2 - tokenSize / 2,
-      tokenY,
-      tokenSize,
-      tokenSize,
-      36,
-    );
+    ctx.save();
+    ctx.translate(WIDTH / 2, tokenY + tokenH / 2);
+    ctx.rotate((-1.5 * Math.PI) / 180);
+    ctx.shadowColor = "rgba(40,10,24,0.16)";
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 6;
+    roundRectImage(ctx, token, -tokenW / 2, -tokenH / 2, tokenW, tokenH, 6);
+    ctx.restore();
   }
 
   if (look.motif === "heart") {
     ctx.fillStyle = colors.ink;
-    ctx.globalAlpha = 0.12;
-    drawHeart(ctx, WIDTH / 2, wordY + 10, size * 2.4);
+    ctx.globalAlpha = 0.055;
+    drawHeart(ctx, WIDTH / 2, wordY + 10, size * 3.4);
     ctx.globalAlpha = 1;
   }
 
   if (look.motif === "echo") {
     ctx.fillStyle = colors.ink;
-    ctx.globalAlpha = 0.16;
-    fillTracked(ctx, shown, WIDTH / 2 + size * 0.18, wordY - size * 0.22, size, tracking);
-    ctx.globalAlpha = 0.09;
-    fillTracked(ctx, shown, WIDTH / 2 - size * 0.22, wordY + size * 0.28, size, tracking);
+    ctx.globalAlpha = 0.08;
+    fillTracked(
+      ctx,
+      shown,
+      WIDTH / 2 + size * 0.14,
+      wordY - size * 0.18,
+      size * 1.05,
+      tracking,
+    );
+    ctx.globalAlpha = 0.04;
+    fillTracked(
+      ctx,
+      shown,
+      WIDTH / 2 - size * 0.16,
+      wordY + size * 0.2,
+      size * 0.94,
+      tracking,
+    );
     ctx.globalAlpha = 1;
   }
 
@@ -127,8 +146,8 @@ async function paintShrine(
   }
 
   if (watermark) {
-    ctx.globalAlpha = 0.45;
-    ctx.font = `400 28px system-ui, sans-serif`;
+    ctx.globalAlpha = 0.32;
+    ctx.font = `400 26px system-ui, sans-serif`;
     ctx.fillText("lost.pink", WIDTH / 2, HEIGHT - 110);
     ctx.globalAlpha = 1;
   }
@@ -274,12 +293,12 @@ function drawGrain(ctx: CanvasRenderingContext2D) {
     data.data[i] = v;
     data.data[i + 1] = v;
     data.data[i + 2] = v;
-    data.data[i + 3] = 55;
+    data.data[i + 3] = 36;
   }
   nctx.putImageData(data, 0, 0);
   ctx.save();
   ctx.globalCompositeOperation = "soft-light";
-  ctx.globalAlpha = 0.5;
+  ctx.globalAlpha = 0.22;
   const pattern = ctx.createPattern(noise, "repeat");
   if (pattern) {
     ctx.fillStyle = pattern;

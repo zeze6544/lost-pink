@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PinkStage } from "@/components/PinkStage";
 import {
@@ -19,6 +19,7 @@ import {
   type Treatment,
 } from "@/lib/looks";
 import { normalizeWord } from "@/lib/slug";
+import { JUST_LEFT_KEY } from "@/lib/voice";
 
 const MAX_LINE = 80;
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
@@ -30,11 +31,18 @@ type Picked = {
   font: boolean;
 };
 
+type Panel = "word" | "style" | "photo" | "line" | null;
+type StylePane = "color" | "type" | "font" | "motif";
+
 export function Generator() {
   const router = useRouter();
+  const trayRef = useRef<HTMLDivElement>(null);
+  const [trayH, setTrayH] = useState(88);
   const [raw, setRaw] = useState("");
   const [line, setLine] = useState("");
   const [look, setLook] = useState<Look>(DEFAULT_LOOK);
+  const [panel, setPanel] = useState<Panel>("word");
+  const [stylePane, setStylePane] = useState<StylePane>("color");
   const [picked, setPicked] = useState<Picked>({
     palette: false,
     treatment: false,
@@ -73,30 +81,45 @@ export function Generator() {
     };
   }, [tokenPreview]);
 
+  useEffect(() => {
+    const el = trayRef.current;
+    if (!el) return;
+    const apply = () => setTrayH(el.offsetHeight + 28);
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [panel, stylePane, error, bgFile, tokenFile]);
+
+  function togglePanel(next: Exclude<Panel, null>) {
+    setPanel((prev) => (prev === next ? null : next));
+  }
+
   function pickPalette(palette: Palette) {
     setPicked((p) => ({ ...p, palette: true }));
     setLook((l) => ({ ...l, palette }));
+    setPanel(null);
   }
 
   function pickTreatment(treatment: Treatment) {
     setPicked((p) => ({ ...p, treatment: true }));
     setLook((l) => ({ ...l, treatment }));
+    setPanel(null);
   }
 
   function pickMotif(motif: Motif) {
     setPicked((p) => ({ ...p, motif: true }));
     setLook((l) => ({ ...l, motif }));
+    setPanel(null);
   }
 
   function pickFont(font: FontId) {
     setPicked((p) => ({ ...p, font: true }));
     setLook((l) => ({ ...l, font }));
+    setPanel(null);
   }
 
-  function onFile(
-    kind: "bg" | "token",
-    file: File | null,
-  ) {
+  function onFile(kind: "bg" | "token", file: File | null) {
     setError(null);
     if (!file) {
       if (kind === "bg") {
@@ -150,264 +173,349 @@ export function Generator() {
         });
         const data = (await res.json()) as { slug?: string; error?: string };
         if (!res.ok) {
-          setError(data.error ?? "Could not publish.");
+          setError(data.error ?? "couldn't leave it.");
           return;
         }
-        router.push(`/${data.slug}`);
+        if (data.slug) {
+          sessionStorage.setItem(JUST_LEFT_KEY, data.slug);
+          router.push(`/${data.slug}`);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not publish.");
+        setError(err instanceof Error ? err.message : "couldn't leave it.");
       }
     });
   }
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden">
+    <div
+      className="relative min-h-[100dvh] overflow-hidden"
+      style={{ ["--tray-h" as string]: `${trayH}px` }}
+    >
       <PinkStage
         word={display}
         look={look}
         line={line.trim() || null}
         bgUrl={bgPreview}
         tokenUrl={tokenPreview}
-        footer={false}
         animate
       />
-      <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 sm:p-8">
-        <header className="flex items-baseline justify-between gap-4">
-          <p className="font-display text-2xl tracking-tight text-[var(--ink)] sm:text-3xl">
-            lost.pink
-          </p>
-          <p className="max-w-[12rem] text-right text-xs leading-relaxed text-[var(--ink-muted)] sm:max-w-xs sm:text-sm">
-            A shrine you gift. Frozen when you publish.
-          </p>
-        </header>
-
-        <form
-          onSubmit={onSubmit}
-          className="mx-auto mt-6 w-full max-w-xl max-h-[min(62vh,40rem)] overflow-y-auto rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper)]/78 p-4 shadow-[0_20px_60px_rgba(60,20,40,0.12)] backdrop-blur-md sm:p-5"
-        >
-          <label htmlFor="word" className="sr-only">
-            A name, a word, a feeling
-          </label>
-          <input
-            id="word"
-            value={raw}
-            onChange={(e) => setRaw(e.target.value)}
-            placeholder="a name, a word, a feeling"
-            autoComplete="off"
-            autoFocus
-            className="w-full border-0 bg-transparent font-display text-3xl text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)] sm:text-4xl"
-          />
-          <label htmlFor="line" className="sr-only">
-            Optional line
-          </label>
-          <input
-            id="line"
-            value={line}
-            onChange={(e) => setLine(e.target.value.slice(0, MAX_LINE))}
-            placeholder="one optional line (no links)"
-            autoComplete="off"
-            maxLength={MAX_LINE}
-            className="mt-2 w-full border-0 bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
-          />
-          <p className="mt-1 text-right text-[10px] text-[var(--ink-faint)]">
-            {line.length}/{MAX_LINE}
-          </p>
-
-          <Row label="Color">
-            <div className="flex flex-wrap gap-2">
-              {PALETTES.map((palette) => (
-                <button
-                  key={palette}
-                  type="button"
-                  title={palette}
-                  aria-label={palette}
-                  aria-pressed={look.palette === palette}
-                  onClick={() => pickPalette(palette)}
-                  className={`h-7 w-7 rounded-full border transition ${
-                    look.palette === palette
-                      ? "scale-110 ring-2 ring-[var(--ink)] ring-offset-2 ring-offset-[var(--paper)]"
-                      : "border-[var(--ink)]/20"
-                  }`}
-                  style={{ background: PALETTE_COLORS[palette].swatch }}
-                />
-              ))}
-            </div>
-          </Row>
-
-          <Row label="Type">
-            <div className="flex flex-wrap gap-1.5">
-              {TREATMENTS.map((treatment) => (
-                <button
-                  key={treatment}
-                  type="button"
-                  aria-pressed={look.treatment === treatment}
-                  onClick={() => pickTreatment(treatment)}
-                  className={`rounded-full px-3 py-1 text-xs transition ${
-                    look.treatment === treatment
-                      ? "bg-[var(--ink)] text-[var(--blush)]"
-                      : "bg-white/50 text-[var(--ink-muted)] hover:bg-white/80"
-                  }`}
-                >
-                  {treatment === "display"
-                    ? "Aa display"
-                    : treatment === "whisper"
-                      ? "aa whisper"
-                      : "AA shout"}
-                </button>
-              ))}
-            </div>
-          </Row>
-
-          <Row label="Font">
-            <div className="flex gap-1.5 overflow-x-auto pb-1">
-              {FONTS.map((font) => (
-                <button
-                  key={font}
-                  type="button"
-                  aria-pressed={look.font === font}
-                  onClick={() => pickFont(font)}
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs transition ${
-                    look.font === font
-                      ? "bg-[var(--ink)] text-[var(--blush)]"
-                      : "bg-white/50 text-[var(--ink-muted)] hover:bg-white/80"
-                  }`}
-                  style={{
-                    fontFamily: `var(${FONT_META[font].cssVar}), Georgia, serif`,
-                  }}
-                >
-                  {FONT_META[font].label}
-                </button>
-              ))}
-            </div>
-          </Row>
-
-          <Row label="Motif">
-            <div className="flex flex-wrap gap-1.5">
-              {MOTIFS.map((motif) => (
-                <button
-                  key={motif}
-                  type="button"
-                  aria-pressed={look.motif === motif}
-                  onClick={() => pickMotif(motif)}
-                  className={`rounded-full px-3 py-1 text-xs transition ${
-                    look.motif === motif
-                      ? "bg-[var(--ink)] text-[var(--blush)]"
-                      : "bg-white/50 text-[var(--ink-muted)] hover:bg-white/80"
-                  }`}
-                >
-                  {motif}
-                </button>
-              ))}
-            </div>
-          </Row>
-
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <FilePick
-              label="Background"
-              file={bgFile}
-              onChange={(file) => onFile("bg", file)}
-            />
-            <FilePick
-              label="Token"
-              file={tokenFile}
-              onChange={(file) => onFile("token", file)}
-            />
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-[var(--ink-muted)]">
-              {slug ? (
-                <>
-                  becomes{" "}
-                  <span className="text-[var(--ink)]">lost.pink/{slug}</span>
-                </>
-              ) : (
-                "Free for 48 hours. Keep the name for $5."
-              )}
-            </p>
-            <button
-              type="submit"
-              disabled={pending || slug.length < 2}
-              className="inline-flex h-11 items-center justify-center rounded-full bg-[var(--ink)] px-6 text-sm font-medium text-[var(--blush)] transition enabled:hover:opacity-90 disabled:opacity-40"
-            >
-              {pending ? "Publishing…" : "Make it pink"}
-            </button>
-          </div>
-          {error ? (
-            <p className="mt-3 text-sm text-[#8a2f45]" role="alert">
-              {error}
-            </p>
-          ) : null}
-        </form>
-
-        <p className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-[var(--ink-muted)] sm:justify-start">
-          <span>No account. Looks freeze at publish.</span>
-          <a href="/privacy" className="underline-offset-2 hover:underline">
-            Privacy
-          </a>
-          <a href="/terms" className="underline-offset-2 hover:underline">
-            Terms
-          </a>
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
+        <p className="font-display text-xl tracking-tight text-[var(--ink)]/80 sm:text-2xl">
+          lost.pink
         </p>
+        <p className="hidden max-w-[11rem] text-right text-[11px] leading-relaxed text-[var(--ink)]/40 sm:block">
+          A shrine you gift. Frozen when you publish.
+        </p>
+      </header>
+
+      <div className="absolute inset-x-0 bottom-0 z-20 p-3 sm:p-6">
+        <div ref={trayRef} className="mx-auto w-full max-w-md">
+          <form onSubmit={onSubmit} className="quiet-tray px-3 py-2.5">
+            {panel === "word" ? (
+              <div className="mb-2">
+                <label htmlFor="word" className="sr-only">
+                  a name, a word, a feeling
+                </label>
+                <input
+                  id="word"
+                  value={raw}
+                  onChange={(e) => setRaw(e.target.value)}
+                  placeholder="a name, a word, a feeling"
+                  autoComplete="off"
+                  autoFocus
+                  className="w-full border-0 bg-transparent font-display text-xl text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
+                />
+                {slug.length >= 2 ? (
+                  <p className="mt-1 text-[11px] text-[var(--ink-faint)]">
+                    lost.pink/{slug}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
+            {panel === "line" ? (
+              <div className="mb-2">
+                <label htmlFor="line" className="sr-only">
+                  optional line
+                </label>
+                <input
+                  id="line"
+                  value={line}
+                  onChange={(e) => setLine(e.target.value.slice(0, MAX_LINE))}
+                  placeholder="one optional line"
+                  autoComplete="off"
+                  maxLength={MAX_LINE}
+                  autoFocus
+                  className="w-full border-0 bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
+                />
+              </div>
+            ) : null}
+
+            {panel === "style" ? (
+              <div className="mb-2">
+                <div className="mb-2 flex gap-1">
+                  {(["color", "type", "font", "motif"] as const).map((pane) => (
+                    <button
+                      key={pane}
+                      type="button"
+                      onClick={() => setStylePane(pane)}
+                      className={`px-2 py-0.5 text-[11px] tracking-wide ${
+                        stylePane === pane
+                          ? "text-[var(--ink)]"
+                          : "text-[var(--ink-faint)]"
+                      }`}
+                    >
+                      {pane}
+                    </button>
+                  ))}
+                </div>
+                {stylePane === "color" ? (
+                  <div className="flex flex-wrap gap-2 px-1">
+                    {PALETTES.map((palette) => (
+                      <button
+                        key={palette}
+                        type="button"
+                        title={palette}
+                        aria-label={palette}
+                        aria-pressed={look.palette === palette}
+                        onClick={() => pickPalette(palette)}
+                        className={`h-6 w-6 rounded-full border transition ${
+                          look.palette === palette
+                            ? "border-[var(--ink)]"
+                            : "border-[var(--ink)]/15"
+                        }`}
+                        style={{ background: PALETTE_COLORS[palette].swatch }}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+                {stylePane === "type" ? (
+                  <div className="flex gap-3 px-1">
+                    {TREATMENTS.map((treatment) => (
+                      <button
+                        key={treatment}
+                        type="button"
+                        aria-pressed={look.treatment === treatment}
+                        onClick={() => pickTreatment(treatment)}
+                        className={`py-1 text-xs tracking-wide ${
+                          look.treatment === treatment
+                            ? "text-[var(--ink)]"
+                            : "text-[var(--ink-faint)]"
+                        }`}
+                      >
+                        {treatment === "display"
+                          ? "display"
+                          : treatment === "whisper"
+                            ? "whisper"
+                            : "SHOUT"}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                {stylePane === "font" ? (
+                  <div className="hidden grid-cols-4 gap-x-2 gap-y-1 sm:grid">
+                    {FONTS.map((font) => (
+                      <button
+                        key={font}
+                        type="button"
+                        aria-pressed={look.font === font}
+                        onClick={() => pickFont(font)}
+                        className={`py-1 text-left text-[11px] leading-tight ${
+                          look.font === font
+                            ? "text-[var(--ink)]"
+                            : "text-[var(--ink-faint)]"
+                        }`}
+                        style={{
+                          fontFamily: `var(${FONT_META[font].cssVar}), Georgia, serif`,
+                        }}
+                      >
+                        {FONT_META[font].label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                {stylePane === "font" ? (
+                  <div className="hide-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto sm:hidden">
+                    {FONTS.map((font) => (
+                      <button
+                        key={font}
+                        type="button"
+                        aria-pressed={look.font === font}
+                        onClick={() => pickFont(font)}
+                        className={`snap-start shrink-0 py-1 text-[12px] ${
+                          look.font === font
+                            ? "text-[var(--ink)]"
+                            : "text-[var(--ink-faint)]"
+                        }`}
+                        style={{
+                          fontFamily: `var(${FONT_META[font].cssVar}), Georgia, serif`,
+                        }}
+                      >
+                        {FONT_META[font].label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                {stylePane === "motif" ? (
+                  <div className="flex gap-3 px-1">
+                    {MOTIFS.map((motif) => (
+                      <button
+                        key={motif}
+                        type="button"
+                        aria-pressed={look.motif === motif}
+                        onClick={() => pickMotif(motif)}
+                        className={`py-1 text-xs tracking-wide ${
+                          look.motif === motif
+                            ? "text-[var(--ink)]"
+                            : "text-[var(--ink-faint)]"
+                        }`}
+                      >
+                        {motif}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {panel === "photo" ? (
+              <div className="mb-2 flex gap-4 px-1">
+                <PhotoPick
+                  label="background"
+                  file={bgFile}
+                  preview={bgPreview}
+                  onChange={(file) => onFile("bg", file)}
+                />
+                <PhotoPick
+                  label="token"
+                  file={tokenFile}
+                  preview={tokenPreview}
+                  onChange={(file) => onFile("token", file)}
+                />
+              </div>
+            ) : null}
+
+            {error ? (
+              <p className="mb-2 text-xs text-[var(--ink-muted)]" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="flex items-center gap-0.5">
+              <TrayTab
+                active={panel === "word"}
+                onClick={() => togglePanel("word")}
+              >
+                word
+              </TrayTab>
+              <TrayTab
+                active={panel === "style"}
+                onClick={() => togglePanel("style")}
+              >
+                style
+              </TrayTab>
+              <TrayTab
+                active={panel === "photo"}
+                onClick={() => togglePanel("photo")}
+              >
+                photo
+              </TrayTab>
+              <TrayTab
+                active={panel === "line"}
+                onClick={() => togglePanel("line")}
+              >
+                line
+              </TrayTab>
+              <button
+                type="submit"
+                disabled={pending || slug.length < 2}
+                className="ml-auto min-h-9 px-2.5 py-1 text-[13px] text-[var(--ink)] transition enabled:hover:opacity-70 disabled:opacity-30"
+              >
+                {pending ? "leaving…" : "leave it here"}
+              </button>
+            </div>
+          </form>
+          <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[10px] text-[var(--ink)]/35">
+            <span>no account · frozen when published</span>
+            <a href="/privacy" className="underline-offset-2 hover:underline">
+              privacy
+            </a>
+            <a href="/terms" className="underline-offset-2 hover:underline">
+              terms
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
 }
 
-function Row({
-  label,
+function TrayTab({
+  active,
+  onClick,
   children,
 }: {
-  label: string;
+  active: boolean;
+  onClick: () => void;
   children: React.ReactNode;
 }) {
   return (
-    <div className="mt-3">
-      <p className="mb-1.5 text-[10px] uppercase tracking-[0.16em] text-[var(--ink-faint)]">
-        {label}
-      </p>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`min-h-9 px-2 py-1 text-[12px] tracking-wide ${
+        active ? "text-[var(--ink)]" : "text-[var(--ink-faint)]"
+      }`}
+    >
       {children}
-    </div>
+    </button>
   );
 }
 
-function FilePick({
+function PhotoPick({
   label,
   file,
+  preview,
   onChange,
 }: {
   label: string;
   file: File | null;
+  preview: string | null;
   onChange: (file: File | null) => void;
 }) {
   return (
-    <label className="flex cursor-pointer flex-col rounded-xl border border-dashed border-[var(--ink)]/15 bg-white/40 px-3 py-2 text-xs text-[var(--ink-muted)]">
-      <span className="uppercase tracking-[0.14em] text-[10px] text-[var(--ink-faint)]">
-        {label}
-      </span>
-      <span className="mt-1 truncate text-[var(--ink)]">
-        {file ? file.name : "jpeg / png / webp"}
-      </span>
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        className="sr-only"
-        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-      />
+    <div className="flex min-w-0 items-center gap-2">
+      <label className="flex cursor-pointer items-center gap-2 text-xs text-[var(--ink)]">
+        {preview ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={preview}
+              alt=""
+              className="h-8 w-6 rounded-[2px] object-cover"
+            />
+            <span>replace</span>
+          </>
+        ) : (
+          <span>+ {label}</span>
+        )}
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+        />
+      </label>
       {file ? (
         <button
           type="button"
-          className="mt-1 self-start text-[10px] underline-offset-2 hover:underline"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onChange(null);
-          }}
+          className="text-[11px] text-[var(--ink-faint)]"
+          onClick={() => onChange(null)}
         >
-          Remove
+          remove
         </button>
       ) : null}
-    </label>
+    </div>
   );
 }
 
@@ -426,7 +534,7 @@ async function uploadImage(file: File): Promise<string> {
   const res = await fetch("/api/upload", { method: "POST", body });
   const data = (await res.json()) as { url?: string; error?: string };
   if (!res.ok || !data.url) {
-    throw new Error(data.error ?? "Photo upload failed.");
+    throw new Error(data.error ?? "couldn't add that photo.");
   }
   return data.url;
 }

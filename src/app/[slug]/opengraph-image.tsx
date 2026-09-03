@@ -37,7 +37,7 @@ export default async function Image({ params }: Props) {
             fontSize: 72,
           }}
         >
-          gone
+          {slug}
         </div>
       ),
       { ...size },
@@ -54,13 +54,13 @@ export default async function Image({ params }: Props) {
   const fontName = loaded?.name ?? FONT_META[look.font].google;
   const weight = loaded?.weight ?? fontWeightFor(look.font, look.treatment);
   const wordSize =
-    look.treatment === "whisper" ? 72 : look.treatment === "shout" ? 150 : 168;
+    look.treatment === "whisper" ? 56 : look.treatment === "shout" ? 210 : 156;
   const letterSpacing =
     look.treatment === "whisper"
-      ? 12
+      ? 16
       : look.treatment === "shout"
-        ? -6
-        : -4;
+        ? 6
+        : -5;
 
   return new ImageResponse(
     (
@@ -120,14 +120,15 @@ export default async function Image({ params }: Props) {
             <img
               src={tokenSrc}
               alt=""
-              width={220}
-              height={220}
+              width={176}
+              height={228}
               style={{
-                width: 220,
-                height: 220,
+                width: 176,
+                height: 228,
                 objectFit: "cover",
-                borderRadius: 36,
+                borderRadius: 6,
                 marginBottom: 36,
+                transform: "rotate(-1.5deg)",
               }}
             />
           ) : null}
@@ -137,7 +138,7 @@ export default async function Image({ params }: Props) {
                 position: "absolute",
                 display: "flex",
                 fontSize: 420,
-                opacity: 0.12,
+                opacity: 0.055,
               }}
             >
               ♥
@@ -152,7 +153,7 @@ export default async function Image({ params }: Props) {
                 fontFamily: fontName,
                 fontWeight: weight,
                 letterSpacing,
-                opacity: 0.16,
+                opacity: 0.08,
                 transform: "translate(36px, -48px)",
               }}
             >
@@ -199,7 +200,7 @@ export default async function Image({ params }: Props) {
               opacity: 0.45,
             }}
           >
-            made on lost.pink
+            lost.pink
           </div>
         ) : null}
       </div>

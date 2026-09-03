@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { Absence } from "@/components/Absence";
 import { PageActions } from "@/components/PageActions";
 import { PinkStage } from "@/components/PinkStage";
 import { getPageBySlug, pageLook } from "@/lib/pages";
 import { siteUrl } from "@/lib/site";
 import { validateSlug } from "@/lib/slug";
+import { formatLeftHere } from "@/lib/voice";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const page = await getPageBySlug(slug.toLowerCase());
   if (!page) {
-    return { title: "Not found" };
+    return { title: slug.toLowerCase() };
   }
   return {
     title: page.word,
@@ -38,23 +39,30 @@ export default async function SlugPage({ params }: Props) {
   const { slug: raw } = await params;
   const slug = raw.toLowerCase();
   const check = validateSlug(slug);
-  if (!check.ok) notFound();
+  if (!check.ok) {
+    return <Absence />;
+  }
 
   const page = await getPageBySlug(slug);
-  if (!page) notFound();
+  if (!page) {
+    return <Absence word={slug} />;
+  }
 
   const look = pageLook(page);
   const kept = page.status === "kept";
 
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden">
+    <main
+      className="relative min-h-[100dvh] overflow-hidden"
+        style={{ ["--tray-h" as string]: "8rem" }}
+    >
       <PinkStage
         word={page.word}
         look={look}
         line={page.line}
         bgUrl={page.bg_url}
         tokenUrl={page.token_url}
-        footer={!kept}
+        caption={formatLeftHere(page.created_at)}
         animate
       />
       <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">

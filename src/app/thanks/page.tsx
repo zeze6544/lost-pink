@@ -3,6 +3,7 @@ import { ThanksClient } from "@/components/ThanksClient";
 import { DEFAULT_LOOK } from "@/lib/looks";
 import { getPolar } from "@/lib/polar";
 import { getPageById, getPageBySlug, pageLook } from "@/lib/pages";
+import { formatLeftHere } from "@/lib/voice";
 
 type Props = {
   searchParams: Promise<{ checkout_id?: string; slug?: string; kept?: string }>;
@@ -35,9 +36,7 @@ export default async function ThanksPage({ searchParams }: Props) {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-[100dvh] items-center justify-center bg-[var(--blush)] text-[var(--ink)]">
-          Loading…
-        </main>
+        <main className="min-h-[100dvh] bg-[var(--blush)]" />
       }
     >
       <ThanksClient
@@ -47,6 +46,7 @@ export default async function ThanksPage({ searchParams }: Props) {
         look={page ? pageLook(page) : DEFAULT_LOOK}
         bgUrl={page?.bg_url ?? null}
         tokenUrl={page?.token_url ?? null}
+        caption={page ? formatLeftHere(page.created_at) : null}
       />
     </Suspense>
   );

@@ -30,6 +30,7 @@ type Props = {
   nextPath?: string;
   beforeCheckout?: () => Promise<boolean>;
   onNeedAlias?: () => void;
+  writePath?: string | null;
 };
 
 export function InboxPanel({

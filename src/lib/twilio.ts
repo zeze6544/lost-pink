@@ -19,11 +19,19 @@ function serviceUrl(path: string): string {
   return `https://verify.twilio.com/v2/Services/${sid}/${path}`;
 }
 
+// Short-circuit flag to skip phone verification when set in the environment.
+function skipPhoneVerification(): boolean {
+  const v = process.env.SKIP_PHONE_VERIFICATION;
+  return v === "1" || v === "true";
+}
+
 export async function sendPhoneCode(
   phone: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const e164 = normalizePhone(phone);
   if (!e164) return { ok: false, error: "that doesn’t look like a phone." };
+  // If skipping verification globally, behave as if the send succeeded.
+  if (skipPhoneVerification()) return { ok: true };
   if (!isTwilioConfigured()) return { ok: true };
 
   const body = new URLSearchParams({ To: e164, Channel: "sms" });
@@ -52,6 +60,10 @@ export async function checkPhoneCode(
   if (!/^\d{4,8}$/.test(trimmed)) {
     return { ok: false, error: "that code isn’t right." };
   }
+
+  // If skipping verification globally, accept any code.
+  if (skipPhoneVerification()) return { ok: true };
+
   if (!isTwilioConfigured()) {
     return trimmed === "000000"
       ? { ok: true }

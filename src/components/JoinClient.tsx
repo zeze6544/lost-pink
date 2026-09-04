@@ -12,6 +12,11 @@ const STEP_COPY: Record<Exclude<Step, "done">, { title: string; note: string }> 
   password: { title: "a password for the inbox", note: "same key for mail, the site, and gmail." },
 };
 
+// Build-time flag to let deployments skip phone verification and UI.
+const SKIP_PHONE =
+  process.env.NEXT_PUBLIC_SKIP_PHONE_VERIFICATION === "1" ||
+  process.env.NEXT_PUBLIC_SKIP_PHONE_VERIFICATION === "true";
+
 export function JoinClient({
   mailboxId,
   checkoutId,
@@ -87,7 +92,12 @@ export function JoinClient({
       return;
     }
     setError(null);
-    setStep("phone");
+    // If the build-time flag indicates skipping phone verification, jump straight to password.
+    if (SKIP_PHONE) {
+      setStep("password");
+    } else {
+      setStep("phone");
+    }
   }
 
   function sendCode() {

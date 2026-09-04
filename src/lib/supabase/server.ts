@@ -25,9 +25,18 @@ export async function createServerSupabase() {
 }
 
 export async function getAuthUserId(): Promise<string | null> {
+  const user = await getAuthUser();
+  return user?.id ?? null;
+}
+
+export async function getAuthUser(): Promise<{
+  id: string;
+  email: string | null;
+} | null> {
   const supabase = await createServerSupabase();
   if (!supabase) return null;
-  const { data } = await supabase.auth.getClaims();
-  const sub = data?.claims?.sub;
-  return typeof sub === "string" && sub ? sub : null;
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
+  if (!user?.id) return null;
+  return { id: user.id, email: user.email ?? null };
 }

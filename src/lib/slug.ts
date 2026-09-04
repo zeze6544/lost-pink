@@ -26,9 +26,13 @@ const RESERVED = new Set([
   "undefined",
   "come",
   "you",
+  "join",
+  "mail",
+  "setup",
   "auth",
   "callback",
   "enter",
+  "support",
 ]);
 
 const BLOCKLIST = new Set([

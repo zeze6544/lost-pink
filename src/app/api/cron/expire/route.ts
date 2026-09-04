@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server";
+import {
+  darkenExpiredMailboxes,
+  retryDueProvisioning,
+  sendDueReminders,
+  sweepAbandonedCheckouts,
+} from "@/lib/mailbox";
 import { expireFreePages } from "@/lib/pages";
 
 export async function GET(request: Request) {
@@ -9,5 +15,9 @@ export async function GET(request: Request) {
   }
 
   const removed = await expireFreePages();
-  return NextResponse.json({ removed });
+  const abandoned = await sweepAbandonedCheckouts();
+  const retried = await retryDueProvisioning();
+  const reminded = await sendDueReminders();
+  const darkened = await darkenExpiredMailboxes();
+  return NextResponse.json({ removed, abandoned, retried, reminded, darkened });
 }

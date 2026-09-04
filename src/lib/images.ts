@@ -2,7 +2,7 @@ import { del, put } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { isBlobConfigured, isSupabaseConfigured } from "./site";
+import { isBlobConfigured, isSupabaseConfigured, supabaseUrl } from "./site";
 
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const IMAGE_DIR = path.join(process.cwd(), ".data", "images");
@@ -19,7 +19,7 @@ export type SniffedImage = {
 
 function supabaseAdmin(): SupabaseClient {
   return createClient(
-    process.env.SUPABASE_URL!,
+    supabaseUrl()!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
@@ -86,7 +86,7 @@ export function isAllowedImageUrl(url: string | null | undefined): boolean {
   if (isBlobUrl(url)) {
     return Boolean(imageKeyFromUrl(url));
   }
-  const base = process.env.SUPABASE_URL?.replace(/\/$/, "");
+  const base = supabaseUrl();
   if (
     base &&
     url.startsWith(`${base}/storage/v1/object/public/${BUCKET}/`)

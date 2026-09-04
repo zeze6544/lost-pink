@@ -1,0 +1,33 @@
+{
+  "server": "production",
+  "previous": {
+    "POLAR_PRODUCT_MAILBOX": "d3eed2e1-9306-4c02-8d0c-e7b6d830341b",
+    "POLAR_PRODUCT_MAILBOX_SUB": null
+  },
+  "ids": {
+    "POLAR_PRODUCT_MAILBOX_MONTH": "6e453896-e62c-4116-be47-61cda1ecba87",
+    "POLAR_PRODUCT_MAILBOX_SUB": "24ec200c-d710-4da0-b4d8-cae9d99d4919",
+    "POLAR_PRODUCT_MAILBOX": "ea21abdf-9f3a-462e-806f-4f98a308e1aa",
+    "POLAR_PRODUCT_MAILBOX_DAY": "18a5990c-2353-424b-9bfd-8c531b668c9c"
+  },
+  "existing": [
+    {
+      "id": "846e3bd5-3786-4ebb-9cf9-05bcdc7f2ba5",
+      "name": "lost.pink inbox one year",
+      "recurring": null,
+      "amount": 5000
+    },
+    {
+      "id": "d3eed2e1-9306-4c02-8d0c-e7b6d830341b",
+      "name": "email 1 year",
+      "recurring": "year",
+      "amount": 5000
+    },
+    {
+      "id": "b2a96529-3df1-4032-a3ba-ae9bae17f8db",
+      "name": "keep",
+      "recurring": null,
+      "amount": 500
+    }
+  ]
+}

@@ -32,8 +32,8 @@ export default async function Image({ params }: Props) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#ffd6e5",
-            color: "#3a1a28",
+            background: "#121212",
+            color: "#eceae4",
             fontSize: 72,
           }}
         >
@@ -132,17 +132,20 @@ export default async function Image({ params }: Props) {
               }}
             />
           ) : null}
-          {look.motif === "heart" ? (
+          {look.motif === "grid" ? (
             <div
               style={{
                 position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
                 display: "flex",
-                fontSize: 420,
-                opacity: 0.055,
+                backgroundImage:
+                  "linear-gradient(to right, rgba(236,234,228,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(236,234,228,0.08) 1px, transparent 1px)",
+                backgroundSize: "48px 48px",
               }}
-            >
-              ♥
-            </div>
+            />
           ) : null}
           {look.motif === "echo" ? (
             <div

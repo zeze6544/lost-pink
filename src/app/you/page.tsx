@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { InboxPanel } from "@/components/InboxPanel";
 import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
+import { listMailboxesByPageIds, toOwnerMailboxView } from "@/lib/mailbox-store";
 import { claimPage, listOwnedPages } from "@/lib/pages";
 import { displayLostEmail } from "@/lib/slug";
 import { getAuthUserId } from "@/lib/supabase/server";
@@ -21,12 +23,13 @@ export default async function YouPage() {
   }
 
   const pages = await listOwnedPages(userId);
+  const mailboxes = await listMailboxesByPageIds(pages.map((page) => page.id));
 
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden bg-[var(--blush)] text-[var(--ink)]">
+    <main className="relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
       <a
         href="/"
-        className="absolute left-4 top-4 font-display text-lg text-[var(--ink)]/70 sm:left-8 sm:top-8"
+        className="mark absolute left-4 top-4 text-sm text-[var(--ink)]/85 sm:left-8 sm:top-8"
       >
         lost.pink
       </a>
@@ -38,22 +41,37 @@ export default async function YouPage() {
               nothing of yours is here.
             </p>
           ) : (
-            <ul className="mt-5 space-y-2">
-              {pages.map((page) => (
-                <li key={page.id}>
-                  <a
-                    href={`/${page.slug}`}
-                    className="font-display text-2xl text-[var(--ink)]/80 transition hover:text-[var(--ink)]"
-                  >
-                    {page.word}
-                  </a>
-                  {page.email_local ? (
-                    <p className="text-[11px] tracking-[0.12em] text-[var(--ink-faint)]">
-                      {displayLostEmail(page.email_local)}
-                    </p>
-                  ) : null}
-                </li>
-              ))}
+            <ul className="mt-5 space-y-4">
+              {pages.map((page) => {
+                const mailbox = mailboxes.get(page.id) ?? null;
+                return (
+                  <li key={page.id}>
+                    <a
+                      href={`/${page.slug}`}
+                      className="font-display text-2xl text-[var(--ink)]/80 transition hover:text-[var(--ink)]"
+                    >
+                      {page.word}
+                    </a>
+                    {page.email_local ? (
+                      <p className="text-[11px] tracking-[0.12em] text-[var(--ink-faint)]">
+                        {displayLostEmail(page.email_local)}
+                      </p>
+                    ) : null}
+                    <div className="mt-1">
+                      <InboxPanel
+                        pageId={page.id}
+                        kept={page.status === "kept"}
+                        signedIn
+                        alias={page.email_local}
+                        publicLabel={page.mailbox_status}
+                        mailbox={mailbox ? toOwnerMailboxView(mailbox) : null}
+                        compact
+                        nextPath={`/${page.slug}`}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
           <form action="/api/auth/signout" method="post" className="mt-8">

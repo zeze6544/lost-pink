@@ -99,18 +99,15 @@ async function paintShrine(
     ctx.save();
     ctx.translate(WIDTH / 2, tokenY + tokenH / 2);
     ctx.rotate((-1.5 * Math.PI) / 180);
-    ctx.shadowColor = "rgba(40,10,24,0.16)";
+    ctx.shadowColor = "rgba(0,0,0,0.35)";
     ctx.shadowBlur = 18;
     ctx.shadowOffsetY = 6;
     roundRectImage(ctx, token, -tokenW / 2, -tokenH / 2, tokenW, tokenH, 6);
     ctx.restore();
   }
 
-  if (look.motif === "heart") {
-    ctx.fillStyle = colors.ink;
-    ctx.globalAlpha = 0.055;
-    drawHeart(ctx, WIDTH / 2, wordY + 10, size * 3.4);
-    ctx.globalAlpha = 1;
+  if (look.motif === "grid") {
+    drawGrid(ctx, colors.ink);
   }
 
   if (look.motif === "echo") {
@@ -269,22 +266,24 @@ function roundRectImage(
   ctx.restore();
 }
 
-function drawHeart(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  size: number,
-) {
-  const s = size / 100;
+function drawGrid(ctx: CanvasRenderingContext2D, ink: string) {
   ctx.save();
-  ctx.translate(cx, cy);
-  ctx.scale(s, s);
-  ctx.beginPath();
-  ctx.moveTo(0, 28);
-  ctx.bezierCurveTo(-80, -25, -45, -90, 0, -52);
-  ctx.bezierCurveTo(45, -90, 80, -25, 0, 28);
-  ctx.closePath();
-  ctx.fill();
+  ctx.strokeStyle = ink;
+  ctx.globalAlpha = 0.1;
+  ctx.lineWidth = 1;
+  const step = 48;
+  for (let x = 0; x <= WIDTH; x += step) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, HEIGHT);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= HEIGHT; y += step) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(WIDTH, y);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 

@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { Generator, type GeneratorPage } from "@/components/Generator";
 import { PageActions } from "@/components/PageActions";
-import { PinkStage } from "@/components/PinkStage";
+import { Stage } from "@/components/Stage";
 import type { Look } from "@/lib/looks";
-import { formatLeftHere, JUST_LEFT_KEY } from "@/lib/voice";
+import { stageStyle } from "@/lib/looks";
+import type { OwnerMailboxView } from "@/lib/mailbox-view";
+import { inboxDisplayOnly, inboxOpenLabel, formatLeftHere, JUST_LEFT_KEY } from "@/lib/voice";
 
 type Props = {
   page: GeneratorPage & {
@@ -13,6 +15,7 @@ type Props = {
     expiresAt: string | null;
     foundCount: number;
     createdAt: string;
+    mailbox?: OwnerMailboxView | null;
   };
   look: Look;
   owned: boolean;
@@ -32,13 +35,25 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
     return (
       <main
         className="relative min-h-[100dvh] overflow-hidden"
-        style={{ ["--tray-h" as string]: "8rem" }}
+        style={
+          {
+            "--tray-h": "8rem",
+            ...stageStyle(look),
+          } as React.CSSProperties
+        }
       >
-        <PinkStage
+        <Stage
           word={page.word}
           look={look}
           line={page.line}
           alias={page.emailLocal}
+          aliasNote={
+            page.mailboxStatus === "open"
+              ? inboxOpenLabel()
+              : page.emailLocal
+                ? inboxDisplayOnly()
+                : null
+          }
           bgUrl={page.bgUrl}
           tokenUrl={page.tokenUrl}
           caption={formatLeftHere(page.createdAt)}
@@ -47,7 +62,7 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
         <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
           <a
             href="/"
-            className="font-display text-lg text-[var(--ink)]/70 transition hover:text-[var(--ink)]"
+            className="mark text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]"
           >
             lost.pink
           </a>
@@ -67,6 +82,8 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
             alias={page.emailLocal}
             owned={owned}
             canComeBack={canComeBack}
+            mailboxStatus={page.mailboxStatus}
+            mailbox={page.mailbox}
             onDismissJustLeft={() => setJustLeft(false)}
           />
         ) : null}
@@ -81,23 +98,35 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
   return (
     <main
       className="relative min-h-[100dvh] overflow-hidden"
-      style={{ ["--tray-h" as string]: "8rem" }}
+        style={
+          {
+            "--tray-h": "8rem",
+            ...stageStyle(look),
+          } as React.CSSProperties
+        }
     >
-      <PinkStage
+      <Stage
         word={page.word}
         look={look}
         line={page.line}
         alias={page.emailLocal}
+        aliasNote={
+          page.mailboxStatus === "open"
+            ? inboxOpenLabel()
+            : page.emailLocal
+              ? inboxDisplayOnly()
+              : null
+        }
         bgUrl={page.bgUrl}
         tokenUrl={page.tokenUrl}
         caption={formatLeftHere(page.createdAt)}
         animate
       />
       <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
-        <a
-          href="/"
-          className="font-display text-lg text-[var(--ink)]/70 transition hover:text-[var(--ink)]"
-        >
+          <a
+            href="/"
+            className="mark text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]"
+          >
           lost.pink
         </a>
       </div>
@@ -115,6 +144,8 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
         alias={page.emailLocal}
         owned={owned}
         canComeBack={canComeBack}
+        mailboxStatus={page.mailboxStatus}
+        mailbox={page.mailbox}
       />
     </main>
   );

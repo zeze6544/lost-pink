@@ -1,9 +1,9 @@
 export function Absence({ word }: { word?: string }) {
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden bg-[var(--blush)] text-[var(--ink)]">
+    <main className="relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
       <a
         href="/"
-        className="absolute left-4 top-4 font-display text-lg text-[var(--ink)]/70 sm:left-8 sm:top-8"
+        className="mark absolute left-4 top-4 text-sm text-[var(--ink)]/85 sm:left-8 sm:top-8"
       >
         lost.pink
       </a>
@@ -25,7 +25,7 @@ export function Absence({ word }: { word?: string }) {
         href="/"
         className="absolute bottom-8 left-0 right-0 text-center text-sm text-[var(--ink-muted)]"
       >
-        make one for someone →
+        start with a name
       </a>
     </main>
   );

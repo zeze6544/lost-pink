@@ -1,22 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --blush: #ffd6e5;
-  --blush-deep: #f4a0bc;
-  --paper: #fff7fa;
-  --ink: #2f1520;
-  --ink-muted: rgba(47, 21, 32, 0.62);
-  --ink-faint: rgba(47, 21, 32, 0.28);
+  --paper: #0c0c0e;
+  --tray: rgba(14, 14, 16, 0.62);
+  --ink: #e6e2da;
+  --ink-muted: rgba(230, 226, 218, 0.62);
+  --ink-faint: rgba(230, 226, 218, 0.4);
   --background: var(--paper);
   --foreground: var(--ink);
   --tray-h: 5.5rem;
+  --stage-a: #121214;
+  --stage-b: #1c1e24;
+  --stage-c: #08080a;
+  --stage-ink: #eceae4;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-outfit);
-  --font-display: var(--font-fraunces);
+  --font-display: var(--font-newsreader);
+  --font-mono: var(--font-plex);
 }
 
 body {
@@ -25,20 +29,128 @@ body {
   font-family: var(--font-outfit), system-ui, sans-serif;
 }
 
-.font-display {
-  font-family: var(--font-fraunces), Georgia, serif;
-}
-
-.pink-wash {
+.site-wash,
+.stage-wash {
   background:
-    radial-gradient(ellipse 90% 70% at 20% 15%, var(--stage-c), transparent 55%),
-    radial-gradient(ellipse 80% 60% at 85% 80%, var(--stage-b), transparent 50%),
-    linear-gradient(160deg, var(--stage-a), var(--stage-c) 45%, var(--stage-b));
+    radial-gradient(
+      ellipse 42% 28% at 50% 38%,
+      color-mix(in srgb, var(--stage-ink) 7%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 90% 48% at 50% 118%,
+      color-mix(in srgb, var(--stage-b) 78%, transparent),
+      transparent 68%
+    ),
+    linear-gradient(
+      180deg,
+      var(--stage-c) 0%,
+      var(--stage-a) 46%,
+      color-mix(in srgb, var(--stage-b) 70%, var(--stage-c)) 100%
+    );
 }
 
-.pink-grain {
+.site-glow {
+  background:
+    radial-gradient(
+      ellipse 28% 18% at 50% 44%,
+      color-mix(in srgb, var(--stage-ink) 5%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 70% 40% at 50% 100%,
+      color-mix(in srgb, var(--stage-b) 35%, transparent),
+      transparent 72%
+    );
+  box-shadow: inset 0 0 120px 24px rgba(0, 0, 0, 0.45);
+}
+
+.site-depth {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--stage-ink) 9%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--stage-ink) 9%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 72px 72px;
+  transform: perspective(1100px) rotateX(64deg) translateY(18%) scale(1.55);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(
+    to top,
+    transparent 4%,
+    rgba(0, 0, 0, 0.55) 38%,
+    transparent 86%
+  );
+  opacity: 0.42;
+}
+
+.font-display {
+  font-family: var(--font-newsreader), Georgia, serif;
+}
+
+.mark {
+  font-family: var(--font-plex), ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  font-weight: 400;
+}
+
+.stage-wash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 140px 28px rgba(0, 0, 0, 0.42),
+    inset 0 -80px 120px color-mix(in srgb, var(--stage-b) 22%, transparent);
+}
+
+.stage-grain {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.35' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
   background-size: 120px 120px;
+}
+
+.stage-grid {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--stage-ink) 11%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--stage-ink) 11%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 32px 32px;
+}
+
+.stage-grid-whisper {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--stage-ink) 8%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--stage-ink) 8%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 64px 64px;
+  transform: perspective(1200px) rotateX(62deg) translateY(22%) scale(1.65);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(
+    to top,
+    transparent 6%,
+    rgba(0, 0, 0, 0.5) 40%,
+    transparent 88%
+  );
+  opacity: 0.5;
 }
 
 .word-rise {
@@ -46,9 +158,24 @@ body {
 }
 
 .quiet-tray {
-  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
-  background: color-mix(in srgb, var(--paper) 78%, transparent);
-  border-radius: 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  background: color-mix(in srgb, var(--paper) 58%, transparent);
+  border-radius: 0;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 11%, transparent),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+    0 28px 80px rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(22px) saturate(1.12);
+}
+
+.quiet-field {
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+}
+
+.quiet-tray input::placeholder,
+.quiet-tray textarea::placeholder {
+  color: color-mix(in srgb, var(--ink) 45%, transparent);
+  opacity: 1;
 }
 
 .hide-scroll {
@@ -131,6 +258,16 @@ body {
   to {
     opacity: 1;
   }
+}
+
+.mail-letter img {
+  max-width: 100%;
+  height: auto;
+}
+
+.mail-letter a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

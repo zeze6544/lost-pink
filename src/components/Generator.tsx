@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { PinkStage } from "@/components/PinkStage";
+import { Stage } from "@/components/Stage";
 import {
   DEFAULT_LOOK,
   FONTS,
@@ -10,17 +10,27 @@ import {
   LINE_MAX,
   MOTIFS,
   PALETTE_COLORS,
+  PALETTE_LABELS,
   PALETTES,
   TREATMENTS,
   defaultLookForSlug,
+  stageStyle,
   type FontId,
   type Look,
   type Motif,
   type Palette,
   type Treatment,
 } from "@/lib/looks";
+import { InboxPanel } from "@/components/InboxPanel";
 import { displayLostEmail, normalizeEmailLocal, normalizeWord } from "@/lib/slug";
-import { JUST_LEFT_KEY, keepLabel, shareOrCopy } from "@/lib/voice";
+import { type PublicMailboxLabel } from "@/lib/mailbox-status";
+import type { OwnerMailboxView } from "@/lib/mailbox-view";
+import {
+  inboxDisplayOnly,
+  JUST_LEFT_KEY,
+  keepLabel,
+  shareOrCopy,
+} from "@/lib/voice";
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
@@ -33,6 +43,9 @@ export type GeneratorPage = {
   tokenUrl: string | null;
   emailLocal: string | null;
   kept: boolean;
+  mailboxStatus?: PublicMailboxLabel;
+  mailboxExpiresAt?: string | null;
+  mailbox?: OwnerMailboxView | null;
 };
 
 type Picked = {
@@ -49,6 +62,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
   const editing = Boolean(page);
   const router = useRouter();
   const trayRef = useRef<HTMLDivElement>(null);
+  const aliasRef = useRef<HTMLInputElement>(null);
   const [trayH, setTrayH] = useState(88);
   const [raw, setRaw] = useState(page?.word ?? "");
   const [line, setLine] = useState(page?.line ?? "");
@@ -71,6 +85,22 @@ export function Generator({ page }: { page?: GeneratorPage }) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
+  const mailboxStatus = page?.mailboxStatus ?? "none";
+  const mailbox = page?.mailbox ?? null;
+  const aliasLocked = Boolean(
+    mailbox &&
+      (mailbox.status === "live" ||
+        mailbox.status === "provisioning" ||
+        mailbox.status === "failed" ||
+        mailbox.status === "dark" ||
+        (mailbox.status === "checkout_started" && !mailbox.checkoutAbandoned)),
+  );
+  const alias = normalizeEmailLocal(emailLocal);
+
+  function askForAlias() {
+    setPanel("word");
+    requestAnimationFrame(() => aliasRef.current?.focus());
+  }
 
   const slug = useMemo(() => normalizeWord(raw), [raw]);
   const display = slug || "you";
@@ -248,26 +278,84 @@ export function Generator({ page }: { page?: GeneratorPage }) {
     });
   }
 
+  async function saveAliasForInbox(): Promise<boolean> {
+    if (!page) return false;
+    if (!page.kept) {
+      setError("keep the name first.");
+      return false;
+    }
+    const nextAlias = normalizeEmailLocal(emailLocal);
+    if (!nextAlias) {
+      askForAlias();
+      setError("choose an alias first.");
+      return false;
+    }
+    if (nextAlias === normalizeEmailLocal(page.emailLocal ?? "")) return true;
+    const bg_url = bgFile
+      ? await uploadImage(bgFile)
+      : bgPreview && !bgPreview.startsWith("blob:")
+        ? bgPreview
+        : null;
+    const token_url = tokenFile
+      ? await uploadImage(tokenFile)
+      : tokenPreview && !tokenPreview.startsWith("blob:")
+        ? tokenPreview
+        : null;
+    const saved = await fetch(`/api/pages/${page.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        word: raw,
+        line,
+        palette: look.palette,
+        treatment: look.treatment,
+        motif: look.motif,
+        font: look.font,
+        bg_url,
+        token_url,
+        email_local: nextAlias,
+      }),
+    });
+    const savedData = (await saved.json()) as { error?: string };
+    if (!saved.ok) {
+      setError(savedData.error ?? "couldn't save that alias.");
+      return false;
+    }
+    return true;
+  }
+
   return (
     <div
       className="relative min-h-[100dvh] overflow-hidden"
-      style={{ ["--tray-h" as string]: `${trayH}px` }}
+      style={
+        {
+          "--tray-h": `${trayH}px`,
+          ...stageStyle(look),
+        } as React.CSSProperties
+      }
     >
-      <PinkStage
+      <Stage
         word={display}
         look={look}
         line={line.trim() || null}
         alias={normalizeEmailLocal(emailLocal) || null}
+        aliasNote={
+          mailboxStatus === "open"
+            ? "inbox open"
+            : normalizeEmailLocal(emailLocal)
+              ? "display only"
+              : null
+        }
         bgUrl={bgPreview}
         tokenUrl={tokenPreview}
         animate
       />
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
-        <p className="font-display text-xl tracking-tight text-[var(--ink)]/80 sm:text-2xl">
+        <p className="mark text-sm text-[var(--stage-ink)] sm:text-[15px]">
           lost.pink
         </p>
-        <p className="hidden max-w-[11rem] text-right text-[11px] leading-relaxed text-[var(--ink)]/40 sm:block">
-          {editing ? "yours to tend." : "A shrine you leave. Frozen when you publish."}
+        <p className="mark hidden max-w-[11rem] text-right text-[10px] leading-relaxed text-[var(--stage-ink)]/50 sm:block">
+          {editing ? "yours to tend." : "an inbox you keep. a page you can leave."}
         </p>
       </header>
 
@@ -277,16 +365,16 @@ export function Generator({ page }: { page?: GeneratorPage }) {
             {panel === "word" ? (
               <div className="mb-2">
                 <label htmlFor="word" className="sr-only">
-                  a name, a word, a feeling
+                  a name
                 </label>
                 <input
                   id="word"
                   value={raw}
                   onChange={(e) => setRaw(e.target.value)}
-                  placeholder="a name, a word, a feeling"
+                  placeholder="a name"
                   autoComplete="off"
                   autoFocus
-                  className="w-full border-0 bg-transparent font-display text-xl text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
+                  className="quiet-field w-full border-0 bg-transparent pb-1 text-xl text-[var(--ink)] outline-none"
                 />
                 {slug.length >= 2 ? (
                   <p className="mt-1 text-[11px] text-[var(--ink-faint)]">
@@ -298,16 +386,23 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                 </label>
                 <input
                   id="alias"
+                  ref={aliasRef}
                   value={emailLocal}
-                  onChange={(e) => setEmailLocal(e.target.value.slice(0, 24))}
+                  onChange={(e) => {
+                    if (aliasLocked) return;
+                    setEmailLocal(e.target.value.slice(0, 24));
+                  }}
                   placeholder="optional · you@lost.pink"
                   autoComplete="off"
+                  readOnly={aliasLocked}
                   className="mt-2 w-full border-0 bg-transparent text-[12px] text-[var(--ink)]/70 outline-none placeholder:text-[var(--ink-faint)]"
                 />
-                {normalizeEmailLocal(emailLocal) ? (
+                {alias ? (
                   <p className="mt-0.5 text-[11px] text-[var(--ink-faint)]">
-                    {displayLostEmail(normalizeEmailLocal(emailLocal))}
-                    <span className="ml-1 opacity-70">display only</span>
+                    {displayLostEmail(alias)}
+                    {mailboxStatus === "open" ? null : page?.kept ? null : (
+                      <span className="ml-1 opacity-70">{inboxDisplayOnly()}</span>
+                    )}
                   </p>
                 ) : null}
               </div>
@@ -355,14 +450,14 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                       <button
                         key={palette}
                         type="button"
-                        title={palette}
-                        aria-label={palette}
+                        title={PALETTE_LABELS[palette]}
+                        aria-label={PALETTE_LABELS[palette]}
                         aria-pressed={look.palette === palette}
                         onClick={() => pickPalette(palette)}
-                        className={`h-6 w-6 rounded-full border transition ${
+                        className={`h-6 w-6 border transition ${
                           look.palette === palette
                             ? "border-[var(--ink)]"
-                            : "border-[var(--ink)]/15"
+                            : "border-[var(--ink)]/20"
                         }`}
                         style={{ background: PALETTE_COLORS[palette].swatch }}
                       />
@@ -394,7 +489,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                 ) : null}
                 {stylePane === "font" ? (
                   <div className="hidden grid-cols-4 gap-x-2 gap-y-1 sm:grid">
-                    {FONTS.map((font) => (
+                    {FONTS.filter((font) => font !== "vibes").map((font) => (
                       <button
                         key={font}
                         type="button"
@@ -416,7 +511,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                 ) : null}
                 {stylePane === "font" ? (
                   <div className="hide-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto sm:hidden">
-                    {FONTS.map((font) => (
+                    {FONTS.filter((font) => font !== "vibes").map((font) => (
                       <button
                         key={font}
                         type="button"
@@ -520,8 +615,23 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                     : "leave it here"}
               </button>
             </div>
+            {editing && page ? (
+              <div className="mt-1.5">
+                <InboxPanel
+                  pageId={page.id}
+                  kept={page.kept}
+                  signedIn
+                  alias={alias || page.emailLocal}
+                  publicLabel={mailboxStatus}
+                  mailbox={mailbox}
+                  nextPath={`/${page.word}`}
+                  onNeedAlias={askForAlias}
+                  beforeCheckout={saveAliasForInbox}
+                />
+              </div>
+            ) : null}
           </form>
-          <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[10px] text-[var(--ink)]/35">
+          <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[10px] text-[var(--stage-ink)]/55">
             {editing ? (
               <>
                 <button type="button" onClick={() => void share()}>
@@ -538,12 +648,15 @@ export function Generator({ page }: { page?: GeneratorPage }) {
               </>
             ) : (
               <>
-                <span>frozen when published</span>
+                <span>an inbox you keep</span>
                 <a href="/come" className="underline-offset-2 hover:underline">
                   come back
                 </a>
               </>
             )}
+            <a href="/support" className="underline-offset-2 hover:underline">
+              support
+            </a>
             <a href="/privacy" className="underline-offset-2 hover:underline">
               privacy
             </a>

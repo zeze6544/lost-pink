@@ -25,12 +25,33 @@ async function readJson<T>(pathname: string): Promise<T | null> {
   }
 }
 
+function scrubPublicPage(data: unknown): unknown {
+  if (!data || typeof data !== "object") return data;
+  const row = { ...(data as Record<string, unknown>) };
+  delete row.mailbox_recovery_email;
+  delete row.mailbox_polar_order_id;
+  delete row.recovery_email;
+  delete row.polar_customer_id;
+  delete row.polar_subscription_id;
+  delete row.polar_checkout_id;
+  delete row.last_error;
+  if (row.mailbox_status === "live") row.mailbox_status = "open";
+  if (
+    row.mailbox_status === "pending" ||
+    row.mailbox_status === "dark" ||
+    row.mailbox_status === "failed"
+  ) {
+    row.mailbox_status = row.email_local ? "display" : "none";
+  }
+  return row;
+}
+
 async function writeJson(
   pathname: string,
   data: unknown,
   overwrite: boolean,
 ): Promise<void> {
-  await put(pathname, JSON.stringify(data), {
+  await put(pathname, JSON.stringify(scrubPublicPage(data)), {
     access: "public",
     contentType: "application/json",
     addRandomSuffix: false,

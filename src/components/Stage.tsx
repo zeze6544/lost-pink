@@ -16,19 +16,27 @@ type Props = {
   bgUrl?: string | null;
   tokenUrl?: string | null;
   alias?: string | null;
+  aliasNote?: string | null;
   caption?: string | null;
+  kicker?: string | null;
+  kickerTitle?: string | null;
+  writeHref?: string | null;
   animate?: boolean;
   className?: string;
 };
 
-export function PinkStage({
+export function Stage({
   word,
   look,
   line,
   bgUrl,
   tokenUrl,
   alias = null,
+  aliasNote = null,
   caption = null,
+  kicker = null,
+  kickerTitle = null,
+  writeHref = null,
   animate = false,
   className = "",
 }: Props) {
@@ -70,11 +78,15 @@ export function PinkStage({
         />
       ) : null}
       <div
-        className="pink-wash absolute inset-0"
-        style={{ opacity: bgUrl ? 0.45 : 1 }}
+        className="stage-wash absolute inset-0"
+        style={{ opacity: bgUrl ? 0.55 : 1 }}
       />
+      <div className="stage-grid-whisper pointer-events-none absolute inset-0" />
       {look.motif === "grain" ? (
-        <div className="pink-grain absolute inset-0 opacity-[0.22] mix-blend-soft-light" />
+        <div className="stage-grain absolute inset-0 opacity-[0.18] mix-blend-soft-light" />
+      ) : null}
+      {look.motif === "grid" ? (
+        <div className="stage-grid pointer-events-none absolute inset-0" />
       ) : null}
       <div
         className={`stage-cluster absolute inset-0 flex flex-col items-center justify-center px-6 ${clusterClass} ${
@@ -86,14 +98,11 @@ export function PinkStage({
           <img
             src={tokenUrl}
             alt=""
-            className="mb-6 h-[7.25rem] w-[5.5rem] rotate-[-1.5deg] rounded-[3px] object-cover shadow-[0_6px_18px_rgba(40,10,24,0.14)] sm:mb-8 sm:h-[9rem] sm:w-[6.75rem]"
+            className="mb-6 h-[7.25rem] w-[5.5rem] object-cover sm:mb-8 sm:h-[9rem] sm:w-[6.75rem]"
           />
         ) : null}
         <div className="relative flex max-w-[90vw] items-center justify-center">
-          {look.motif === "heart" ? (
-            <HeartMark className="pointer-events-none absolute left-1/2 top-1/2 h-[min(92vw,36rem)] w-[min(92vw,36rem)] -translate-x-1/2 -translate-y-[48%] text-[var(--stage-ink)] opacity-[0.055]" />
-          ) : null}
-          {look.motif === "echo" ? (
+          {look.motif === "echo" && shown ? (
             <>
               <span
                 aria-hidden
@@ -109,11 +118,26 @@ export function PinkStage({
               </span>
             </>
           ) : null}
-          <h1
-            className={`relative z-[1] max-w-[90vw] text-center break-all text-[var(--stage-ink)] stage-word ${wordClass}`}
-          >
-            {shown}
-          </h1>
+          {shown ? (
+            <h1
+              className={`relative z-[1] max-w-[90vw] text-center break-all text-[var(--stage-ink)] stage-word ${wordClass}`}
+            >
+              {shown}
+            </h1>
+          ) : kickerTitle || kicker ? (
+            <div className="relative z-[1] max-w-md text-center">
+              {kickerTitle ? (
+                <p className="font-display text-[1.85rem] leading-tight tracking-tight text-[var(--stage-ink)]/90 sm:text-4xl">
+                  {kickerTitle}
+                </p>
+              ) : null}
+              {kicker ? (
+                <p className="mark mt-3 text-[11px] leading-relaxed text-[var(--stage-ink)]/45 sm:text-xs">
+                  {kicker}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         {line ? (
           <SafeLine
@@ -121,30 +145,34 @@ export function PinkStage({
             className="stage-line relative z-[1] mt-5 max-w-md text-center text-sm leading-relaxed tracking-[0.04em] text-[var(--stage-ink)]/70 sm:text-base"
           />
         ) : null}
-        {alias ? (
-          <p className="relative z-[1] mt-3 text-[10px] tracking-[0.16em] text-[var(--stage-ink)]/35">
-            {displayLostEmail(alias)}
+        {alias || aliasNote ? (
+          <p className="mark relative z-[1] mt-3 text-[10px] text-[var(--stage-ink)]/40">
+            {alias ? displayLostEmail(alias) : null}
+            {alias && aliasNote ? (
+              <span className="mx-2 opacity-40">·</span>
+            ) : null}
+            {aliasNote ? (
+              writeHref ? (
+                <a
+                  href={writeHref}
+                  className="pointer-events-auto opacity-80 underline-offset-2 hover:underline"
+                >
+                  {aliasNote}
+                </a>
+              ) : (
+                <span className={alias ? "opacity-70" : undefined}>
+                  {aliasNote}
+                </span>
+              )
+            ) : null}
           </p>
         ) : null}
       </div>
       {caption ? (
-        <p className="stage-caption pointer-events-none absolute left-0 right-0 text-center text-[10px] tracking-[0.14em] text-[var(--stage-ink)]/35">
+        <p className="mark stage-caption pointer-events-none absolute left-0 right-0 text-center text-[10px] text-[var(--stage-ink)]/35">
           {caption}
         </p>
       ) : null}
     </div>
-  );
-}
-
-function HeartMark({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden
-      className={className}
-    >
-      <path d="M12 21s-6.8-4.2-9.4-8.6C.3 8.8 2.4 4.2 6.7 4.2c2.1 0 3.5 1.2 4.3 2.7.8-1.5 2.2-2.7 4.3-2.7 4.3 0 6.4 4.6 4.1 8.2C18.8 16.8 12 21 12 21z" />
-    </svg>
   );
 }

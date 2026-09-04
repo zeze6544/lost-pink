@@ -1,5 +1,7 @@
 import { Absence } from "@/components/Absence";
+import { MailApp } from "@/components/MailApp";
 import { ShrineView } from "@/components/ShrineView";
+import { getMailboxByPageId, toOwnerMailboxView } from "@/lib/mailbox-store";
 import { getPageBySlug, pageLook } from "@/lib/pages";
 import { isAuthConfigured, siteUrl } from "@/lib/site";
 import { validateSlug } from "@/lib/slug";
@@ -50,26 +52,41 @@ export default async function SlugPage({ params }: Props) {
   const look = pageLook(page);
   const userId = await getAuthUserId();
   const owned = Boolean(page.owner_id && userId && page.owner_id === userId);
+  const mailbox = owned ? await getMailboxByPageId(page.id) : null;
+  const pageView = {
+    id: page.id,
+    slug: page.slug,
+    word: page.word,
+    line: page.line,
+    look,
+    bgUrl: page.bg_url,
+    tokenUrl: page.token_url,
+    emailLocal: page.email_local,
+    kept: page.status === "kept",
+    mailboxStatus: page.mailbox_status,
+    mailboxExpiresAt: page.mailbox_expires_at,
+    mailbox: mailbox ? toOwnerMailboxView(mailbox) : null,
+    expiresAt: page.expires_at,
+    foundCount: page.found_count,
+    createdAt: page.created_at,
+  };
+
+  if (owned && mailbox) {
+    const status =
+      mailbox.status === "live"
+        ? "live"
+        : mailbox.status === "dark"
+          ? "dark"
+          : "arriving";
+    return <MailApp page={pageView} look={look} status={status} />;
+  }
 
   return (
     <ShrineView
       look={look}
       owned={owned}
       canComeBack={isAuthConfigured() && !owned}
-      page={{
-        id: page.id,
-        slug: page.slug,
-        word: page.word,
-        line: page.line,
-        look,
-        bgUrl: page.bg_url,
-        tokenUrl: page.token_url,
-        emailLocal: page.email_local,
-        kept: page.status === "kept",
-        expiresAt: page.expires_at,
-        foundCount: page.found_count,
-        createdAt: page.created_at,
-      }}
+      page={pageView}
     />
   );
 }

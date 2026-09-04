@@ -11,18 +11,44 @@ export function isPolarConfigured(): boolean {
   );
 }
 
+import {
+  isMailboxPolarConfigured,
+  mailboxProductId,
+} from "./mailbox-pricing";
+
+export { isMailboxPolarConfigured, mailboxProductId };
+
+export function isSmtpConfigured(): boolean {
+  return Boolean(
+    process.env.MIGADU_SMTP_USER && process.env.MIGADU_SMTP_PASSWORD,
+  );
+}
+
+export function isMigaduConfigured(): boolean {
+  return Boolean(
+    process.env.MIGADU_USER &&
+      process.env.MIGADU_API_KEY &&
+      process.env.MIGADU_DOMAIN,
+  );
+}
+
 export function isBlobConfigured(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
-export function isSupabaseConfigured(): boolean {
-  return Boolean(
-    process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
+export function supabaseUrl(): string | undefined {
+  return (
+    process.env.SUPABASE_URL?.replace(/\/$/, "") ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "")
   );
 }
 
+export function isSupabaseConfigured(): boolean {
+  return Boolean(supabaseUrl() && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
 export function supabasePublicUrl(): string | undefined {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || supabaseUrl();
 }
 
 export function supabasePublishableKey(): string | undefined {
@@ -43,4 +69,8 @@ export function safeNextPath(raw: unknown, fallback = "/you"): string {
     return fallback;
   }
   return raw;
+}
+
+export function polarJoinSuccessUrl(): string {
+  return `${siteUrl()}/join?checkout_id={CHECKOUT_ID}`;
 }

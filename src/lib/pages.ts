@@ -4,6 +4,7 @@ import path from "path";
 import { deleteImages } from "./images";
 import {
   lookFromStored,
+  defaultLookForSlug,
   type FontId,
   type Look,
   type Motif,
@@ -22,9 +23,18 @@ import {
   blobUpdatePage,
 } from "./pages-blob";
 import { hashClaimToken } from "./claim";
-import { isBlobConfigured, isSupabaseConfigured } from "./site";
+import { isMailboxEmailTaken, isMailboxAliasLocked } from "./mailbox-store";
+import {
+  isMailboxOpen,
+  parsePublicMailboxLabel,
+  type PublicMailboxLabel,
+} from "./mailbox-status";
+import { isBlobConfigured, isSupabaseConfigured, supabaseUrl } from "./site";
 
+export type { PublicMailboxLabel };
 export type PageStatus = "free" | "kept";
+
+export const MAILBOX_MS = 365 * 24 * 60 * 60 * 1000;
 
 export type LostPage = {
   id: string;
@@ -45,6 +55,8 @@ export type LostPage = {
   owner_id: string | null;
   email_local: string | null;
   claim_token_hash?: string | null;
+  mailbox_status: PublicMailboxLabel;
+  mailbox_expires_at: string | null;
 };
 
 export type PublishFields = {
@@ -112,7 +124,7 @@ function pageStore(): "supabase" | "blob" | "local" {
 
 function supabaseAdmin(): SupabaseClient {
   return createClient(
-    process.env.SUPABASE_URL!,
+    supabaseUrl()!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
@@ -149,7 +161,23 @@ function mapRow(row: Record<string, unknown>): LostPage {
       typeof row.claim_token_hash === "string" && row.claim_token_hash
         ? row.claim_token_hash
         : null,
+    mailbox_status: parsePublicMailboxLabel(
+      row.email_local ? row.mailbox_status || "display" : "none",
+    ),
+    mailbox_expires_at:
+      typeof row.mailbox_expires_at === "string" && row.mailbox_expires_at
+        ? row.mailbox_expires_at
+        : null,
   };
+}
+
+function coercePage(page: LostPage | null): LostPage | null {
+  if (!page) return null;
+  return mapRow(page as unknown as Record<string, unknown>);
+}
+
+export function mailboxIsCurrent(page: LostPage, now = Date.now()): boolean {
+  return isMailboxOpen(page.mailbox_status, page.mailbox_expires_at, now);
 }
 
 export function pageLook(page: LostPage): Look {
@@ -177,7 +205,7 @@ export async function getPageBySlug(slug: string): Promise<LostPage | null> {
   if (pageStore() === "blob") {
     const page = await blobPeekSlug(slug);
     if (!page || !isActive(page)) return null;
-    return page;
+    return coercePage(page);
   }
 
   const pages = await readLocal();
@@ -198,7 +226,7 @@ export async function getPageById(id: string): Promise<LostPage | null> {
   }
 
   if (pageStore() === "blob") {
-    return blobGetPageById(id);
+    return coercePage(await blobGetPageById(id));
   }
 
   const pages = await readLocal();
@@ -224,6 +252,8 @@ function toInsert(page: LostPage) {
     created_at: page.created_at,
     owner_id: page.owner_id,
     email_local: page.email_local,
+    mailbox_status: page.mailbox_status,
+    mailbox_expires_at: page.mailbox_expires_at,
   };
 }
 
@@ -257,6 +287,8 @@ export async function publishPage(
     owner_id: fields.owner_id ?? null,
     email_local: fields.email_local ?? null,
     claim_token_hash: fields.claim_token_hash ?? null,
+    mailbox_status: fields.email_local ? "display" : "none",
+    mailbox_expires_at: null,
   };
 
   if (existing) {
@@ -304,7 +336,7 @@ async function peekSlug(slug: string): Promise<LostPage | null> {
     return data ? mapRow(data) : null;
   }
   if (pageStore() === "blob") {
-    return blobPeekSlug(slug);
+    return coercePage(await blobPeekSlug(slug));
   }
   const pages = await readLocal();
   return pages.find((p) => p.slug === slug) ?? null;
@@ -444,7 +476,8 @@ export async function isEmailLocalTaken(
     if (exceptId) q = q.neq("id", exceptId);
     const { data, error } = await q;
     if (error) throw error;
-    return Boolean(data?.length);
+    if (data?.length) return true;
+    return isMailboxEmailTaken(local, exceptId);
   }
   if (pageStore() === "blob") {
     const pages = await blobListAll();
@@ -469,7 +502,9 @@ export async function listOwnedPages(ownerId: string): Promise<LostPage[]> {
     return (data ?? []).map((row) => mapRow(row)).filter((p) => isActive(p));
   }
   if (pageStore() === "blob") {
-    return (await blobListByOwner(ownerId)).filter((p) => isActive(p));
+    return (await blobListByOwner(ownerId))
+      .map((p) => coercePage(p))
+      .filter((p): p is LostPage => p !== null && isActive(p));
   }
   const pages = await readLocal();
   return pages
@@ -529,6 +564,161 @@ export async function claimPage(
   return next;
 }
 
+export async function setPageOwner(
+  pageId: string,
+  ownerId: string,
+): Promise<LostPage | null> {
+  const page = await getPageById(pageId);
+  if (!page) return null;
+  if (page.owner_id && page.owner_id !== ownerId) return null;
+  if (page.owner_id === ownerId) return page;
+
+  if (pageStore() === "supabase") {
+    const { data, error } = await supabaseAdmin()
+      .from("pages")
+      .update({ owner_id: ownerId, updated_at: new Date().toISOString() })
+      .eq("id", pageId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return data ? mapRow(data) : null;
+  }
+
+  const next: LostPage = { ...page, owner_id: ownerId };
+  if (pageStore() === "blob") {
+    await blobUpdatePage(next, page.slug);
+    return next;
+  }
+  const pages = await readLocal();
+  const idx = pages.findIndex((p) => p.id === pageId);
+  if (idx < 0) return null;
+  pages[idx] = next;
+  await writeLocal(pages);
+  return next;
+}
+
+export async function deleteUnownedPage(pageId: string): Promise<void> {
+  const page = await getPageById(pageId);
+  if (!page || page.owner_id) return;
+  await deleteImages([page.bg_url, page.token_url]);
+  if (pageStore() === "supabase") {
+    await supabaseAdmin().from("pages").delete().eq("id", pageId);
+    return;
+  }
+  if (pageStore() === "blob") {
+    await blobUpdatePage({ ...page, status: "free", expires_at: new Date(0).toISOString() }, page.slug);
+    return;
+  }
+  const pages = await readLocal();
+  await writeLocal(pages.filter((p) => p.id !== pageId));
+}
+
+export async function reserveKeptAlias(local: string): Promise<LostPage> {
+  const existing = await peekSlug(local);
+  if (existing && isActive(existing) && existing.owner_id) {
+    return existing;
+  }
+  if (existing && isActive(existing) && !existing.owner_id) {
+    const kept = await markKept(existing.id, null);
+    if (kept) {
+      return (await setPageEmailLocal(kept.id, local)) ?? kept;
+    }
+  }
+  if (existing && !isActive(existing)) {
+    await deleteImages([existing.bg_url, existing.token_url]);
+    if (pageStore() === "supabase") {
+      await supabaseAdmin().from("pages").delete().eq("id", existing.id);
+    }
+  }
+
+  const look = defaultLookForSlug(local);
+  const now = new Date().toISOString();
+  const page: LostPage = {
+    id: newId(),
+    slug: local,
+    word: local,
+    line: null,
+    palette: look.palette,
+    treatment: look.treatment,
+    motif: look.motif,
+    font: look.font,
+    bg_url: null,
+    token_url: null,
+    found_count: 0,
+    status: "kept",
+    expires_at: null,
+    polar_order_id: null,
+    created_at: now,
+    owner_id: null,
+    email_local: local,
+    mailbox_status: "display",
+    mailbox_expires_at: null,
+  };
+
+  if (pageStore() === "supabase") {
+    const { data, error } = await supabaseAdmin()
+      .from("pages")
+      .insert(toInsert(page))
+      .select("*")
+      .single();
+    if (error) {
+      if (error.code === "23505") {
+        const again = await peekSlug(local);
+        if (again) return again;
+      }
+      throw error;
+    }
+    return mapRow(data);
+  }
+
+  if (pageStore() === "blob") {
+    const published = await blobPublishPage(page, existing);
+    if ("page" in published) {
+      return (await markKept(published.page.id, null)) ?? published.page;
+    }
+    throw new Error("couldn't hold that name.");
+  }
+
+  const pages = await readLocal();
+  const next = pages.filter((p) => p.slug !== local);
+  next.push(page);
+  await writeLocal(next);
+  return page;
+}
+
+async function setPageEmailLocal(
+  pageId: string,
+  emailLocal: string,
+): Promise<LostPage | null> {
+  if (pageStore() === "supabase") {
+    const { data, error } = await supabaseAdmin()
+      .from("pages")
+      .update({
+        email_local: emailLocal,
+        mailbox_status: "display",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", pageId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return data ? mapRow(data) : null;
+  }
+  const page = await getPageById(pageId);
+  if (!page) return null;
+  const next = { ...page, email_local: emailLocal, mailbox_status: "display" as const };
+  if (pageStore() === "blob") {
+    await blobUpdatePage(next, page.slug);
+    return next;
+  }
+  const pages = await readLocal();
+  const idx = pages.findIndex((p) => p.id === pageId);
+  if (idx < 0) return null;
+  pages[idx] = next;
+  await writeLocal(pages);
+  return next;
+}
+
 export async function updateOwnedPage(
   pageId: string,
   ownerId: string,
@@ -557,8 +747,18 @@ export async function updateOwnedPage(
     }
   }
 
+  const mailboxLocked = await isMailboxAliasLocked(current.id);
+  if (mailboxLocked && fields.email_local !== current.email_local) {
+    return {
+      error: "that inbox is tied to this name for now.",
+      status: 409,
+    };
+  }
+
   if (fields.email_local) {
-    const taken = await isEmailLocalTaken(fields.email_local, pageId);
+    const taken =
+      (await isEmailLocalTaken(fields.email_local, pageId)) ||
+      (await isMailboxEmailTaken(fields.email_local, pageId));
     if (taken) {
       return { error: "that alias is already spoken for.", status: 409 };
     }
@@ -636,4 +836,45 @@ async function deleteReplacedImages(
 ) {
   const keep = new Set(next.filter(Boolean));
   await deleteImages(previous.filter((url) => url && !keep.has(url)));
+}
+
+export function publicPageFields(page: LostPage): Pick<
+  LostPage,
+  | "id"
+  | "slug"
+  | "word"
+  | "line"
+  | "palette"
+  | "treatment"
+  | "motif"
+  | "font"
+  | "bg_url"
+  | "token_url"
+  | "found_count"
+  | "status"
+  | "expires_at"
+  | "created_at"
+  | "email_local"
+  | "mailbox_status"
+  | "mailbox_expires_at"
+> {
+  return {
+    id: page.id,
+    slug: page.slug,
+    word: page.word,
+    line: page.line,
+    palette: page.palette,
+    treatment: page.treatment,
+    motif: page.motif,
+    font: page.font,
+    bg_url: page.bg_url,
+    token_url: page.token_url,
+    found_count: page.found_count,
+    status: page.status,
+    expires_at: page.expires_at,
+    created_at: page.created_at,
+    email_local: page.email_local,
+    mailbox_status: page.mailbox_status,
+    mailbox_expires_at: page.mailbox_expires_at,
+  };
 }

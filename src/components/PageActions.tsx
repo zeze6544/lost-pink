@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { downloadLockScreen } from "@/lib/export-png";
+import { InboxPanel } from "@/components/InboxPanel";
 import type { Look } from "@/lib/looks";
+import type { PublicMailboxLabel } from "@/lib/mailbox-status";
+import type { OwnerMailboxView } from "@/lib/mailbox-view";
 import {
   formatHereFor,
   JUST_LEFT_KEY,
@@ -24,6 +26,8 @@ type Props = {
   alias?: string | null;
   owned?: boolean;
   canComeBack?: boolean;
+  mailboxStatus?: PublicMailboxLabel;
+  mailbox?: OwnerMailboxView | null;
   onDismissJustLeft?: () => void;
 };
 
@@ -31,7 +35,6 @@ export function PageActions({
   pageId,
   slug,
   word,
-  line,
   look,
   bgUrl,
   tokenUrl,
@@ -41,6 +44,8 @@ export function PageActions({
   alias = null,
   owned = false,
   canComeBack = false,
+  mailboxStatus = "none",
+  mailbox = null,
   onDismissJustLeft,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +55,7 @@ export function PageActions({
   const [tapped, setTapped] = useState(false);
   const [now, setNow] = useState<number | null>(null);
   const [justLeft, setJustLeft] = useState(false);
+  const writePath = mailboxStatus === "open" ? `/${slug}/write` : null;
 
   useEffect(() => {
     setTapped(localStorage.getItem(foundKey(slug)) === "1");
@@ -68,7 +74,7 @@ export function PageActions({
     return () => clearInterval(id);
   }, [kept, expiresAt]);
 
-  function openShrine() {
+  function openPage() {
     sessionStorage.removeItem(JUST_LEFT_KEY);
     setJustLeft(false);
     onDismissJustLeft?.();
@@ -97,18 +103,6 @@ export function PageActions({
         return;
       }
       window.location.href = data.url;
-    });
-  }
-
-  function savePng() {
-    void downloadLockScreen({
-      word,
-      look,
-      line,
-      alias,
-      bgUrl,
-      tokenUrl,
-      watermark: !kept,
     });
   }
 
@@ -146,17 +140,14 @@ export function PageActions({
           <p className="mt-0.5 text-[12px] text-[var(--ink-faint)]">
             lost.pink/{slug}
           </p>
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[var(--ink)]">
+          <div className="mt-2.5 flex items-center justify-between gap-3 text-[13px] text-[var(--ink)]">
             <button type="button" onClick={() => void share()}>
               {copied ? "copied" : "share"}
             </button>
-            <button type="button" onClick={savePng}>
-              save 9:16
-            </button>
             <button
               type="button"
-              onClick={openShrine}
-              className="ml-auto text-[var(--ink-muted)]"
+              onClick={openPage}
+              className="text-[var(--ink-muted)]"
             >
               open {word} →
             </button>
@@ -166,17 +157,21 @@ export function PageActions({
               ? "yours to tend."
               : "here for 48 hours unless someone keeps it."}
           </p>
-          {!owned && canComeBack ? (
-            <p className="mt-1.5 text-[12px] text-[var(--ink)]">
-              <a href={`/come?next=/${encodeURIComponent(slug)}`}>
-                come back to tend this
-              </a>
-              <span className="mx-2 text-[var(--ink-faint)]">·</span>
-              <span className="text-[var(--ink-faint)]">
-                keep is different — it preserves the name
-              </span>
-            </p>
-          ) : null}
+          <div className="mt-1.5">
+            <InboxPanel
+              pageId={pageId}
+              kept={kept}
+              signedIn={owned}
+              alias={alias}
+              publicLabel={mailboxStatus}
+              mailbox={mailbox}
+              compact
+              inviteComeBack={canComeBack}
+              nextPath={`/${slug}`}
+              writePath={writePath}
+              onNeedAlias={openPage}
+            />
+          </div>
         </div>
       </div>
     );
@@ -184,12 +179,12 @@ export function PageActions({
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-6">
-      <div className="quiet-tray mx-auto w-full max-w-md px-3.5 py-2.5">
+      <div className="quiet-tray mx-auto w-full max-w-md space-y-2 px-3.5 py-2.5">
         <div className="flex items-baseline justify-between gap-3 text-[12px] text-[var(--ink-muted)]">
           <span>lost.pink/{slug}</span>
           {hereLabel ? <span>{hereLabel}</span> : null}
         </div>
-        <div className="mt-1.5 flex items-center justify-between gap-3 text-[13px]">
+        <div className="flex items-center justify-between gap-3 text-[13px]">
           <button
             type="button"
             onClick={foundThis}
@@ -200,30 +195,39 @@ export function PageActions({
               <span className="text-[var(--ink-faint)]"> · {found}</span>
             ) : null}
           </button>
-          <a href="/" className="text-[var(--ink-faint)]">
+          <a href="/" className="shrink-0 text-right text-[var(--ink-faint)]">
             make one for someone else
           </a>
         </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[var(--ink)]">
+        <div className="flex items-center justify-between gap-3 text-[13px] text-[var(--ink)]">
           <button type="button" onClick={() => void share()}>
             {copied ? "copied" : "share"}
-          </button>
-          <button type="button" onClick={savePng}>
-            save 9:16
           </button>
           {!kept ? (
             <button
               type="button"
               onClick={keepIt}
               disabled={pending}
-              className="ml-auto disabled:opacity-50"
+              className="disabled:opacity-50"
             >
               {pending ? "keeping…" : keepLabel(word)}
             </button>
           ) : null}
         </div>
+        <InboxPanel
+          pageId={pageId}
+          kept={kept}
+          signedIn={owned}
+          alias={alias}
+          publicLabel={mailboxStatus}
+          mailbox={owned ? mailbox : null}
+          compact
+          inviteComeBack={canComeBack}
+          nextPath={`/${slug}`}
+          writePath={writePath}
+        />
         {error ? (
-          <p className="mt-1.5 text-xs text-[var(--ink-muted)]" role="alert">
+          <p className="text-xs text-[var(--ink-muted)]" role="alert">
             {error}
           </p>
         ) : null}

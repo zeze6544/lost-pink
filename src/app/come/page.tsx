@@ -27,10 +27,10 @@ export default async function ComePage({ searchParams }: Props) {
   }
 
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden bg-[var(--blush)] text-[var(--ink)]">
+    <main className="relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
       <a
         href="/"
-        className="absolute left-4 top-4 font-display text-lg text-[var(--ink)]/70 sm:left-8 sm:top-8"
+        className="mark absolute left-4 top-4 text-sm text-[var(--ink)]/85 sm:left-8 sm:top-8"
       >
         lost.pink
       </a>
@@ -38,8 +38,8 @@ export default async function ComePage({ searchParams }: Props) {
         <div className="quiet-tray w-full max-w-sm px-5 py-5">
           <h1 className="font-display text-3xl tracking-tight">come back</h1>
           <p className="mt-2 text-[13px] leading-relaxed text-[var(--ink-muted)]">
-            a quiet link, so you can tend what you left. this is not keep — keep
-            preserves the name from fading.
+            sign in with you@lost.pink and your password. a shrine you left
+            without an inbox still uses a quiet link.
           </p>
           {isAuthConfigured() ? (
             <ComeClient next={next} />

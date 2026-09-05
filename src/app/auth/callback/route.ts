@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
+import {
+  CLAIM_COOKIE,
+  clearClaimCookies,
+  parseClaimCookie,
+} from "@/lib/claim";
 import { claimPage } from "@/lib/pages";
 import { SITE_RESET_PATH } from "@/lib/mailbox-settings";
 import { safeNextPath } from "@/lib/site";
@@ -27,13 +31,18 @@ export async function GET(request: NextRequest) {
   const route = await createRouteSupabase();
   const supabase = route?.supabase ?? null;
 
+  let authError: string | null = null;
   if (supabase && token_hash) {
-    await supabase.auth.verifyOtp({
+    const verified = await supabase.auth.verifyOtp({
       type: type as "recovery",
       token_hash,
     });
+    if (verified.error) authError = verified.error.message;
   } else if (code && supabase) {
-    await supabase.auth.exchangeCodeForSession(code);
+    const exchanged = await supabase.auth.exchangeCodeForSession(code);
+    if (exchanged.error) authError = exchanged.error.message;
+  } else if (token_hash || code) {
+    authError = "auth is not configured.";
   }
 
   const { data } = supabase
@@ -41,6 +50,15 @@ export async function GET(request: NextRequest) {
     : { data: null };
   const userId =
     typeof data?.claims?.sub === "string" ? data.claims.sub : null;
+
+  if (authError && !userId) {
+    const failPath =
+      type === "recovery"
+        ? `${SITE_RESET_PATH}?error=expired`
+        : `/come?error=link&next=${encodeURIComponent(next)}`;
+    const fail = NextResponse.redirect(new URL(failPath, requestUrl.origin));
+    return route ? route.applyCookies(fail) : fail;
+  }
 
   if (userId && type !== "recovery") {
     const parsed = parseClaimCookie(request.cookies.get(CLAIM_COOKIE)?.value);
@@ -51,12 +69,15 @@ export async function GET(request: NextRequest) {
           const toPage = NextResponse.redirect(
             new URL(`/${claimed.slug}`, requestUrl.origin),
           );
-          toPage.cookies.set(CLAIM_COOKIE, "", { path: "/", maxAge: 0 });
+          clearClaimCookies(toPage.cookies);
           return route ? route.applyCookies(toPage) : toPage;
         }
       } catch {
-        // Fall through to next.
+        // Fall through to next; still drop a stale claim cookie below.
       }
+      const redirect = NextResponse.redirect(new URL(next, requestUrl.origin));
+      clearClaimCookies(redirect.cookies);
+      return route ? route.applyCookies(redirect) : redirect;
     }
   }
 

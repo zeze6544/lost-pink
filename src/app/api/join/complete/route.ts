@@ -34,7 +34,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "that payment isn’t here." }, { status: 402 });
   }
   if (paid.owner_id && paid.status === "live") {
-    return NextResponse.json({ slug: paid.email_local });
+    return NextResponse.json(
+      { error: "that inbox already has a sign-in. log in.", slug: paid.email_local },
+      { status: 409 },
+    );
   }
 
   const name = (body.name ?? "").trim().slice(0, 80);

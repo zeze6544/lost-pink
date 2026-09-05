@@ -164,14 +164,18 @@ async function mailboxCheckout(
   const user = await getAuthUser();
 
   if (page && input.action === "clear") {
-    if (user && page.owner_id && user.id === page.owner_id) {
-      const existing = await getMailboxByPageId(page.id);
-      if (!existing || existing.status !== "checkout_started") {
-        return NextResponse.json({ error: "nothing to clear." }, { status: 409 });
-      }
-      await clearMailboxCheckout(page.id);
-      return NextResponse.json({ cleared: true });
+    if (!user) {
+      return NextResponse.json({ error: "sign in first." }, { status: 401 });
     }
+    if (!page.owner_id || user.id !== page.owner_id) {
+      return NextResponse.json({ error: "not yours." }, { status: 403 });
+    }
+    const existing = await getMailboxByPageId(page.id);
+    if (!existing || existing.status !== "checkout_started") {
+      return NextResponse.json({ error: "nothing to clear." }, { status: 409 });
+    }
+    await clearMailboxCheckout(page.id);
+    return NextResponse.json({ cleared: true });
   }
 
   if (!page) {

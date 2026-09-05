@@ -3,6 +3,14 @@ import { createHash, randomBytes } from "crypto";
 export const CLAIM_COOKIE = "lp_claim";
 export const CLAIM_MAX_AGE = 60 * 60 * 24 * 30;
 
+type ClaimCookieWrite = {
+  httpOnly: boolean;
+  sameSite: "lax";
+  secure: boolean;
+  path: string;
+  maxAge: number;
+};
+
 export function newClaimToken(): string {
   return randomBytes(32).toString("hex");
 }
@@ -32,4 +40,37 @@ export function parseClaimCookie(
 
 export function claimCookieValue(pageId: string, token: string): string {
   return `${pageId}.${token}`;
+}
+
+function claimSecure(): boolean {
+  return (
+    process.env.NODE_ENV === "production" || process.env.VERCEL === "1"
+  );
+}
+
+/** Options used when writing the claim cookie (must match clears). */
+export function claimCookieOptions(
+  maxAge: number = CLAIM_MAX_AGE,
+): ClaimCookieWrite {
+  return {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: claimSecure(),
+    path: "/",
+    maxAge,
+  };
+}
+
+/** Clear Secure and legacy non-Secure claim cookies. */
+export function clearClaimCookies(set: {
+  set: (name: string, value: string, options: ClaimCookieWrite) => void;
+}): void {
+  const base = {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 0,
+  };
+  set.set(CLAIM_COOKIE, "", { ...base, secure: true });
+  set.set(CLAIM_COOKIE, "", { ...base, secure: false });
 }

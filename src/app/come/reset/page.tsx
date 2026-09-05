@@ -4,7 +4,12 @@ import { getAuthUser } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function ResetPage() {
+type Props = {
+  searchParams: Promise<{ error?: string }>;
+};
+
+export default async function ResetPage({ searchParams }: Props) {
+  const sp = await searchParams;
   const user = await getAuthUser();
   const local = user?.email?.split("@")[0] ?? null;
   const next = local ? `/${local}` : "/settings";
@@ -14,7 +19,7 @@ export default async function ResetPage() {
       title="a new password"
       note="this is lost.pink. pick a password for the site, the inbox, and mail apps. at least 8 characters."
     >
-      {user ? (
+      {user && sp.error !== "expired" ? (
         <ResetClient next={next} />
       ) : (
         <p className="mt-4 text-[13px] leading-relaxed text-[var(--ink)]">

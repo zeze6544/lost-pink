@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { validRecoveryEmail } from "@/lib/slug";
 
 type Step = "name" | "recovery" | "password" | "done";
 
@@ -79,7 +80,7 @@ export function JoinClient({
 
   function nextRecovery() {
     const value = recovery.trim().toLowerCase();
-    if (!value.includes("@") || value.endsWith("@lost.pink")) {
+    if (!validRecoveryEmail(value)) {
       setError("use a recovery email that isn’t @lost.pink.");
       return;
     }
@@ -102,6 +103,9 @@ export function JoinClient({
       const data = (await res.json()) as { slug?: string; error?: string };
       if (!res.ok || !data.slug) {
         setError(data.error ?? "couldn't open the inbox.");
+        if (res.status === 409) {
+          window.setTimeout(() => window.location.assign("/come"), 1200);
+        }
         return;
       }
       setStep("done");

@@ -170,11 +170,11 @@ export function MailApp({
     then?.();
   }
 
-  function openLetter(item: MailListItem) {
+  function openLetter(item: MailListItem, withImages = images) {
     startTransition(async () => {
       setError(null);
       const res = await fetch(
-        `/api/mail/get?pageId=${encodeURIComponent(page.id)}&folder=${folder}&uid=${item.uid}${images ? "&images=1" : ""}`,
+        `/api/mail/get?pageId=${encodeURIComponent(page.id)}&folder=${folder}&uid=${item.uid}${withImages ? "&images=1" : ""}`,
         { cache: "no-store" },
       );
       const data = (await res.json()) as Letter & { error?: string };
@@ -189,7 +189,7 @@ export function MailApp({
 
   function compose(reply?: Letter) {
     if (reply) {
-      setTo(reply.from);
+      setTo(replyAddress(reply.from));
       setSubject(
         reply.subject.toLowerCase().startsWith("re:")
           ? reply.subject
@@ -263,11 +263,16 @@ export function MailApp({
 
   function trash(item: MailListItem) {
     startTransition(async () => {
-      await fetch("/api/mail/trash", {
+      const res = await fetch("/api/mail/trash", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pageId: page.id, folder, uid: item.uid }),
       });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? "couldn't trash that.");
+        return;
+      }
       setPane("list");
       setLetter(null);
       void load();
@@ -488,7 +493,7 @@ export function MailApp({
                   className="mt-4 cursor-pointer text-[11px] text-[var(--ink-muted)]"
                   onClick={() => {
                     setImages(true);
-                    openLetter(letter);
+                    openLetter(letter, true);
                   }}
                 >
                   {images ? "images are on." : "show images"}
@@ -527,6 +532,7 @@ export function MailApp({
               </label>
               <input
                 id="mail-to"
+                required
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
                 placeholder="name@example.com"
@@ -778,4 +784,12 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Prefer bare email from `"Name" <addr>` envelopes for reply To. */
+function replyAddress(from: string): string {
+  const angle = from.match(/<([^>]+@[^>]+)>/);
+  if (angle?.[1]) return angle[1].trim();
+  const bare = from.trim();
+  return bare.includes("@") ? bare : from;
 }

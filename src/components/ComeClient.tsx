@@ -2,10 +2,18 @@
 
 import { useState, useTransition } from "react";
 
-export function ComeClient({ next }: { next: string }) {
+export function ComeClient({
+  next,
+  linkError = false,
+}: {
+  next: string;
+  linkError?: boolean;
+}) {
   const [inbox, setInbox] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    linkError ? "that sign-in link expired. try your password." : null,
+  );
   const [pending, startTransition] = useTransition();
 
   function onPassword(e: React.FormEvent) {

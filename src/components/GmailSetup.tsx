@@ -36,13 +36,27 @@ export function GmailSetup({ pageId }: { pageId: string | null }) {
     );
   }
 
-  const user = creds?.user ?? "you@lost.pink";
-  const imapHost = creds?.imap.host ?? "imap.migadu.com";
-  const imapPort = creds?.imap.port ?? 993;
-  const imapSec = creds?.imap.security ?? "SSL/TLS";
-  const smtpHost = creds?.smtp.host ?? "smtp.migadu.com";
-  const smtpPort = creds?.smtp.port ?? 465;
-  const smtpSec = creds?.smtp.security ?? "SSL/TLS";
+  if (error && !creds) {
+    return (
+      <p className="mt-4 font-mono text-[13px] text-[var(--ink-muted)]">{error}</p>
+    );
+  }
+
+  if (!creds) {
+    return (
+      <p className="mt-4 font-mono text-[13px] text-[var(--ink-muted)]">
+        looking…
+      </p>
+    );
+  }
+
+  const user = creds.user;
+  const imapHost = creds.imap.host;
+  const imapPort = creds.imap.port;
+  const imapSec = creds.imap.security;
+  const smtpHost = creds.smtp.host;
+  const smtpPort = creds.smtp.port;
+  const smtpSec = creds.smtp.security;
 
   return (
     <div className="border border-[var(--rule)] bg-[color-mix(in_srgb,#080808_70%,transparent)] px-5 py-5 sm:px-6 sm:py-6">
@@ -80,22 +94,15 @@ export function GmailSetup({ pageId }: { pageId: string | null }) {
         </Step>
         <Step n={5} title="PASSWORD">
           <p className="text-[var(--ink-muted)]">
-            {creds ? (
-              <>
-                {showPass ? creds.password : "••••••••••••"}{" "}
-                <button
-                  type="button"
-                  className="underline underline-offset-2"
-                  onClick={() => setShowPass((v) => !v)}
-                >
-                  {showPass ? "hide" : "show"}
-                </button>
-              </>
-            ) : (
-              "Use your Gmail app password."
-            )}
+            {showPass ? creds.password : "••••••••••••"}{" "}
+            <button
+              type="button"
+              className="underline underline-offset-2"
+              onClick={() => setShowPass((v) => !v)}
+            >
+              {showPass ? "hide" : "show"}
+            </button>
           </p>
-          {error ? <p className="mt-2 text-[var(--ink-muted)]">{error}</p> : null}
         </Step>
       </ol>
     </div>

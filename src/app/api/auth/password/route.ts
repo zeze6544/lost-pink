@@ -65,6 +65,11 @@ export async function PATCH(request: Request) {
       { status: 400 },
     );
   }
-  await syncOwnedMailboxPassword(data.user.id, password);
+  const synced = await syncOwnedMailboxPassword(data.user.id, password);
+  if (!synced.ok) {
+    return route.applyCookies(
+      NextResponse.json({ error: synced.error }, { status: 502 }),
+    );
+  }
   return route.applyCookies(NextResponse.json({ ok: true }));
 }

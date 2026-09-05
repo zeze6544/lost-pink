@@ -1,16 +1,15 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ComeClient } from "@/components/ComeClient";
 import { AuthTray } from "@/components/SiteFrame";
 import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
-import { claimPage } from "@/lib/pages";
 import { isAuthConfigured, safeNextPath } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; error?: string }>;
 };
 
 export default async function ComePage({ searchParams }: Props) {
@@ -21,8 +20,8 @@ export default async function ComePage({ searchParams }: Props) {
     const cookieStore = await cookies();
     const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
     if (parsed) {
-      const claimed = await claimPage(parsed.pageId, userId, parsed.token);
-      if (claimed) redirect(`/${claimed.slug}`);
+      // RSC cannot clear cookies — finish route claims + clears Secure cookie.
+      redirect(`/api/claim/finish?next=${encodeURIComponent(next)}`);
     }
     redirect(next === "/come" ? "/settings" : next);
   }
@@ -33,7 +32,7 @@ export default async function ComePage({ searchParams }: Props) {
       note="sign in to your inbox with you@lost.pink and your password."
     >
       {isAuthConfigured() ? (
-        <ComeClient next={next} />
+        <ComeClient next={next} linkError={sp.error === "link"} />
       ) : (
         <p className="mt-4 text-[13px] text-[var(--ink-faint)]">not yet.</p>
       )}

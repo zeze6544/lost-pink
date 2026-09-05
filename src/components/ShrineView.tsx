@@ -35,6 +35,11 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
     setReady(true);
   }, [page.slug]);
 
+  // Owned pages should not flash the public Stage while hydrating.
+  if (owned && !(ready && justLeft)) {
+    return <Generator page={page} />;
+  }
+
   if (!ready || justLeft) {
     return (
       <main
@@ -83,10 +88,6 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
         ) : null}
       </main>
     );
-  }
-
-  if (owned) {
-    return <Generator page={page} />;
   }
 
   return (

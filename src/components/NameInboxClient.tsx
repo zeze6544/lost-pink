@@ -28,6 +28,7 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
       return;
     }
     setCheck({ status: "looking" });
+    let cancelled = false;
     const t = window.setTimeout(async () => {
       const res = await fetch(
         `/api/alias/available?q=${encodeURIComponent(slug)}`,
@@ -37,6 +38,7 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
         local?: string;
         slug?: string;
       };
+      if (cancelled) return;
       if (data.status === "free" && data.local) {
         setCheck({ status: "free", local: data.local });
         return;
@@ -58,7 +60,10 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
         slug: data.slug || slug,
       });
     }, 220);
-    return () => window.clearTimeout(t);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
   }, [slug]);
 
   function continueName() {

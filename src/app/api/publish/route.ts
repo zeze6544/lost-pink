@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   CLAIM_COOKIE,
-  CLAIM_MAX_AGE,
+  claimCookieOptions,
   claimCookieValue,
   newClaimToken,
   hashClaimToken,
@@ -125,13 +125,7 @@ export async function POST(request: NextRequest) {
     res.cookies.set(
       CLAIM_COOKIE,
       claimCookieValue(result.page.id, claimToken),
-      {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: CLAIM_MAX_AGE,
-      },
+      claimCookieOptions(),
     );
   }
   return res;

@@ -13,13 +13,15 @@ export default async function GmailSetupPage() {
   const userId = await getAuthUserId();
   if (!userId) redirect("/come?next=/setup/gmail");
 
-  const cookieStore = await cookies();
-  const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
-  if (parsed) redirect("/settings");
-
   const pages = await listOwnedPages(userId);
   const mailbox = await getMailboxByOwnerId(userId);
   const page = pages.find((p) => p.id === mailbox?.page_id) ?? pages[0] ?? null;
+
+  // Stale claim cookies used to block setup forever. Only divert when there is
+  // something left to claim and no live mailbox credentials yet.
+  const cookieStore = await cookies();
+  const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
+  if (parsed && !mailbox) redirect("/settings");
 
   return (
     <SiteFrame atmosphere="landing">

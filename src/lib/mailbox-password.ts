@@ -9,17 +9,25 @@ import { setMailboxPassword } from "./migadu";
 export async function syncOwnedMailboxPassword(
   ownerId: string,
   password: string,
-): Promise<void> {
+): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const mailbox = await getMailboxByOwnerId(ownerId);
-    if (!mailbox?.email_local) return;
+    if (!mailbox?.email_local) return { ok: true };
     const result = await setMailboxPassword(mailbox.email_local, password);
     if (!result.ok) {
       console.error("mailbox password sync failed", result.error);
-      return;
+      return {
+        ok: false,
+        error: "site password updated, but the mail password didn’t sync. try again.",
+      };
     }
     await updateMailboxPasswordSecret(mailbox.id, encryptSecret(password));
+    return { ok: true };
   } catch (error) {
     console.error("mailbox password sync failed", error);
+    return {
+      ok: false,
+      error: "site password updated, but the mail password didn’t sync. try again.",
+    };
   }
 }

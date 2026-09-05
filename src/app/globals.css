@@ -109,13 +109,6 @@ body {
     inset 0 -80px 120px color-mix(in srgb, var(--stage-b) 22%, transparent);
 }
 
-/* Keep the photo readable: light tint only, soft edges, no heavy vignette. */
-.stage-wash--photo::after {
-  box-shadow:
-    inset 0 0 80px 12px rgba(0, 0, 0, 0.18),
-    inset 0 -48px 72px color-mix(in srgb, var(--stage-b) 12%, transparent);
-}
-
 /* Full-bleed shrine photo; crops differently per viewport so subjects stay in frame. */
 .stage-bg {
   position: absolute;
@@ -124,6 +117,7 @@ body {
   height: 100%;
   object-fit: cover;
   object-position: center 28%;
+  filter: none;
 }
 
 @media (min-width: 640px) {
@@ -136,6 +130,16 @@ body {
   .stage-bg {
     object-position: center center;
   }
+}
+
+/* Soft bottom fade for tray contrast — no blur, no full-frame wash. */
+.stage-photo-scrim {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.42) 0%,
+    rgba(0, 0, 0, 0.12) 28%,
+    transparent 55%
+  );
 }
 
 .stage-grain {
@@ -188,13 +192,12 @@ body {
 
 .quiet-tray {
   border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
-  background: color-mix(in srgb, var(--paper) 78%, transparent);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
   border-radius: 0;
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--ink) 11%, transparent),
     inset 0 -1px 0 rgba(0, 0, 0, 0.45),
     0 28px 80px rgba(0, 0, 0, 0.48);
-  backdrop-filter: blur(6px) saturate(1.05);
 }
 
 .quiet-field {

@@ -47,21 +47,22 @@ async function paintShrine(
   if (bg) {
     drawCover(ctx, bg, WIDTH, HEIGHT);
     ctx.fillStyle = colors.a;
-    ctx.globalAlpha = 0.18;
+    const fade = ctx.createLinearGradient(0, HEIGHT * 0.45, 0, HEIGHT);
+    fade.addColorStop(0, "rgba(0,0,0,0)");
+    fade.addColorStop(0.45, "rgba(0,0,0,0.12)");
+    fade.addColorStop(1, "rgba(0,0,0,0.42)");
+    ctx.fillStyle = fade;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    ctx.globalAlpha = 1;
+  } else {
+    const gradient = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
+    gradient.addColorStop(0, colors.a);
+    gradient.addColorStop(0.45, colors.c);
+    gradient.addColorStop(1, colors.b);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
 
-  const gradient = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
-  gradient.addColorStop(0, colors.a);
-  gradient.addColorStop(0.45, colors.c);
-  gradient.addColorStop(1, colors.b);
-  ctx.globalAlpha = bg ? 0.22 : 1;
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  ctx.globalAlpha = 1;
-
-  if (look.motif === "grain") {
+  if (!bg && look.motif === "grain") {
     drawGrain(ctx);
   }
 
@@ -106,7 +107,7 @@ async function paintShrine(
     ctx.restore();
   }
 
-  if (look.motif === "grid") {
+  if (!bg && look.motif === "grid") {
     drawGrid(ctx, colors.ink);
   }
 

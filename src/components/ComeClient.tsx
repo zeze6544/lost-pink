@@ -4,12 +4,11 @@ import { useState, useTransition } from "react";
 
 export function ComeClient({ next }: { next: string }) {
   const [inbox, setInbox] = useState("");
+  const [linkEmail, setLinkEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [pageEmail, setPageEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const [forgotNote, setForgotNote] = useState<string | null>(null);
 
   function onPassword(e: React.FormEvent) {
     e.preventDefault();
@@ -22,7 +21,7 @@ export function ComeClient({ next }: { next: string }) {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "that didn’t open.");
+        setError(data.error ?? "that didn't open.");
         return;
       }
       window.location.href = next;
@@ -36,24 +35,15 @@ export function ComeClient({ next }: { next: string }) {
       const res = await fetch("/api/auth/otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: pageEmail, next }),
+        body: JSON.stringify({ email: linkEmail, next }),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "couldn’t send that.");
+        setError(data.error ?? "couldn't send that.");
         return;
       }
       setSent(true);
     });
-  }
-
-  async function onForgot() {
-    await fetch("/api/auth/forgot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: inbox }),
-    });
-    setForgotNote("if we know that inbox, we wrote the recovery address.");
   }
 
   if (sent) {
@@ -65,7 +55,7 @@ export function ComeClient({ next }: { next: string }) {
   }
 
   return (
-    <div className="mt-5">
+    <div className="mt-4">
       <form onSubmit={onPassword}>
         <p className="field-label">inbox and password</p>
         <label htmlFor="inbox-email" className="sr-only">
@@ -79,7 +69,7 @@ export function ComeClient({ next }: { next: string }) {
           onChange={(e) => setInbox(e.target.value)}
           placeholder="you@lost.pink"
           autoComplete="username"
-          className="quiet-field mt-2 w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
+          className="quiet-field w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
         />
         <label htmlFor="password" className="sr-only">
           password
@@ -106,23 +96,20 @@ export function ComeClient({ next }: { next: string }) {
           {pending ? "opening…" : "open"}
         </button>
       </form>
-
       <p className="mt-3 text-[11px] text-[var(--ink-muted)]">
-        <button
-          type="button"
-          onClick={onForgot}
+        <a
+          href={`/come/forgot${inbox.trim() ? `?email=${encodeURIComponent(inbox.trim())}` : ""}`}
           className="underline-offset-2 hover:underline"
         >
-          {forgotNote ?? "forgot the password"}
-        </button>
+          forgot the password
+        </a>
       </p>
-
       <form
         onSubmit={onLink}
         className="mt-6 border-t border-[var(--ink)]/10 pt-4"
       >
         <p className="field-label">page sign-in link</p>
-        <p className="mb-3 mt-2 text-[11px] leading-relaxed text-[var(--ink-muted)]">
+        <p className="mb-3 text-[11px] text-[var(--ink-muted)]">
           left a page without an inbox? enter the email you used and we will
           send a sign-in link.
         </p>
@@ -133,15 +120,15 @@ export function ComeClient({ next }: { next: string }) {
           id="link-email"
           type="email"
           required
-          value={pageEmail}
-          onChange={(e) => setPageEmail(e.target.value)}
+          value={linkEmail}
+          onChange={(e) => setLinkEmail(e.target.value)}
           placeholder="you@example.com"
           autoComplete="email"
           className="quiet-field w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
         />
         <button
           type="submit"
-          disabled={pending || !pageEmail.trim()}
+          disabled={pending || !linkEmail.trim()}
           className="mt-3 cursor-pointer text-[13px] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
         >
           {pending ? "sending…" : "send sign-in link"}

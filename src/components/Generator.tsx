@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { BrandMark } from "@/components/BrandMark";
 import { Stage } from "@/components/Stage";
 import {
   DEFAULT_LOOK,
@@ -12,6 +13,7 @@ import {
   PALETTE_COLORS,
   PALETTE_LABELS,
   PALETTES,
+  TITLE_MAX,
   TREATMENTS,
   defaultLookForSlug,
   stageStyle,
@@ -21,12 +23,11 @@ import {
   type Palette,
   type Treatment,
 } from "@/lib/looks";
-import { InboxPanel } from "@/components/InboxPanel";
-import { displayLostEmail, normalizeEmailLocal, normalizeWord } from "@/lib/slug";
+import { displayLostEmail, normalizeEmailLocal } from "@/lib/slug";
 import { type PublicMailboxLabel } from "@/lib/mailbox-status";
 import type { OwnerMailboxView } from "@/lib/mailbox-view";
+import { publicPagePath } from "@/lib/site";
 import {
-  inboxDisplayOnly,
   JUST_LEFT_KEY,
   keepLabel,
   shareOrCopy,
@@ -36,6 +37,7 @@ const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
 export type GeneratorPage = {
   id: string;
+  slug: string;
   word: string;
   line: string | null;
   look: Look;
@@ -55,20 +57,26 @@ type Picked = {
   font: boolean;
 };
 
-type Panel = "word" | "style" | "photo" | "line" | null;
+type Panel = "title" | "style" | "photo" | "line" | null;
 type StylePane = "color" | "type" | "font" | "motif";
 
-export function Generator({ page }: { page?: GeneratorPage }) {
+export function Generator({
+  page,
+  onInbox,
+}: {
+  page?: GeneratorPage;
+  onInbox?: () => void;
+}) {
   const editing = Boolean(page);
   const router = useRouter();
   const trayRef = useRef<HTMLDivElement>(null);
   const aliasRef = useRef<HTMLInputElement>(null);
   const [trayH, setTrayH] = useState(88);
-  const [raw, setRaw] = useState(page?.word ?? "");
+  const [title, setTitle] = useState(page?.word ?? "");
   const [line, setLine] = useState(page?.line ?? "");
   const [emailLocal, setEmailLocal] = useState(page?.emailLocal ?? "");
   const [look, setLook] = useState<Look>(page?.look ?? DEFAULT_LOOK);
-  const [panel, setPanel] = useState<Panel>("word");
+  const [panel, setPanel] = useState<Panel>("title");
   const [stylePane, setStylePane] = useState<StylePane>("color");
   const [picked, setPicked] = useState<Picked>({
     palette: Boolean(page),
@@ -83,6 +91,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
     page?.tokenUrl ?? null,
   );
   const [error, setError] = useState<string | null>(null);
+  const [nameConflict, setNameConflict] = useState<ReactNode>(null);
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
   const mailboxStatus = page?.mailboxStatus ?? "none";
@@ -96,17 +105,12 @@ export function Generator({ page }: { page?: GeneratorPage }) {
         (mailbox.status === "checkout_started" && !mailbox.checkoutAbandoned)),
   );
   const alias = normalizeEmailLocal(emailLocal);
-
-  function askForAlias() {
-    setPanel("word");
-    requestAnimationFrame(() => aliasRef.current?.focus());
-  }
-
-  const slug = useMemo(() => normalizeWord(raw), [raw]);
-  const display = slug || "you";
+  const slug = page?.slug ?? "";
+  const handle = slug || alias;
+  const display = title.trim() || slug || "you";
 
   useEffect(() => {
-    const hashed = defaultLookForSlug(slug);
+    const hashed = defaultLookForSlug(slug || "you");
     setLook((prev) => ({
       palette: picked.palette ? prev.palette : hashed.palette,
       treatment: picked.treatment ? prev.treatment : hashed.treatment,
@@ -135,7 +139,52 @@ export function Generator({ page }: { page?: GeneratorPage }) {
     const ro = new ResizeObserver(apply);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [panel, stylePane, error, bgFile, tokenFile]);
+  }, [panel, stylePane, error, nameConflict, bgFile, tokenFile]);
+
+  useEffect(() => {
+    if (!editing || !page) {
+      setNameConflict(null);
+      return;
+    }
+    const inboxChanged =
+      Boolean(alias) &&
+      alias !== normalizeEmailLocal(page.emailLocal ?? "") &&
+      !aliasLocked;
+    if (!inboxChanged) {
+      setNameConflict(null);
+      return;
+    }
+    const t = window.setTimeout(async () => {
+      const res = await fetch(
+        `/api/alias/available?q=${encodeURIComponent(alias)}&except=${encodeURIComponent(page.id)}`,
+      );
+      const data = (await res.json()) as {
+        status?: string;
+        slug?: string;
+      };
+      if (data.status === "taken") {
+        const viewSlug = data.slug || alias;
+        setNameConflict(
+          <>
+            that inbox name is taken.{" "}
+            <a
+              href={`/${viewSlug}`}
+              className="cursor-pointer underline underline-offset-2"
+            >
+              view their page
+            </a>
+          </>,
+        );
+        return;
+      }
+      if (data.status === "held") {
+        setNameConflict("someone is holding that name.");
+        return;
+      }
+      setNameConflict(null);
+    }, 280);
+    return () => window.clearTimeout(t);
+  }, [alias, aliasLocked, editing, page]);
 
   function togglePanel(next: Exclude<Panel, null>) {
     setPanel((prev) => (prev === next ? null : next));
@@ -144,25 +193,21 @@ export function Generator({ page }: { page?: GeneratorPage }) {
   function pickPalette(palette: Palette) {
     setPicked((p) => ({ ...p, palette: true }));
     setLook((l) => ({ ...l, palette }));
-    setPanel(null);
   }
 
   function pickTreatment(treatment: Treatment) {
     setPicked((p) => ({ ...p, treatment: true }));
     setLook((l) => ({ ...l, treatment }));
-    setPanel(null);
   }
 
   function pickMotif(motif: Motif) {
     setPicked((p) => ({ ...p, motif: true }));
     setLook((l) => ({ ...l, motif }));
-    setPanel(null);
   }
 
   function pickFont(font: FontId) {
     setPicked((p) => ({ ...p, font: true }));
     setLook((l) => ({ ...l, font }));
-    setPanel(null);
   }
 
   function onFile(kind: "bg" | "token", file: File | null) {
@@ -213,7 +258,8 @@ export function Generator({ page }: { page?: GeneratorPage }) {
             : null;
         const alias = normalizeEmailLocal(emailLocal);
         const payload = {
-          word: raw,
+          title,
+          word: title,
           line,
           palette: look.palette,
           treatment: look.treatment,
@@ -233,17 +279,20 @@ export function Generator({ page }: { page?: GeneratorPage }) {
         );
         const data = (await res.json()) as { slug?: string; error?: string };
         if (!res.ok) {
-          setError(data.error ?? (editing ? "couldn't tend it." : "couldn't leave it."));
+          setError(data.error ?? (editing ? "couldn't save." : "couldn't leave it."));
           return;
         }
         if (data.slug) {
           if (!editing) sessionStorage.setItem(JUST_LEFT_KEY, data.slug);
-          if (editing && data.slug !== slug) {
-            router.replace(`/${data.slug}`);
+          if (editing) {
+            if (data.slug !== slug) {
+              router.replace(`/${data.slug}`);
+              return;
+            }
+            router.refresh();
             return;
           }
           router.push(`/${data.slug}`);
-          if (editing) router.refresh();
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "couldn't leave it.");
@@ -252,8 +301,8 @@ export function Generator({ page }: { page?: GeneratorPage }) {
   }
 
   async function share() {
-    const url = `${window.location.origin}/${slug || page?.word || ""}`;
-    const result = await shareOrCopy(url, `lost.pink/${slug}`);
+    const url = `${window.location.origin}/${handle || page?.slug || ""}`;
+    const result = await shareOrCopy(url, `lost.pink/${handle}`);
     if (result === "copied") {
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
@@ -278,52 +327,6 @@ export function Generator({ page }: { page?: GeneratorPage }) {
     });
   }
 
-  async function saveAliasForInbox(): Promise<boolean> {
-    if (!page) return false;
-    if (!page.kept) {
-      setError("keep the name first.");
-      return false;
-    }
-    const nextAlias = normalizeEmailLocal(emailLocal);
-    if (!nextAlias) {
-      askForAlias();
-      setError("choose an alias first.");
-      return false;
-    }
-    if (nextAlias === normalizeEmailLocal(page.emailLocal ?? "")) return true;
-    const bg_url = bgFile
-      ? await uploadImage(bgFile)
-      : bgPreview && !bgPreview.startsWith("blob:")
-        ? bgPreview
-        : null;
-    const token_url = tokenFile
-      ? await uploadImage(tokenFile)
-      : tokenPreview && !tokenPreview.startsWith("blob:")
-        ? tokenPreview
-        : null;
-    const saved = await fetch(`/api/pages/${page.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        word: raw,
-        line,
-        palette: look.palette,
-        treatment: look.treatment,
-        motif: look.motif,
-        font: look.font,
-        bg_url,
-        token_url,
-        email_local: nextAlias,
-      }),
-    });
-    const savedData = (await saved.json()) as { error?: string };
-    if (!saved.ok) {
-      setError(savedData.error ?? "couldn't save that alias.");
-      return false;
-    }
-    return true;
-  }
-
   return (
     <div
       className="relative min-h-[100dvh] overflow-hidden"
@@ -338,72 +341,81 @@ export function Generator({ page }: { page?: GeneratorPage }) {
         word={display}
         look={look}
         line={line.trim() || null}
-        alias={normalizeEmailLocal(emailLocal) || null}
-        aliasNote={
-          mailboxStatus === "open"
-            ? "inbox open"
-            : normalizeEmailLocal(emailLocal)
-              ? "display only"
-              : null
+        alias={editing ? null : alias || null}
+        writeHref={
+          mailboxStatus === "open" && handle ? `/${handle}/write` : null
         }
         bgUrl={bgPreview}
         tokenUrl={tokenPreview}
         animate
       />
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
-        <p className="mark text-sm text-[var(--stage-ink)] sm:text-[15px]">
-          lost.pink
-        </p>
-        <p className="mark hidden max-w-[11rem] text-right text-[10px] leading-relaxed text-[var(--stage-ink)]/50 sm:block">
-          {editing ? "yours to tend." : "an inbox you keep. a page you can leave."}
-        </p>
+        <BrandMark className="pointer-events-auto text-sm text-[var(--stage-ink)] sm:text-[15px]" />
+        {onInbox ? (
+          <button
+            type="button"
+            onClick={onInbox}
+            className="pointer-events-auto mark text-sm text-[var(--stage-ink)] sm:text-[15px]"
+          >
+            inbox
+          </button>
+        ) : editing ? null : (
+          <p className="mark hidden max-w-[14rem] text-right text-[10px] leading-relaxed text-[var(--stage-ink)]/50 sm:block">
+            an @lost.pink inbox
+          </p>
+        )}
       </header>
 
       <div className="absolute inset-x-0 bottom-0 z-20 p-3 sm:p-6">
         <div ref={trayRef} className="mx-auto w-full max-w-md">
           <form onSubmit={onSubmit} className="quiet-tray px-3 py-2.5">
-            {panel === "word" ? (
-              <div className="mb-2">
-                <label htmlFor="word" className="sr-only">
-                  a name
-                </label>
-                <input
-                  id="word"
-                  value={raw}
-                  onChange={(e) => setRaw(e.target.value)}
-                  placeholder="a name"
-                  autoComplete="off"
-                  autoFocus
-                  className="quiet-field w-full border-0 bg-transparent pb-1 text-xl text-[var(--ink)] outline-none"
-                />
-                {slug.length >= 2 ? (
-                  <p className="mt-1 text-[11px] text-[var(--ink-faint)]">
-                    lost.pink/{slug}
-                  </p>
-                ) : null}
-                <label htmlFor="alias" className="sr-only">
-                  optional alias
-                </label>
-                <input
-                  id="alias"
-                  ref={aliasRef}
-                  value={emailLocal}
-                  onChange={(e) => {
-                    if (aliasLocked) return;
-                    setEmailLocal(e.target.value.slice(0, 24));
-                  }}
-                  placeholder="optional · you@lost.pink"
-                  autoComplete="off"
-                  readOnly={aliasLocked}
-                  className="mt-2 w-full border-0 bg-transparent text-[12px] text-[var(--ink)]/70 outline-none placeholder:text-[var(--ink-faint)]"
-                />
-                {alias ? (
-                  <p className="mt-0.5 text-[11px] text-[var(--ink-faint)]">
-                    {displayLostEmail(alias)}
-                    {mailboxStatus === "open" ? null : page?.kept ? null : (
-                      <span className="ml-1 opacity-70">{inboxDisplayOnly()}</span>
-                    )}
-                  </p>
+            {panel === "title" ? (
+              <div className="mb-2 space-y-2">
+                <div>
+                  <label htmlFor="title" className="field-label">
+                    title
+                  </label>
+                  <input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
+                    placeholder="hate this song"
+                    autoComplete="off"
+                    autoFocus
+                    maxLength={TITLE_MAX}
+                    className="quiet-field w-full border-0 bg-transparent pb-1 text-xl text-[var(--ink)] outline-none"
+                  />
+                  {handle ? (
+                    <p className="mt-1 text-[11px] text-[var(--ink-muted)]">
+                      lost.pink/{handle}
+                      {editing ? (
+                        <span className="mt-0.5 block text-[var(--ink-faint)]">
+                          title can be several words. the url stays this handle.
+                        </span>
+                      ) : null}
+                    </p>
+                  ) : null}
+                  {editing && alias ? (
+                    <p className="mt-2 mark text-[12px] text-[var(--ink)]">
+                      {displayLostEmail(alias)}
+                    </p>
+                  ) : null}
+                </div>
+                {!editing ? (
+                  <div>
+                    <label htmlFor="alias" className="field-label">
+                      inbox
+                    </label>
+                    <input
+                      id="alias"
+                      ref={aliasRef}
+                      value={emailLocal}
+                      onChange={(e) => setEmailLocal(e.target.value.slice(0, 24))}
+                      placeholder="@"
+                      autoComplete="off"
+                      className="quiet-field mt-0.5 w-full border-0 bg-transparent text-[12px] text-[var(--ink)]/80 outline-none placeholder:text-[var(--ink-faint)]"
+                    />
+                  </div>
                 ) : null}
               </div>
             ) : null}
@@ -434,7 +446,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                       key={pane}
                       type="button"
                       onClick={() => setStylePane(pane)}
-                      className={`px-2 py-0.5 text-[11px] tracking-wide ${
+                      className={`cursor-pointer px-2 py-0.5 text-[11px] tracking-wide ${
                         stylePane === pane
                           ? "text-[var(--ink)]"
                           : "text-[var(--ink-faint)]"
@@ -445,7 +457,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                   ))}
                 </div>
                 {stylePane === "color" ? (
-                  <div className="flex flex-wrap gap-2 px-1">
+                  <div className="grid grid-cols-4 gap-2 px-1 sm:grid-cols-6">
                     {PALETTES.map((palette) => (
                       <button
                         key={palette}
@@ -454,13 +466,26 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                         aria-label={PALETTE_LABELS[palette]}
                         aria-pressed={look.palette === palette}
                         onClick={() => pickPalette(palette)}
-                        className={`h-6 w-6 border transition ${
-                          look.palette === palette
-                            ? "border-[var(--ink)]"
-                            : "border-[var(--ink)]/20"
-                        }`}
-                        style={{ background: PALETTE_COLORS[palette].swatch }}
-                      />
+                        className="flex cursor-pointer flex-col items-center gap-1"
+                      >
+                        <span
+                          className={`h-7 w-7 border transition ${
+                            look.palette === palette
+                              ? "border-[var(--ink)]"
+                              : "border-[var(--ink)]/20"
+                          }`}
+                          style={{ background: PALETTE_COLORS[palette].swatch }}
+                        />
+                        <span
+                          className={`text-[10px] tracking-wide ${
+                            look.palette === palette
+                              ? "text-[var(--ink)]"
+                              : "text-[var(--ink-faint)]"
+                          }`}
+                        >
+                          {PALETTE_LABELS[palette]}
+                        </span>
+                      </button>
                     ))}
                   </div>
                 ) : null}
@@ -472,7 +497,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                         type="button"
                         aria-pressed={look.treatment === treatment}
                         onClick={() => pickTreatment(treatment)}
-                        className={`py-1 text-xs tracking-wide ${
+                      className={`py-1 text-xs tracking-wide cursor-pointer ${
                           look.treatment === treatment
                             ? "text-[var(--ink)]"
                             : "text-[var(--ink-faint)]"
@@ -489,13 +514,13 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                 ) : null}
                 {stylePane === "font" ? (
                   <div className="hidden grid-cols-4 gap-x-2 gap-y-1 sm:grid">
-                    {FONTS.filter((font) => font !== "vibes").map((font) => (
+                    {FONTS.map((font) => (
                       <button
                         key={font}
                         type="button"
                         aria-pressed={look.font === font}
                         onClick={() => pickFont(font)}
-                        className={`py-1 text-left text-[11px] leading-tight ${
+                        className={`cursor-pointer py-1 text-left text-[11px] leading-tight ${
                           look.font === font
                             ? "text-[var(--ink)]"
                             : "text-[var(--ink-faint)]"
@@ -511,13 +536,13 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                 ) : null}
                 {stylePane === "font" ? (
                   <div className="hide-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto sm:hidden">
-                    {FONTS.filter((font) => font !== "vibes").map((font) => (
+                    {FONTS.map((font) => (
                       <button
                         key={font}
                         type="button"
                         aria-pressed={look.font === font}
                         onClick={() => pickFont(font)}
-                        className={`snap-start shrink-0 py-1 text-[12px] ${
+                        className={`snap-start shrink-0 cursor-pointer py-1 text-[12px] ${
                           look.font === font
                             ? "text-[var(--ink)]"
                             : "text-[var(--ink-faint)]"
@@ -539,7 +564,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                         type="button"
                         aria-pressed={look.motif === motif}
                         onClick={() => pickMotif(motif)}
-                        className={`py-1 text-xs tracking-wide ${
+                      className={`py-1 text-xs tracking-wide cursor-pointer ${
                           look.motif === motif
                             ? "text-[var(--ink)]"
                             : "text-[var(--ink-faint)]"
@@ -562,7 +587,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                   onChange={(file) => onFile("bg", file)}
                 />
                 <PhotoPick
-                  label="token"
+                  label="profile picture"
                   file={tokenFile}
                   preview={tokenPreview}
                   onChange={(file) => onFile("token", file)}
@@ -570,6 +595,11 @@ export function Generator({ page }: { page?: GeneratorPage }) {
               </div>
             ) : null}
 
+            {nameConflict ? (
+              <p className="mb-2 text-xs text-[var(--ink-muted)]" role="status">
+                {nameConflict}
+              </p>
+            ) : null}
             {error ? (
               <p className="mb-2 text-xs text-[var(--ink-muted)]" role="alert">
                 {error}
@@ -578,10 +608,10 @@ export function Generator({ page }: { page?: GeneratorPage }) {
 
             <div className="flex items-center gap-0.5">
               <TrayTab
-                active={panel === "word"}
-                onClick={() => togglePanel("word")}
+                active={panel === "title"}
+                onClick={() => togglePanel("title")}
               >
-                word
+                title
               </TrayTab>
               <TrayTab
                 active={panel === "style"}
@@ -603,8 +633,10 @@ export function Generator({ page }: { page?: GeneratorPage }) {
               </TrayTab>
               <button
                 type="submit"
-                disabled={pending || slug.length < 2}
-                className="ml-auto min-h-9 px-2.5 py-1 text-[13px] text-[var(--ink)] transition enabled:hover:opacity-70 disabled:opacity-30"
+                disabled={
+                  pending || !title.trim() || Boolean(nameConflict)
+                }
+                className="ml-auto min-h-9 cursor-pointer px-2.5 py-1 text-[13px] text-[var(--ink)] transition enabled:hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 {pending
                   ? editing
@@ -615,42 +647,39 @@ export function Generator({ page }: { page?: GeneratorPage }) {
                     : "leave it here"}
               </button>
             </div>
-            {editing && page ? (
-              <div className="mt-1.5">
-                <InboxPanel
-                  pageId={page.id}
-                  kept={page.kept}
-                  signedIn
-                  alias={alias || page.emailLocal}
-                  publicLabel={mailboxStatus}
-                  mailbox={mailbox}
-                  nextPath={`/${page.word}`}
-                  onNeedAlias={askForAlias}
-                  beforeCheckout={saveAliasForInbox}
-                />
+            {editing && handle ? (
+              <div className="mt-2 flex justify-end">
+                <a href={publicPagePath(handle)} className="tray-btn inline-flex items-center">
+                  view live page
+                </a>
               </div>
             ) : null}
           </form>
           <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[10px] text-[var(--stage-ink)]/55">
             {editing ? (
               <>
-                <button type="button" onClick={() => void share()}>
+                <button
+                  type="button"
+                  className="cursor-pointer"
+                  aria-live="polite"
+                  onClick={() => void share()}
+                >
                   {copied ? "copied" : "share"}
                 </button>
                 {page && !page.kept ? (
-                  <button type="button" onClick={keepIt} disabled={pending}>
+                  <button type="button" className="cursor-pointer" onClick={keepIt} disabled={pending}>
                     {keepLabel(display)}
                   </button>
                 ) : null}
-                <a href="/you" className="underline-offset-2 hover:underline">
-                  yours
+                <a href="/settings" className="underline-offset-2 hover:underline">
+                  settings
                 </a>
               </>
             ) : (
               <>
                 <span>an inbox you keep</span>
                 <a href="/come" className="underline-offset-2 hover:underline">
-                  come back
+                  log in
                 </a>
               </>
             )}
@@ -677,13 +706,13 @@ function TrayTab({
 }: {
   active: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-9 px-2 py-1 text-[12px] tracking-wide ${
+      className={`min-h-9 cursor-pointer px-2 py-1 text-[12px] tracking-wide ${
         active ? "text-[var(--ink)]" : "text-[var(--ink-faint)]"
       }`}
     >
@@ -717,7 +746,7 @@ function PhotoPick({
             <span>replace</span>
           </>
         ) : (
-          <span>+ {label}</span>
+          <span>{label}</span>
         )}
         <input
           type="file"
@@ -729,7 +758,7 @@ function PhotoPick({
       {preview || file ? (
         <button
           type="button"
-          className="text-[11px] text-[var(--ink-faint)]"
+          className="cursor-pointer text-[11px] text-[var(--ink-faint)]"
           onClick={() => onChange(null)}
         >
           remove

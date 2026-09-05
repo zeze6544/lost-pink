@@ -2,6 +2,8 @@ import { ImapFlow } from "imapflow";
 import { decryptSecret } from "./mailbox-secret";
 import type { MailboxRow } from "./mailbox-store";
 import type { MailFolder, MailLetter, MailListItem } from "./mail-types";
+import { isMissingFolderError, MailImapError } from "./mail-errors";
+import { extractMailAttachment, parseMailSource } from "./mail-mime";
 import { displayLostEmail } from "./slug";
 
 export type { MailFolder, MailLetter, MailListItem };
@@ -21,6 +23,7 @@ function clientFor(user: string, pass: string) {
     secure: true,
     auth: { user, pass },
     logger: false,
+    disableAutoIdle: true,
   });
 }
 
@@ -38,7 +41,9 @@ async function withImap<T>(
   run: (client: ImapFlow) => Promise<T>,
 ): Promise<T> {
   const pass = mailboxPass(row);
-  if (!pass) throw new Error("the inbox isn't ready yet.");
+  if (!pass) {
+    throw new MailImapError("provisioning", "Mailbox secret is unavailable.");
+  }
   const client = clientFor(mailboxUser(row), pass);
   await client.connect();
   try {
@@ -52,17 +57,22 @@ async function withImap<T>(
   }
 }
 
-async function openFolder(client: ImapFlow, folder: MailFolder) {
+async function openFolder(
+  client: ImapFlow,
+  folder: MailFolder,
+  readOnly = false,
+) {
   const names = FOLDER[folder];
   for (const name of names) {
     try {
-      await client.mailboxOpen(name);
+      await client.mailboxOpen(name, { readOnly });
       return name;
-    } catch {
-      continue;
+    } catch (error) {
+      if (isMissingFolderError(error)) continue;
+      throw error;
     }
   }
-  throw new Error("couldn't open that drawer.");
+  throw new MailImapError("folder", "No configured mailbox folder was found.");
 }
 
 function envelopeFrom(value: unknown): string {
@@ -79,37 +89,81 @@ function envelopeFrom(value: unknown): string {
   return row.address || row.name || "";
 }
 
+export type MailListResult = {
+  items: MailListItem[];
+  partial: boolean;
+  skipped: number;
+};
+
+function listItemFromMessage(
+  msg: {
+    uid: number;
+    envelope?: {
+      from?: unknown;
+      to?: unknown;
+      subject?: string;
+      date?: Date;
+      messageId?: string;
+      inReplyTo?: string;
+    };
+    flags?: Set<string>;
+  },
+  folder: MailFolder,
+): MailListItem {
+  if (!Number.isSafeInteger(msg.uid) || msg.uid <= 0) {
+    throw new Error("Invalid message UID.");
+  }
+  const env = msg.envelope;
+  let date: string | null = null;
+  if (env?.date) {
+    const timestamp = env.date.getTime();
+    if (!Number.isFinite(timestamp)) throw new Error("Invalid message date.");
+    date = env.date.toISOString();
+  }
+  return {
+    uid: msg.uid,
+    folder,
+    from: envelopeFrom(env?.from),
+    to: envelopeFrom(env?.to),
+    subject: env?.subject || "(no subject)",
+    date,
+    seen: msg.flags?.has("\\Seen") ?? false,
+    messageId: env?.messageId ?? null,
+    inReplyTo: env?.inReplyTo ?? null,
+  };
+}
+
 export async function listMail(
   row: MailboxRow,
   folder: MailFolder,
-): Promise<MailListItem[]> {
+): Promise<MailListResult> {
   return withImap(row, async (client) => {
-    await openFolder(client, folder);
+    await openFolder(client, folder, true);
     const box = client.mailbox;
     const exists = box ? box.exists : 0;
-    if (!exists) return [];
+    if (!exists) return { items: [], partial: false, skipped: 0 };
     const start = Math.max(1, exists - 49);
+    const expected = exists - start + 1;
     const items: MailListItem[] = [];
-    for await (const msg of client.fetch(`${start}:*`, {
-      envelope: true,
-      uid: true,
-      flags: true,
-    })) {
-      const env = msg.envelope;
-      items.push({
-        uid: msg.uid,
-        folder,
-        from: envelopeFrom(env?.from),
-        to: envelopeFrom(env?.to),
-        subject: env?.subject || "(no subject)",
-        date: env?.date ? env.date.toISOString() : null,
-        seen: msg.flags?.has("\\Seen") ?? false,
-        messageId: env?.messageId ?? null,
-        inReplyTo: env?.inReplyTo ?? null,
-      });
+    let skipped = 0;
+    try {
+      for await (const msg of client.fetch(`${start}:*`, {
+        envelope: true,
+        uid: true,
+        flags: true,
+      })) {
+        try {
+          items.push(listItemFromMessage(msg, folder));
+        } catch {
+          skipped += 1;
+        }
+      }
+    } catch (error) {
+      if (!items.length) throw error;
+      skipped = Math.max(skipped, expected - items.length);
     }
     items.sort((a, b) => b.uid - a.uid);
-    return items;
+    return { items, partial: skipped > 0, skipped };
   });
 }
 
@@ -126,8 +180,18 @@ export async function getMail(
       { uid: true },
     );
     if (!msg) return null;
-    const raw = msg.source ? msg.source.toString("utf8") : "";
-    const parsed = splitRaw(raw);
+    const raw = msg.source ? msg.source.toString("latin1") : "";
+    let parsed: ReturnType<typeof parseMailSource>;
+    try {
+      parsed = parseMailSource(raw);
+    } catch {
+      parsed = {
+        text: "",
+        html: null,
+        attachments: [],
+        skippedAttachments: 0,
+      };
+    }
     const env = msg.envelope;
     return {
       uid: msg.uid,
@@ -141,13 +205,32 @@ export async function getMail(
       inReplyTo: env?.inReplyTo ?? null,
       text: parsed.text,
       html: parsed.html,
+      attachments: parsed.attachments,
     };
+  });
+}
+
+export async function getMailAttachment(
+  row: MailboxRow,
+  folder: MailFolder,
+  uid: number,
+  partId: string,
+): Promise<ReturnType<typeof extractMailAttachment>> {
+  return withImap(row, async (client) => {
+    await openFolder(client, folder, true);
+    const msg = await client.fetchOne(
+      String(uid),
+      { uid: true, source: true },
+      { uid: true },
+    );
+    if (!msg || !msg.source) return null;
+    return extractMailAttachment(msg.source.toString("latin1"), partId);
   });
 }
 
 export async function appendSent(
   row: MailboxRow,
-  raw: string,
+  raw: string | Buffer,
 ): Promise<void> {
   await withImap(row, async (client) => {
     for (const name of FOLDER.sent) {
@@ -205,17 +288,14 @@ export async function trashMail(
   });
 }
 
-function splitRaw(raw: string): { text: string; html: string | null } {
-  const htmlMatch = /<html[\s\S]*<\/html>/i.exec(raw);
-  const html = htmlMatch ? htmlMatch[0] : null;
-  const textPart = raw
-    .replace(/^[\s\S]*?\r?\n\r?\n/, "")
-    .replace(/--[a-zA-Z0-9'()+_,-./:=?]+\r?\n/g, "\n")
-    .replace(/Content-Type:[\s\S]*?\r?\n\r?\n/gi, "\n");
-  const text = textPart
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+\n/g, "\n")
-    .trim()
-    .slice(0, 20_000);
-  return { text, html };
+export async function countInbox(row: MailboxRow): Promise<number | null> {
+  try {
+    return await withImap(row, async (client) => {
+      const status = await client.status("INBOX", { messages: true });
+      const n = Number(status?.messages ?? 0);
+      return Number.isFinite(n) ? n : 0;
+    });
+  } catch {
+    return null;
+  }
 }

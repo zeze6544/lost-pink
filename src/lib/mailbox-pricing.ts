@@ -9,20 +9,18 @@ export type MailboxOffer = {
   plan: MailboxPlan;
   env: string;
   label: string;
-  hint: string;
-  blurb: string;
+  explanation: string;
   cents: number;
 };
 
-/** Display labels match live prod (AUD). Polar product IDs stay in env. */
+/** Labels must match the configured Polar products, which charge in AUD. */
 export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
   {
     kind: "mailbox_day",
     plan: "day",
     env: "POLAR_PRODUCT_MAILBOX_DAY",
     label: "A$1",
-    hint: "for a day",
-    blurb: "gone tomorrow",
+    explanation: "gone tomorrow",
     cents: 100,
   },
   {
@@ -30,34 +28,33 @@ export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
     plan: "month",
     env: "POLAR_PRODUCT_MAILBOX_MONTH",
     label: "A$5",
-    hint: "for a month",
-    blurb: "keep it for a month",
+    explanation: "keep it for a month",
     cents: 500,
   },
   {
     kind: "mailbox_once",
     plan: "once",
     env: "POLAR_PRODUCT_MAILBOX",
-    label: "A$25",
-    hint: "for one year",
-    blurb: "one year, no renewal",
+    label: "A$25 one-year",
+    explanation: "one year, no renewal",
     cents: 2500,
   },
   {
     kind: "mailbox_subscription",
     plan: "subscription",
     env: "POLAR_PRODUCT_MAILBOX_SUB",
-    label: "A$25",
-    hint: "annually",
-    blurb: "keep it alive",
+    label: "A$25 annually",
+    explanation: "keep it alive",
     cents: 2500,
   },
 ] as const;
 
-/** Old A$50 products. Existing live mailboxes keep working. */
+/** Replaced products. Existing purchases and subscriptions keep working. */
 const LEGACY_PRODUCT_IDS: Record<string, MailboxPlan> = {
   "846e3bd5-3786-4ebb-9cf9-05bcdc7f2ba5": "once",
   "d3eed2e1-9306-4c02-8d0c-e7b6d830341b": "subscription",
+  "ea21abdf-9f3a-462e-806f-4f98a308e1aa": "once",
+  "24ec200c-d710-4da0-b4d8-cae9d99d4919": "subscription",
 };
 
 export function paidThroughMs(plan: MailboxPlan | null | undefined): number {

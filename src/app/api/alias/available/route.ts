@@ -4,12 +4,17 @@ import { checkAlias } from "@/lib/alias";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
-  const result = await checkAlias(q);
+  const except = searchParams.get("except")?.trim() || undefined;
+  const result = await checkAlias(q, except);
   if (result.status === "invalid") {
     return NextResponse.json({ status: "invalid", error: result.error });
   }
   if (result.status === "taken") {
-    return NextResponse.json({ status: "taken", error: "that name is taken." });
+    return NextResponse.json({
+      status: "taken",
+      error: "that name is taken.",
+      slug: result.slug,
+    });
   }
   if (result.status === "held") {
     return NextResponse.json({

@@ -1,35 +1,41 @@
-"use client";
-
 import { useId } from "react";
 
 const FLOOR = (() => {
+  const w = 1600;
+  const h = 900;
+  const vpX = 800;
+  const vpY = 110;
   const verts: string[] = [];
-  for (let i = 0; i <= 14; i++) {
-    const x = (i / 14) * 1600;
-    verts.push(`M${x} 900 L800 110`);
+  const cols = 14;
+  for (let i = 0; i <= cols; i++) {
+    const x = (i / cols) * w;
+    verts.push(`M${x} ${h} L${vpX} ${vpY}`);
   }
   const horiz: string[] = [];
-  for (let i = 1; i <= 11; i++) {
-    const a = i / 11;
-    const y = 110 + a * a * 790;
-    const s = ((y - 110) / 790) * 1312;
-    horiz.push(`M${800 - s} ${y} L${800 + s} ${y}`);
+  const rows = 11;
+  for (let i = 1; i <= rows; i++) {
+    const t = i / rows;
+    const y = vpY + (h - vpY) * (t * t);
+    const half = ((y - vpY) / (h - vpY)) * w * 0.82;
+    horiz.push(`M${vpX - half} ${y} L${vpX + half} ${y}`);
   }
-  return { w: 1600, h: 900, verts, horiz };
+  return { w, h, verts, horiz };
 })();
+
+type AtmosphereVariant = "default" | "landing";
 
 export function Atmosphere({
   wash = 1,
   variant = "default",
 }: {
   wash?: number;
-  variant?: "default" | "landing";
+  variant?: AtmosphereVariant;
 }) {
-  const rawId = useId().replace(/:/g, "");
-  const soft = `atm-soft-${rawId}`;
-  const bloom = `atm-bloom-${rawId}`;
-  const fade = `atm-fade-${rawId}`;
-  const mask = `atm-mask-${rawId}`;
+  const uid = useId().replace(/:/g, "");
+  const fade = `atm-fade-${uid}`;
+  const mask = `atm-mask-${uid}`;
+  const soft = `atm-soft-${uid}`;
+  const bloom = `atm-bloom-${uid}`;
 
   return (
     <div
@@ -77,15 +83,15 @@ export function Atmosphere({
               <path key={`b-${d}`} d={d} />
             ))}
             {FLOOR.horiz.map((d) => (
-              <path key={`bh-${d}`} d={d} />
+              <path key={`b-${d}`} d={d} />
             ))}
           </g>
           <g filter={`url(#${soft})`} strokeWidth="2.6">
             {FLOOR.verts.map((d) => (
-              <path key={`s-${d}`} d={d} />
+              <path key={d} d={d} />
             ))}
             {FLOOR.horiz.map((d) => (
-              <path key={`sh-${d}`} d={d} />
+              <path key={d} d={d} />
             ))}
           </g>
         </g>

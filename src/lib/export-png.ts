@@ -47,7 +47,7 @@ async function paintShrine(
   if (bg) {
     drawCover(ctx, bg, WIDTH, HEIGHT);
     ctx.fillStyle = colors.a;
-    ctx.globalAlpha = 0.45;
+    ctx.globalAlpha = 0.18;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.globalAlpha = 1;
   }
@@ -56,7 +56,7 @@ async function paintShrine(
   gradient.addColorStop(0, colors.a);
   gradient.addColorStop(0.45, colors.c);
   gradient.addColorStop(1, colors.b);
-  ctx.globalAlpha = bg ? 0.45 : 1;
+  ctx.globalAlpha = bg ? 0.22 : 1;
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
   ctx.globalAlpha = 1;

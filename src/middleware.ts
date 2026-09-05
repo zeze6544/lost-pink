@@ -5,6 +5,7 @@ import {
   supabasePublicUrl,
   supabasePublishableKey,
 } from "@/lib/site";
+import { authCookieOptions } from "@/lib/supabase/env";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -15,6 +16,7 @@ export async function middleware(request: NextRequest) {
   if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {
+    cookieOptions: authCookieOptions(),
     cookies: {
       getAll() {
         return request.cookies.getAll();

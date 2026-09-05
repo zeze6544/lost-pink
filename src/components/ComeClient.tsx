@@ -11,18 +11,34 @@ export function ComeClient({ next }: { next: string }) {
   function onPassword(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    const email = inbox.trim();
+    if (!email || !password) {
+      setError("inbox and password are required.");
+      return;
+    }
     startTransition(async () => {
-      const res = await fetch("/api/auth/password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: inbox, password }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "that didn't open.");
-        return;
+      try {
+        const res = await fetch("/api/auth/password", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        let data: { error?: string; ok?: boolean } = {};
+        try {
+          data = (await res.json()) as { error?: string; ok?: boolean };
+        } catch {
+          data = {};
+        }
+        if (!res.ok) {
+          setError(data.error ?? "that didn't open.");
+          return;
+        }
+        // Full navigation so the new auth cookie is always applied.
+        window.location.assign(next);
+      } catch {
+        setError("couldn't reach lost.pink.");
       }
-      window.location.href = next;
     });
   }
 
@@ -45,6 +61,10 @@ export function ComeClient({ next }: { next: string }) {
             onChange={(e) => setInbox(e.target.value)}
             placeholder="you@lost.pink"
             autoComplete="username"
+            inputMode="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             className="w-full border-0 bg-transparent font-mono text-[14px] text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
           />
         </div>
@@ -54,13 +74,25 @@ export function ComeClient({ next }: { next: string }) {
         <div className="lp-boxed-field flex items-center gap-2 border border-[var(--rule)] px-3 py-2.5">
           <span className="text-[var(--ink-muted)]" aria-hidden>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <rect x="2.5" y="5.5" width="7" height="5" stroke="currentColor" strokeWidth="1" />
-              <path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" stroke="currentColor" strokeWidth="1" />
+              <rect
+                x="2.5"
+                y="5.5"
+                width="7"
+                height="5"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
+              <path
+                d="M4 5.5V4a2 2 0 0 1 4 0v1.5"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
             </svg>
           </span>
           <input
             id="password"
             type="password"
+            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="password"

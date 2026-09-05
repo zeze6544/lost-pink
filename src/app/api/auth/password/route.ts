@@ -11,6 +11,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid JSON." }, { status: 400 });
   }
   const raw = (body.email ?? "").trim().toLowerCase();
+  if (!raw) {
+    return NextResponse.json({ error: "the inbox is missing." }, { status: 400 });
+  }
   const local = raw.includes("@") ? raw : `${raw}@lost.pink`;
   const email = local.endsWith("@lost.pink")
     ? local

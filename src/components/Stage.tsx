@@ -69,23 +69,23 @@ export function Stage({
       }
     >
       {bgUrl ? (
-        // User-chosen still; blob: preview URLs are not valid for next/image.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={bgUrl}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      ) : null}
-      <div
-        className="stage-wash absolute inset-0"
-        style={{ opacity: bgUrl ? 0.55 : 1 }}
-      />
-      <div className="stage-grid-whisper pointer-events-none absolute inset-0" />
-      {look.motif === "grain" ? (
+        <>
+          {/* User-chosen still; blob: preview URLs are not valid for next/image. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={bgUrl} alt="" className="stage-bg" />
+          {/* Bottom fade only — keeps the photo sharp and readable. */}
+          <div className="stage-photo-scrim pointer-events-none absolute inset-0" />
+        </>
+      ) : (
+        <>
+          <div className="stage-wash absolute inset-0" />
+          <div className="stage-grid-whisper pointer-events-none absolute inset-0" />
+        </>
+      )}
+      {!bgUrl && look.motif === "grain" ? (
         <div className="stage-grain absolute inset-0 opacity-[0.18] mix-blend-soft-light" />
       ) : null}
-      {look.motif === "grid" ? (
+      {!bgUrl && look.motif === "grid" ? (
         <div className="stage-grid pointer-events-none absolute inset-0" />
       ) : null}
       <div

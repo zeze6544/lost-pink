@@ -97,8 +97,9 @@ export default async function Image({ params }: Props) {
             width: "100%",
             height: "100%",
             display: "flex",
-            background: `linear-gradient(160deg, ${colors.a}, ${colors.c} 45%, ${colors.b})`,
-            opacity: bgSrc ? 0.45 : 1,
+            background: bgSrc
+              ? "linear-gradient(to top, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.12) 28%, transparent 55%)"
+              : `linear-gradient(160deg, ${colors.a}, ${colors.c} 45%, ${colors.b})`,
           }}
         />
         <div

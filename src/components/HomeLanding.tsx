@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { BrandMark } from "@/components/BrandMark";
+import { MailboxOfferInfo } from "@/components/MailboxOfferInfo";
 import { Stage } from "@/components/Stage";
+import { LANDING_ATMOSPHERE_TEXT } from "@/lib/landing-voice";
 import { defaultLookForSlug, DEFAULT_LOOK, stageStyle } from "@/lib/looks";
 import { MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
 import { normalizeWord } from "@/lib/slug";
-import { comeBackLabel } from "@/lib/voice";
 import type { CheckoutKind } from "@/lib/mailbox-status";
 
 type Check =
   | { status: "idle" }
   | { status: "looking" }
   | { status: "invalid"; error: string }
-  | { status: "taken"; error: string }
+  | { status: "taken"; error: string; slug: string }
   | { status: "held"; error: string }
   | { status: "free"; local: string };
 
@@ -49,7 +51,11 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
       const res = await fetch(
         `/api/alias/available?q=${encodeURIComponent(slug)}`,
       );
-      const data = (await res.json()) as Check & { error?: string; local?: string };
+      const data = (await res.json()) as Check & {
+        error?: string;
+        local?: string;
+        slug?: string;
+      };
       if (data.status === "free" && data.local) {
         setCheck({ status: "free", local: data.local });
         return;
@@ -59,12 +65,16 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         return;
       }
       if (data.status === "held") {
-        setCheck({ status: "held", error: data.error ?? "someone’s holding that name." });
+        setCheck({
+          status: "held",
+          error: data.error ?? "someone is holding that name.",
+        });
         return;
       }
       setCheck({
         status: "taken",
         error: data.error ?? "that name is taken.",
+        slug: data.slug || slug,
       });
     }, 220);
     return () => window.clearTimeout(t);
@@ -81,27 +91,29 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) {
-        setError(data.error ?? "couldn't start that.");
+        setError(data.error ?? "couldn't start checkout.");
         return;
       }
       window.location.href = data.url;
     });
   }
 
-  const note =
+  const hint =
     check.status === "looking"
-      ? "looking…"
+      ? "checking…"
       : check.status === "free"
-        ? "that name is free."
-        : check.status === "taken" || check.status === "held" || check.status === "invalid"
+        ? `${check.local}@lost.pink is available`
+        : check.status === "held" || check.status === "invalid"
           ? check.error
-          : slug
-            ? "keep typing."
-            : "username, then an @lost.pink inbox";
+          : slug && slug.length < 2
+            ? "at least 2 characters."
+            : slug
+              ? "at least 2 characters."
+              : "this becomes you@lost.pink";
 
   return (
     <div
-      className="relative min-h-[100dvh] overflow-hidden"
+      className="landing-home relative min-h-[100dvh] overflow-hidden"
       style={
         {
           "--tray-h": `${trayH}px`,
@@ -113,38 +125,32 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         word={slug}
         look={look}
         alias={null}
-        aliasNote={slug.length >= 2 ? `lost.pink/${slug}` : null}
-        idleHero={slug ? null : "pity is a terrible religion"}
+        atmosphereText={LANDING_ATMOSPHERE_TEXT}
+        atmosphereVariant="landing"
+        className="stage--landing"
         animate
       />
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
-        <p className="mark text-sm text-[var(--stage-ink)] sm:text-[15px]">
-          lost.pink
-        </p>
+        <BrandMark className="pointer-events-auto text-[13px] text-[var(--stage-ink)]/85" />
       </header>
 
-      <div className="absolute inset-x-0 bottom-0 z-20 p-3 sm:p-6">
+      <div className="landing-tray absolute inset-x-0 z-20 p-3 sm:p-6">
         <div ref={trayRef} className="mx-auto w-full max-w-md">
-          {slug ? (
-            <p className="mark mb-2 px-0.5 text-[10px] leading-relaxed text-[var(--stage-ink)]/45">
-              the inbox stays. the page can wait.
-            </p>
-          ) : null}
           <form
-            className="quiet-tray px-3 py-2.5"
+            className="quiet-tray quiet-tray--landing px-3 py-2.5"
             onSubmit={(e) => {
               e.preventDefault();
               buy("mailbox_subscription");
             }}
           >
-            <label htmlFor="name" className="sr-only">
+            <label htmlFor="name" className="field-label">
               username
             </label>
             <input
               id="name"
               value={raw}
               onChange={(e) => setRaw(e.target.value)}
-              placeholder="username"
+              placeholder="@"
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
@@ -152,7 +158,21 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
               autoFocus
               className="quiet-field w-full border-0 bg-transparent pb-1 text-xl text-[var(--ink)] outline-none"
             />
-            <p className="mt-1 text-[11px] text-[var(--ink-muted)]">{note}</p>
+            <div className="min-h-[1.15rem]" aria-live="polite">
+              {check.status === "taken" ? (
+                <p className="mt-1 text-[11px] text-[var(--ink-muted)]">
+                  that name is taken.{" "}
+                  <a
+                    href={`/${check.slug}`}
+                    className="cursor-pointer underline underline-offset-2"
+                  >
+                    view their page
+                  </a>
+                </p>
+              ) : (
+                <p className="mt-1 text-[11px] text-[var(--ink-muted)]">{hint}</p>
+              )}
+            </div>
             {error ? (
               <p className="mt-1 text-xs text-[var(--ink-muted)]" role="alert">
                 {error}
@@ -160,25 +180,30 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
             ) : null}
             <div className="mt-2 grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-2">
               {MAILBOX_OFFERS.map((offer) => (
-                <button
-                  key={offer.kind}
-                  type={offer.kind === "mailbox_subscription" ? "submit" : "button"}
-                  disabled={pending || check.status !== "free"}
-                  onClick={
-                    offer.kind === "mailbox_subscription"
-                      ? undefined
-                      : () => buy(offer.kind)
-                  }
-                  className="min-h-9 text-left text-[12px] text-[var(--ink)]/80 disabled:opacity-25 sm:text-[13px]"
-                >
-                  {pending ? "holding…" : offer.label}
-                </button>
+                <div key={offer.kind} className="flex min-w-0 items-center gap-1">
+                  <button
+                    type={offer.kind === "mailbox_subscription" ? "submit" : "button"}
+                    disabled={pending || check.status !== "free"}
+                    onClick={
+                      offer.kind === "mailbox_subscription"
+                        ? undefined
+                        : () => buy(offer.kind)
+                    }
+                    className="mailbox-offer-button min-h-9 min-w-0 flex-1 cursor-pointer text-left text-[12px] text-[var(--ink)]/80 disabled:cursor-not-allowed disabled:opacity-25 sm:text-[13px]"
+                  >
+                    {pending ? "opening checkout…" : offer.label}
+                  </button>
+                  <MailboxOfferInfo
+                    label={offer.label}
+                    explanation={offer.explanation}
+                  />
+                </div>
               ))}
             </div>
           </form>
           <p className="mark mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[10px] text-[var(--stage-ink)]/50">
-            <a href={signedIn ? "/you" : "/come"} className="underline-offset-2 hover:underline">
-              {signedIn ? "yours" : comeBackLabel()}
+            <a href={signedIn ? "/settings" : "/come"} className="underline-offset-2 hover:underline">
+              {signedIn ? "settings" : "log in"}
             </a>
             <a href="/support" className="underline-offset-2 hover:underline">
               support

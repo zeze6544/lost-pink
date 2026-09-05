@@ -234,10 +234,42 @@ body {
 
 .echo-a {
   transform: translate(0.38em, -0.32em) scale(1.05);
+  filter: none;
 }
 
 .echo-b {
   transform: translate(-0.42em, 0.38em) scale(0.94);
+  filter: none;
+}
+
+/* Landing idle phrase — readable, never soft-focused. */
+.stage-idle-hero,
+.phrase-backdrop__text {
+  width: min(92vw, 40rem);
+  margin: 0;
+  color: color-mix(in srgb, var(--stage-ink) 92%, transparent);
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(2.75rem, 11vw, 5.5rem);
+  font-weight: 500;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+  filter: none;
+  opacity: 1;
+  text-shadow: none;
+  mix-blend-mode: normal;
+}
+
+.phrase-backdrop,
+.phrase-backdrop--stage,
+.phrase-backdrop--site {
+  filter: none;
+}
+
+.phrase-backdrop--site .phrase-backdrop__text,
+.phrase-backdrop--stage .phrase-backdrop__text {
+  filter: none;
+  opacity: 1;
 }
 
 .stage-word {

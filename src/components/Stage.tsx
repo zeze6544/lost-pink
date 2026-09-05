@@ -20,6 +20,8 @@ type Props = {
   caption?: string | null;
   kicker?: string | null;
   kickerTitle?: string | null;
+  /** Large idle phrase — kept sharp (no CSS blur). */
+  idleHero?: string | null;
   writeHref?: string | null;
   animate?: boolean;
   className?: string;
@@ -36,6 +38,7 @@ export function Stage({
   caption = null,
   kicker = null,
   kickerTitle = null,
+  idleHero = null,
   writeHref = null,
   animate = false,
   className = "",
@@ -124,6 +127,10 @@ export function Stage({
             >
               {shown}
             </h1>
+          ) : idleHero ? (
+            <p className="stage-idle-hero phrase-backdrop__text relative z-[1] text-center">
+              {idleHero}
+            </p>
           ) : kickerTitle || kicker ? (
             <div className="relative z-[1] max-w-md text-center">
               {kickerTitle ? (

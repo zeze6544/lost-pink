@@ -114,8 +114,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         look={look}
         alias={null}
         aliasNote={slug.length >= 2 ? `lost.pink/${slug}` : null}
-        kickerTitle={slug ? null : "the inbox stays."}
-        kicker={slug ? null : "the page can wait."}
+        idleHero={slug ? null : "pity is a terrible religion"}
         animate
       />
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">

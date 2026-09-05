@@ -103,7 +103,7 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
             name the inbox
           </h1>
 
-          <p className="mark mt-6 text-center text-[10px] tracking-[0.14em] text-[var(--ink-muted)]">
+          <p className="mark mt-6 text-center text-[11px] tracking-[0.14em] text-[var(--ink-muted)]">
             CHOOSE A USERNAME.
           </p>
 
@@ -114,7 +114,7 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
               continueName();
             }}
           >
-            <div className="lp-underline-field flex w-full items-baseline justify-center border-b border-[var(--rule)] pb-1.5">
+            <div className="lp-underline-field inline-flex min-w-[16rem] items-baseline justify-center border-b border-[var(--rule)] pb-1.5">
               <input
                 id="name-inbox"
                 value={raw}
@@ -125,9 +125,10 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
                 autoCapitalize="off"
                 spellCheck={false}
                 autoFocus
-                className="min-w-0 flex-1 border-0 bg-transparent text-center font-mono text-[15px] text-[var(--ink)] outline-none placeholder:text-[var(--ink-muted)]"
+                size={Math.max(4, (raw || "your").length)}
+                className="w-auto min-w-[3ch] border-0 bg-transparent text-right font-mono text-[16px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/75"
               />
-              <span className="shrink-0 font-mono text-[15px] text-[var(--ink-muted)]">
+              <span className="shrink-0 font-mono text-[16px] text-[var(--ink)]/80">
                 @lost.pink
               </span>
             </div>

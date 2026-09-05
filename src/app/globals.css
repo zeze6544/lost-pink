@@ -4,9 +4,9 @@
   --paper: #0c0c0e;
   --tray: rgba(14, 14, 16, 0.62);
   --ink: #e6e2da;
-  --ink-muted: rgba(230, 226, 218, 0.62);
-  --ink-faint: rgba(230, 226, 218, 0.4);
-  --rule: color-mix(in srgb, var(--ink) 12%, transparent);
+  --ink-muted: rgba(230, 226, 218, 0.72);
+  --ink-faint: rgba(230, 226, 218, 0.48);
+  --rule: color-mix(in srgb, var(--ink) 34%, transparent);
   --background: var(--paper);
   --foreground: var(--ink);
   --tray-h: 5.5rem;
@@ -150,47 +150,49 @@ a[aria-disabled="true"] {
 .atmosphere--landing .atmosphere-wash {
   background:
     radial-gradient(
-      ellipse 74% 54% at 50% 40%,
-      color-mix(in oklab, var(--stage-ink) 4%, transparent),
-      transparent 70%
+      ellipse 82% 62% at 50% 34%,
+      color-mix(in oklab, var(--stage-ink) 14%, transparent),
+      transparent 66%
     ),
     radial-gradient(
       ellipse 110% 58% at 50% 100%,
-      color-mix(in oklab, var(--stage-b) 28%, #050505),
+      color-mix(in oklab, var(--stage-b) 42%, #050505),
       transparent 62%
     ),
     #050505;
 }
 
 .atmosphere--landing .atmosphere-bloom-a {
+  filter: blur(200px);
+  opacity: 0.42;
+}
+
+.atmosphere--landing .atmosphere-bloom-b {
   filter: blur(220px);
   opacity: 0.28;
 }
 
-.atmosphere--landing .atmosphere-bloom-b {
-  filter: blur(240px);
-  opacity: 0.2;
-}
-
 .atmosphere--landing .atmosphere-bloom-c {
-  opacity: 0.12;
+  opacity: 0.18;
 }
 
 .atmosphere--landing .atmosphere-well {
-  opacity: 0.34;
+  opacity: 0.48;
 }
 
 .atmosphere--landing .atmosphere-floor {
-  filter: blur(9px);
-  opacity: 0.055;
+  /* Floor must read as a grid in refs — avoid double-softening with CSS blur */
+  filter: none;
+  opacity: 0.48;
+  color: color-mix(in oklab, var(--stage-ink) 55%, transparent);
 }
 
 .atmosphere--landing .atmosphere-veil {
-  opacity: 0.76;
+  opacity: 0.42;
 }
 
 .atmosphere--landing .atmosphere-dither {
-  opacity: 0.065;
+  opacity: 0.1;
 }
 
 .font-display {
@@ -652,11 +654,14 @@ a[aria-disabled="true"] {
 .lp-footer-flat .site-footer__bar {
   grid-template-columns: 1fr;
   text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--ink) 72%, transparent);
 }
 .lp-footer-flat .site-footer__cell {
   text-align: center;
   border: 0;
-  padding: 0.85rem 1rem;
+  padding: 1rem 1rem;
 }
 .lp-footer-flat .site-footer__cell--left,
 .lp-footer-flat .site-footer__cell--center,

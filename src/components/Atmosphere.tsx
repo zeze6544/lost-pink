@@ -54,17 +54,39 @@ export function Atmosphere({
       >
         <defs>
           <filter id={soft} x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="11" />
+            <feGaussianBlur
+              in="SourceGraphic"
+              stdDeviation={variant === "landing" ? "2.2" : "11"}
+            />
           </filter>
           <filter id={bloom} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="24" />
+            <feGaussianBlur
+              in="SourceGraphic"
+              stdDeviation={variant === "landing" ? "8" : "24"}
+            />
           </filter>
           <linearGradient id={fade} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="white" stopOpacity="0" />
-            <stop offset="22%" stopColor="white" stopOpacity="0.02" />
-            <stop offset="38%" stopColor="white" stopOpacity="0.1" />
-            <stop offset="58%" stopColor="white" stopOpacity="0.28" />
-            <stop offset="78%" stopColor="white" stopOpacity="0.12" />
+            <stop
+              offset="18%"
+              stopColor="white"
+              stopOpacity={variant === "landing" ? "0.04" : "0.02"}
+            />
+            <stop
+              offset="34%"
+              stopColor="white"
+              stopOpacity={variant === "landing" ? "0.18" : "0.1"}
+            />
+            <stop
+              offset="56%"
+              stopColor="white"
+              stopOpacity={variant === "landing" ? "0.42" : "0.28"}
+            />
+            <stop
+              offset="78%"
+              stopColor="white"
+              stopOpacity={variant === "landing" ? "0.22" : "0.12"}
+            />
             <stop offset="100%" stopColor="white" stopOpacity="0" />
           </linearGradient>
           <mask id={mask}>
@@ -78,7 +100,11 @@ export function Atmosphere({
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <g filter={`url(#${bloom})`} strokeWidth="6" opacity="0.45">
+          <g
+            filter={`url(#${bloom})`}
+            strokeWidth={variant === "landing" ? "3.2" : "6"}
+            opacity={variant === "landing" ? "0.55" : "0.45"}
+          >
             {FLOOR.verts.map((d) => (
               <path key={`b-${d}`} d={d} />
             ))}
@@ -86,7 +112,11 @@ export function Atmosphere({
               <path key={`b-${d}`} d={d} />
             ))}
           </g>
-          <g filter={`url(#${soft})`} strokeWidth="2.6">
+          <g
+            filter={`url(#${soft})`}
+            strokeWidth={variant === "landing" ? "1.55" : "2.6"}
+            opacity={variant === "landing" ? "0.95" : "1"}
+          >
             {FLOOR.verts.map((d) => (
               <path key={d} d={d} />
             ))}

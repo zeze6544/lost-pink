@@ -124,16 +124,19 @@ export function DocPage({
   children: ReactNode;
 }) {
   return (
-    <SiteFrame>
+    <SiteFrame atmosphere="default">
       <div className="flex min-h-[100dvh] flex-col">
-        <div className="mx-auto w-full max-w-2xl flex-1 px-6 py-16 sm:px-10 sm:py-20">
+        <div className="w-full flex-1 px-8 py-16 sm:px-12 sm:py-20 lg:px-20">
           <HomeMark />
-          <h1 className="mt-16 font-display text-[clamp(3rem,10vw,5.5rem)] leading-none tracking-tight text-[var(--ink)] sm:mt-20">
+          <h1 className="mt-20 max-w-xl font-display text-[clamp(3.4rem,11vw,6rem)] leading-none tracking-tight text-[var(--ink)] sm:mt-24">
             {title}
           </h1>
-          <div className="mt-10 max-w-xl space-y-8">{children}</div>
+          <div className="mt-10 max-w-xl space-y-10">{children}</div>
         </div>
         <SiteFooter
+          left={
+            <a href="/come">you&apos;re back</a>
+          }
           center={
             <>
               <a href="/support">support</a>
@@ -141,6 +144,7 @@ export function DocPage({
               <a href="/terms">terms</a>
             </>
           }
+          right={<a href="/">back to lost.pink</a>}
         />
       </div>
     </SiteFrame>
@@ -156,10 +160,10 @@ export function DocSection({
 }) {
   return (
     <section>
-      <h2 className="font-display text-[1.55rem] leading-tight tracking-tight text-[var(--ink)]">
+      <h2 className="font-display text-[1.65rem] leading-tight tracking-tight text-[var(--ink)]">
         {title}
       </h2>
-      <div className="mt-3 space-y-2 font-mono text-[13px] leading-relaxed text-[var(--ink-muted)]">
+      <div className="mt-3 space-y-2 font-mono text-[14px] leading-relaxed text-[var(--ink-muted)]">
         {children}
       </div>
     </section>
@@ -185,16 +189,15 @@ export function AccountShell({
   children: ReactNode;
 }) {
   return (
-    <SiteFrame>
+    <SiteFrame atmosphere="default">
       <div className="flex min-h-[100dvh] flex-col">
         <HomeMark className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8" />
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-10 pt-24 sm:px-6">
+        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center px-4 pb-10 pt-24 text-center sm:px-6">
           <h1 className="font-display text-[2.75rem] leading-none tracking-tight text-[var(--ink)]">
             {title}
           </h1>
-          <div className="mt-8 space-y-0">{children}</div>
+          <div className="mt-10 w-full space-y-0 text-left">{children}</div>
         </div>
-        <SiteFooter left="yours" />
       </div>
     </SiteFrame>
   );

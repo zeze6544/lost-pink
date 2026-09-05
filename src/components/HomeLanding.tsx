@@ -108,8 +108,9 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
       </header>
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col">
-        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8 pt-24">
-          <h1 className="lp-hero font-display text-center text-[clamp(3.4rem,11vw,7.5rem)] font-medium leading-[0.9] tracking-[-0.04em] text-[var(--ink)]">
+        {/* Hero sits in the upper stage above the floor / tray */}
+        <div className="flex flex-[0.92] flex-col items-center justify-center px-6 pb-0 pt-12 sm:pt-10">
+          <h1 className="lp-hero font-display text-center text-[clamp(3.8rem,12vw,7.9rem)] font-medium leading-[0.88] tracking-[-0.04em] text-[var(--ink)]">
             {LANDING_HERO_LINES.map((line) => (
               <span key={line} className="block">
                 {line}
@@ -118,15 +119,18 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
           </h1>
         </div>
 
-        <div className="relative z-10 w-full">
+        <div className="relative z-10 w-full shrink-0">
           <div className="site-rule" aria-hidden />
 
-          <div className="mx-auto flex max-w-lg flex-col items-center px-6 py-5">
+          <div className="mx-auto flex flex-col items-center px-6 py-5">
             <label
               htmlFor="name"
-              className="mark text-[10px] tracking-[0.14em] text-[var(--ink-muted)]"
-            >ENTER YOUR USERNAME</label>
-            <div className="lp-underline-field mt-3 flex w-full max-w-sm items-baseline justify-center gap-0 border-b border-[var(--rule)] pb-1">
+              className="mark text-[11px] tracking-[0.16em] text-[var(--ink-muted)]"
+            >
+              ENTER YOUR USERNAME
+            </label>
+            {/* Continuous centered you@lost.pink underline — wider rule like refs */}
+            <div className="lp-underline-field mt-3 flex w-[min(34rem,78vw)] items-baseline justify-center border-b border-[var(--rule)] pb-1.5">
               <input
                 id="name"
                 value={raw}
@@ -137,9 +141,10 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
                 autoCapitalize="off"
                 spellCheck={false}
                 autoFocus
-                className="min-w-0 flex-1 border-0 bg-transparent text-center font-mono text-[15px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/70"
+                size={Math.max(3, (raw || "you").length)}
+                className="w-auto min-w-[2.5ch] border-0 bg-transparent text-right font-mono text-[17px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/85"
               />
-              <span className="shrink-0 font-mono text-[15px] text-[var(--ink-muted)]">
+              <span className="shrink-0 font-mono text-[17px] text-[var(--ink)]/80">
                 @lost.pink
               </span>
             </div>
@@ -174,23 +179,23 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
                 type="button"
                 disabled={pending || check.status !== "free"}
                 onClick={() => buy(offer.kind)}
-                className={`flex min-h-[4.5rem] flex-col items-center justify-center gap-1 px-3 py-4 text-center transition enabled:hover:bg-white/[0.03] disabled:cursor-not-allowed disabled:opacity-35 ${
+                className={`flex min-h-[7rem] flex-col items-center justify-center gap-2 px-3 py-5 text-center transition enabled:hover:bg-white/[0.03] disabled:cursor-not-allowed ${
                   i > 0 ? "border-l border-[var(--rule)]" : ""
                 } ${i === 2 ? "max-sm:border-l-0" : ""} ${
                   i >= 2 ? "max-sm:border-t max-sm:border-[var(--rule)]" : ""
                 }`}
               >
-                <span className="font-display text-[1.35rem] leading-none tracking-[-0.02em] text-[var(--ink)]">
+                <span className="font-display text-[2.65rem] leading-none tracking-[-0.03em] text-[var(--ink)]">
                   {pending ? "…" : offer.label}
                 </span>
-                <span className="mark text-[10px] tracking-[0.04em] text-[var(--ink-muted)]">
+                <span className="mark text-[11px] tracking-[0.05em] text-[var(--ink-muted)]">
                   {offer.explanation}
                 </span>
               </button>
             ))}
           </div>
 
-                    <SiteFooter
+          <SiteFooter
             left={<span className="sr-only">lost.pink</span>}
             center={
               <>

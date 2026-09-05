@@ -242,22 +242,25 @@ body {
   filter: none;
 }
 
-/* Landing idle phrase — readable, never soft-focused. */
+/* Landing idle phrase — crisp and high-contrast, never soft-focused. */
 .stage-idle-hero,
 .phrase-backdrop__text {
   width: min(92vw, 40rem);
   margin: 0;
-  color: color-mix(in srgb, var(--stage-ink) 92%, transparent);
+  color: var(--stage-ink);
   font-family: var(--font-newsreader), Georgia, serif;
   font-size: clamp(2.75rem, 11vw, 5.5rem);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 0.92;
   letter-spacing: -0.045em;
   text-wrap: balance;
-  filter: none;
+  filter: none !important;
+  -webkit-filter: none !important;
   opacity: 1;
   text-shadow: none;
   mix-blend-mode: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .phrase-backdrop,

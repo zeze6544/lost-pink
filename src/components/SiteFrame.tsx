@@ -1,20 +1,23 @@
 import type { ReactNode } from "react";
 import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
+import { LOGIN_WHISPER } from "@/lib/landing-voice";
 
 export function SiteFrame({
   children,
   className = "",
+  atmosphere = "default" as "default" | "landing",
 }: {
   children: ReactNode;
   className?: string;
+  atmosphere?: "default" | "landing";
 }) {
   return (
     <main
       className={`site-frame relative min-h-[100dvh] text-[var(--ink)] ${className}`}
     >
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <Atmosphere />
+        <Atmosphere variant={atmosphere} />
       </div>
       <div className="relative z-10">{children}</div>
     </main>
@@ -28,8 +31,41 @@ export function HomeMark({
 }) {
   return (
     <BrandMark
-      className={`mark text-sm text-[var(--ink)]/80 transition hover:text-[var(--ink)] ${className}`}
+      className={`mark text-[13px] tracking-[0.04em] text-[var(--ink)]/85 transition hover:text-[var(--ink)] ${className}`}
     />
+  );
+}
+
+/** Ruled footer from the approved privacy/terms chrome. */
+export function SiteFooter({
+  left = "you're back",
+  center,
+  right,
+  className = "",
+}: {
+  left?: ReactNode;
+  center?: ReactNode;
+  right?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <footer className={`site-footer ${className}`}>
+      <div className="site-footer__bar">
+        <div className="site-footer__cell site-footer__cell--left">{left}</div>
+        <div className="site-footer__cell site-footer__cell--center">
+          {center ?? (
+            <>
+              <a href="/support">support</a>
+              <span aria-hidden> · </span>
+              <a href="/terms">terms</a>
+            </>
+          )}
+        </div>
+        <div className="site-footer__cell site-footer__cell--right">
+          {right ?? <a href="/">back to lost.pink</a>}
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -43,16 +79,38 @@ export function AuthTray({
   children: ReactNode;
 }) {
   return (
-    <SiteFrame>
-      <HomeMark className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8" />
-      <div className="flex min-h-[100dvh] flex-col items-center justify-center px-6">
-        <div className="quiet-tray w-full max-w-sm px-5 py-6">
-          <h1 className="font-display text-3xl tracking-tight">{title}</h1>
-          <p className="mt-2 text-[13px] leading-relaxed text-[var(--ink-muted)]">
-            {note}
-          </p>
-          {children}
+    <SiteFrame atmosphere="landing">
+      <div className="flex min-h-[100dvh] flex-col">
+        <HomeMark className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8" />
+        <p
+          className="pointer-events-none absolute inset-x-0 top-[18%] z-0 text-center font-display text-[clamp(2.4rem,8vw,5.5rem)] leading-none tracking-[-0.04em] text-[var(--ink)]/[0.07]"
+          aria-hidden
+        >
+          {LOGIN_WHISPER}
+        </p>
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-20">
+          <div className="w-full max-w-sm border border-[var(--rule)] bg-[color-mix(in_srgb,#080808_72%,transparent)] px-5 py-6 backdrop-blur-[8px]">
+            <h1 className="font-display text-[2.4rem] leading-none tracking-tight">
+              {title}
+            </h1>
+            <p className="mt-3 font-mono text-[12px] leading-relaxed text-[var(--ink-muted)]">
+              {note}
+            </p>
+            {children}
+          </div>
         </div>
+        <SiteFooter
+          left="log in"
+          center={
+            <>
+              <a href="/support">support</a>
+              <span aria-hidden> · </span>
+              <a href="/privacy">privacy</a>
+              <span aria-hidden> · </span>
+              <a href="/terms">terms</a>
+            </>
+          }
+        />
       </div>
     </SiteFrame>
   );
@@ -67,19 +125,48 @@ export function DocPage({
 }) {
   return (
     <SiteFrame>
-      <div className="mx-auto max-w-2xl px-6 py-16 sm:px-8 sm:py-24">
-        <HomeMark />
-        <h1 className="mt-16 font-display text-[2.75rem] leading-none tracking-tight text-[var(--ink)] sm:mt-20 sm:text-6xl">
-          {title}
-        </h1>
-        <div className="mt-10 max-w-xl divide-y divide-[var(--ink)]/12">
-          {children}
+      <div className="flex min-h-[100dvh] flex-col">
+        <div className="mx-auto w-full max-w-2xl flex-1 px-6 py-16 sm:px-10 sm:py-20">
+          <HomeMark />
+          <h1 className="mt-16 font-display text-[clamp(3rem,10vw,5.5rem)] leading-none tracking-tight text-[var(--ink)] sm:mt-20">
+            {title}
+          </h1>
+          <div className="mt-10 max-w-xl space-y-8">{children}</div>
         </div>
+        <SiteFooter
+          center={
+            <>
+              <a href="/support">support</a>
+              <span aria-hidden> · </span>
+              <a href="/terms">terms</a>
+            </>
+          }
+        />
       </div>
     </SiteFrame>
   );
 }
 
+export function DocSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section>
+      <h2 className="font-display text-[1.55rem] leading-tight tracking-tight text-[var(--ink)]">
+        {title}
+      </h2>
+      <div className="mt-3 space-y-2 font-mono text-[13px] leading-relaxed text-[var(--ink-muted)]">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+/** @deprecated Prefer DocSection — kept for older Q&A pages. */
 export function DocQuestion({
   q,
   children,
@@ -87,16 +174,7 @@ export function DocQuestion({
   q: string;
   children: ReactNode;
 }) {
-  return (
-    <section className="py-6 first:pt-0">
-      <h2 className="font-display text-[1.4rem] leading-tight tracking-tight text-[var(--ink)] sm:text-2xl">
-        {q}
-      </h2>
-      <div className="mt-3 space-y-3 text-[15px] leading-7 text-[var(--ink-muted)]">
-        {children}
-      </div>
-    </section>
-  );
+  return <DocSection title={q}>{children}</DocSection>;
 }
 
 export function AccountShell({
@@ -108,12 +186,15 @@ export function AccountShell({
 }) {
   return (
     <SiteFrame>
-      <HomeMark className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8" />
-      <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col px-4 pb-10 pt-20 sm:px-6">
-        <h1 className="font-display text-4xl tracking-tight text-[var(--ink)]">
-          {title}
-        </h1>
-        <div className="mt-6 space-y-3">{children}</div>
+      <div className="flex min-h-[100dvh] flex-col">
+        <HomeMark className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8" />
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-10 pt-24 sm:px-6">
+          <h1 className="font-display text-[2.75rem] leading-none tracking-tight text-[var(--ink)]">
+            {title}
+          </h1>
+          <div className="mt-8 space-y-0">{children}</div>
+        </div>
+        <SiteFooter left="yours" />
       </div>
     </SiteFrame>
   );

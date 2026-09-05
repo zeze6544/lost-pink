@@ -13,39 +13,42 @@ export type MailboxOffer = {
   cents: number;
 };
 
-/** Labels must match the configured Polar products, which charge in AUD. */
+/**
+ * Display copy matches the approved landing screenshot (order L→R).
+ * Polar product IDs remain in env — checkout flow unchanged.
+ */
 export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
-  {
-    kind: "mailbox_day",
-    plan: "day",
-    env: "POLAR_PRODUCT_MAILBOX_DAY",
-    label: "A$1",
-    explanation: "gone tomorrow",
-    cents: 100,
-  },
   {
     kind: "mailbox_month",
     plan: "month",
     env: "POLAR_PRODUCT_MAILBOX_MONTH",
-    label: "A$5",
-    explanation: "keep it for a month",
+    label: "$5",
+    explanation: "once for 1 month",
     cents: 500,
-  },
-  {
-    kind: "mailbox_once",
-    plan: "once",
-    env: "POLAR_PRODUCT_MAILBOX",
-    label: "A$25 one-year",
-    explanation: "one year, no renewal",
-    cents: 2500,
   },
   {
     kind: "mailbox_subscription",
     plan: "subscription",
     env: "POLAR_PRODUCT_MAILBOX_SUB",
-    label: "A$25 annually",
-    explanation: "keep it alive",
+    label: "$20",
+    explanation: "annually",
     cents: 2500,
+  },
+  {
+    kind: "mailbox_once",
+    plan: "once",
+    env: "POLAR_PRODUCT_MAILBOX",
+    label: "$20",
+    explanation: "once for 12 months",
+    cents: 2500,
+  },
+  {
+    kind: "mailbox_day",
+    plan: "day",
+    env: "POLAR_PRODUCT_MAILBOX_DAY",
+    label: "$1",
+    explanation: "once for 1 day",
+    cents: 100,
   },
 ] as const;
 
@@ -70,9 +73,7 @@ export function mailboxCheckoutKind(plan: MailboxPlan): Exclude<CheckoutKind, "k
   return "mailbox_once";
 }
 
-export function offerForKind(
-  kind: CheckoutKind,
-): MailboxOffer | null {
+export function offerForKind(kind: CheckoutKind): MailboxOffer | null {
   if (kind === "keep") return null;
   return MAILBOX_OFFERS.find((offer) => offer.kind === kind) ?? null;
 }

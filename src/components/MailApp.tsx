@@ -409,7 +409,7 @@ export function MailApp({
                         <button
                           type="button"
                           onClick={() => openLetter(item)}
-                          className={`block w-full cursor-pointer border-b border-[var(--ink)]/10 py-2.5 text-left ${
+                          className={`block w-full cursor-pointer border-b border-[var(--rule)] py-2.5 text-left ${
                             active ? "opacity-100" : "opacity-90"
                           }`}
                         >

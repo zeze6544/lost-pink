@@ -15,7 +15,7 @@ export function BrandMark({
       className={`brand-mark mark inline-flex items-center gap-2 ${className}`}
       aria-label={glyphOnly ? "lost.pink" : undefined}
     >
-      <span className="brand-glyph" aria-hidden />
+      {glyphOnly ? <span className="brand-glyph" aria-hidden /> : null}
       {glyphOnly ? null : <span>lost.pink</span>}
     </a>
   );

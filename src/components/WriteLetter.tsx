@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { HomeMark, SiteFrame } from "@/components/SiteFrame";
+import { HomeMark, SiteFooter, SiteFrame } from "@/components/SiteFrame";
 import { displayLostEmail } from "@/lib/slug";
 
 export function WriteLetter({
@@ -41,68 +41,71 @@ export function WriteLetter({
 
   return (
     <SiteFrame>
-      <HomeMark className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8" />
-      <div className="flex min-h-[100dvh] items-center justify-center px-6 py-24">
-        <form
-          onSubmit={submit}
-          className="quiet-tray w-full max-w-md px-5 py-5"
-        >
-          <p className="mark text-[11px] tracking-[0.12em] text-[var(--ink-muted)]">
-            to {displayLostEmail(alias)}
-          </p>
-          <h1 className="mt-2 font-display text-3xl tracking-tight">
-            write {word}
-          </h1>
-          {sent ? (
-            <p className="mt-4 text-[13px] text-[var(--ink)]">
-              sent. it lands in their inbox, not an app on your phone.
+      <div className="flex min-h-[100dvh] flex-col">
+        <HomeMark className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8" />
+        <div className="flex flex-1 items-center justify-center px-6 py-24">
+          <form
+            onSubmit={submit}
+            className="quiet-tray w-full max-w-md px-5 py-5"
+          >
+            <p className="mark text-[11px] tracking-[0.12em] text-[var(--ink-muted)]">
+              to {displayLostEmail(alias)}
             </p>
-          ) : (
-            <>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="your name"
-                className="quiet-field mt-4 w-full border-0 bg-transparent pb-1 text-[14px] outline-none"
-              />
-              <input
-                type="email"
-                required
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
-                placeholder="your email, for the reply"
-                className="quiet-field mt-3 w-full border-0 bg-transparent pb-1 text-[14px] outline-none"
-              />
-              <input
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="subject"
-                className="quiet-field mt-3 w-full border-0 bg-transparent pb-1 text-[14px] outline-none"
-              />
-              <textarea
-                required
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="the letter"
-                rows={8}
-                className="mt-4 w-full resize-none border-0 bg-transparent text-[15px] leading-relaxed outline-none"
-              />
-              {error ? (
-                <p className="mt-2 text-xs text-[var(--ink-muted)]" role="alert">
-                  {error}
-                </p>
-              ) : null}
-              <div className="mt-4 flex gap-4 text-[13px]">
-                <button type="submit" disabled={pending}>
-                  {pending ? "sending…" : "send"}
-                </button>
-                <a href={`/${slug}`} className="text-[var(--ink-muted)]">
-                  leave
-                </a>
-              </div>
-            </>
-          )}
-        </form>
+            <h1 className="mt-2 font-display text-3xl tracking-tight">
+              write {word}
+            </h1>
+            {sent ? (
+              <p className="mt-4 text-[13px] text-[var(--ink)]">
+                sent. it lands in their inbox, not an app on your phone.
+              </p>
+            ) : (
+              <>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="your name"
+                  className="quiet-field mt-4 w-full border-0 bg-transparent pb-1 text-[14px] outline-none"
+                />
+                <input
+                  type="email"
+                  required
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  placeholder="your email, for the reply"
+                  className="quiet-field mt-3 w-full border-0 bg-transparent pb-1 text-[14px] outline-none"
+                />
+                <input
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="subject"
+                  className="quiet-field mt-3 w-full border-0 bg-transparent pb-1 text-[14px] outline-none"
+                />
+                <textarea
+                  required
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="the letter"
+                  rows={8}
+                  className="mt-4 w-full resize-none border-0 bg-transparent text-[15px] leading-relaxed outline-none"
+                />
+                {error ? (
+                  <p className="mt-2 text-xs text-[var(--ink-muted)]" role="alert">
+                    {error}
+                  </p>
+                ) : null}
+                <div className="mt-4 flex gap-4 text-[13px]">
+                  <button type="submit" disabled={pending}>
+                    {pending ? "sending…" : "send"}
+                  </button>
+                  <a href={`/${slug}`} className="text-[var(--ink-muted)]">
+                    leave
+                  </a>
+                </div>
+              </>
+            )}
+          </form>
+        </div>
+        <SiteFooter left="write" right={<a href={`/${slug}`}>back to page</a>} />
       </div>
     </SiteFrame>
   );

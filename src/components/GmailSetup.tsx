@@ -9,29 +9,10 @@ type Creds = {
   smtp: { host: string; port: number; security: string };
 };
 
-type Device = "ios" | "android" | "desktop";
-
-function detectDevice(): Device {
-  if (typeof navigator === "undefined") return "desktop";
-  const ua = navigator.userAgent;
-  const coarse =
-    typeof window !== "undefined" &&
-    window.matchMedia("(pointer: coarse)").matches;
-  if (/Android/i.test(ua)) return "android";
-  if (/iPhone|iPad|iPod/i.test(ua)) return "ios";
-  if (/Macintosh/i.test(ua) && coarse) return "ios";
-  return "desktop";
-}
-
 export function GmailSetup({ pageId }: { pageId: string | null }) {
   const [creds, setCreds] = useState<Creds | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPass, setShowPass] = useState(false);
-  const [device, setDevice] = useState<Device>("desktop");
-
-  useEffect(() => {
-    setDevice(detectDevice());
-  }, []);
 
   useEffect(() => {
     if (!pageId) return;
@@ -49,129 +30,109 @@ export function GmailSetup({ pageId }: { pageId: string | null }) {
 
   if (!pageId) {
     return (
-      <p className="mt-4 text-[13px] text-[var(--ink-muted)]">
+      <p className="mt-4 font-mono text-[13px] text-[var(--ink-muted)]">
         buy an inbox first. then this page has the keys.
       </p>
     );
   }
 
+  const user = creds?.user ?? "you@lost.pink";
+  const imapHost = creds?.imap.host ?? "imap.migadu.com";
+  const imapPort = creds?.imap.port ?? 993;
+  const imapSec = creds?.imap.security ?? "SSL/TLS";
+  const smtpHost = creds?.smtp.host ?? "smtp.migadu.com";
+  const smtpPort = creds?.smtp.port ?? 465;
+  const smtpSec = creds?.smtp.security ?? "SSL/TLS";
+
   return (
-    <div className="mt-4 space-y-4 text-[13px] leading-relaxed text-[var(--ink-muted)]">
-      <p>
-        IMAP is how another app reads this inbox. SMTP is how it sends as
-        you@lost.pink. lost.pink still has its own inbox in the browser.
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {(["ios", "android", "desktop"] as const).map((id) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={device === id}
-            className={`tray-btn ${device === id ? "is-on" : ""}`}
-            onClick={() => setDevice(id)}
-          >
-            {id === "ios" ? "iPhone" : id === "android" ? "Android" : "computer"}
-          </button>
-        ))}
-      </div>
-      <Tutorial device={device} />
-      {error ? <p>{error}</p> : null}
-      {creds ? (
-        <dl className="space-y-1 text-[12px] text-[var(--ink)]">
-          <div>address · {creds.user}</div>
-          <div>
-            password · {showPass ? creds.password : "••••••••"}
-            <button
-              type="button"
-              className="ml-2 cursor-pointer text-[var(--ink-faint)]"
-              onClick={() => setShowPass((v) => !v)}
-            >
-              {showPass ? "hide" : "show"}
-            </button>
-          </div>
-          <div>
-            IMAP · {creds.imap.host} · {creds.imap.port} · {creds.imap.security}
-          </div>
-          <div>
-            SMTP · {creds.smtp.host} · {creds.smtp.port} · {creds.smtp.security}
-          </div>
-        </dl>
-      ) : (
-        <p>looking…</p>
-      )}
+    <div className="border border-[var(--rule)] bg-[color-mix(in_srgb,#080808_70%,transparent)] px-5 py-5 sm:px-6 sm:py-6">
+      <h2 className="font-mono text-[14px] tracking-[0.04em] text-[var(--ink)]">
+        gmail
+      </h2>
+      <div className="mt-3 border-t border-[var(--rule)]" aria-hidden />
+
+      <ol className="mt-5 space-y-5 font-mono text-[12px] leading-relaxed">
+        <Step n={1} title="ENABLE IMAP">
+          <p className="text-[var(--ink-muted)]">
+            Turn on IMAP in your Google Account settings.
+          </p>
+        </Step>
+        <Step n={2} title="INCOMING MAIL (IMAP)">
+          <Rows
+            rows={[
+              ["Server", imapHost],
+              ["Port", String(imapPort)],
+              ["Security", imapSec],
+            ]}
+          />
+        </Step>
+        <Step n={3} title="OUTGOING MAIL (SMTP)">
+          <Rows
+            rows={[
+              ["Server", smtpHost],
+              ["Port", String(smtpPort)],
+              ["Security", smtpSec],
+            ]}
+          />
+        </Step>
+        <Step n={4} title="USERNAME">
+          <p className="text-[var(--ink-muted)]">{user}</p>
+        </Step>
+        <Step n={5} title="PASSWORD">
+          <p className="text-[var(--ink-muted)]">
+            {creds ? (
+              <>
+                {showPass ? creds.password : "••••••••••••"}{" "}
+                <button
+                  type="button"
+                  className="underline underline-offset-2"
+                  onClick={() => setShowPass((v) => !v)}
+                >
+                  {showPass ? "hide" : "show"}
+                </button>
+              </>
+            ) : (
+              "Use your Gmail app password."
+            )}
+          </p>
+          {error ? <p className="mt-2 text-[var(--ink-muted)]">{error}</p> : null}
+        </Step>
+      </ol>
     </div>
   );
 }
 
-function Tutorial({ device }: { device: Device }) {
-  if (device === "ios") {
-    return (
-      <div className="space-y-3">
-        <p className="text-[var(--ink)]">iPhone / iPad · Mail</p>
-        <ol className="list-decimal space-y-2 pl-4">
-          <li>Open Settings → Apps → Mail → Mail Accounts.</li>
-          <li>Tap Add Account → Other → Add Mail Account.</li>
-          <li>Enter the address and password below, then tap Next.</li>
-          <li>
-            Choose IMAP. Incoming: imap.migadu.com, port 993, SSL/TLS. Outgoing:
-            smtp.migadu.com, port 465, SSL/TLS. Username is the full address.
-          </li>
-        </ol>
-        <p className="text-[var(--ink)]">or the Gmail app</p>
-        <ol className="list-decimal space-y-2 pl-4">
-          <li>Open Gmail. At the top right, in the search bar, tap Profile.</li>
-          <li>Tap Add another account → Other.</li>
-          <li>Enter your full email address, then tap Next.</li>
-          <li>Select Personal (IMAP).</li>
-          <li>
-            Enter the password, tap Next, then paste IMAP and SMTP from the
-            block below.
-          </li>
-        </ol>
-      </div>
-    );
-  }
-  if (device === "android") {
-    return (
-      <div className="space-y-3">
-        <p className="text-[var(--ink)]">Android · Gmail app</p>
-        <ol className="list-decimal space-y-2 pl-4">
-          <li>Open the Gmail app.</li>
-          <li>At the top right, in the search bar, tap Profile.</li>
-          <li>Tap Add another account → Other.</li>
-          <li>Enter your full email address, then tap Next.</li>
-          <li>Select Personal (IMAP).</li>
-          <li>
-            Enter the password, tap Next, then the IMAP host, port, and SSL/TLS
-            from the block below. SMTP is smtp.migadu.com, port 465, SSL/TLS.
-          </li>
-        </ol>
-      </div>
-    );
-  }
+function Step({
+  n,
+  title,
+  children,
+}: {
+  n: number;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-3">
-      <p className="text-[var(--ink)]">computer</p>
-      <p>
-        Gmail in the browser no longer adds a third-party inbox. Google removed
-        “Check mail from other accounts” (Settings → See all settings →
-        Accounts and Import) for new setups in 2026. Use a mail app, or add
-        the account in the Gmail app on a phone.
-      </p>
-      <p className="text-[var(--ink)]">Apple Mail on a Mac</p>
-      <ol className="list-decimal space-y-2 pl-4">
-        <li>Mail → Add Account → Other Mail Account…</li>
-        <li>Enter the address and password below.</li>
-        <li>
-          Incoming Mail Server: imap.migadu.com. Outgoing: smtp.migadu.com.
-          Username is the full address. IMAP 993 SSL/TLS, SMTP 465 SSL/TLS.
-        </li>
-      </ol>
-      <p className="text-[var(--ink)]">Outlook or Thunderbird</p>
-      <p>
-        Add an existing IMAP account and paste the host, port, and password
-        from the block below. Do not use POP.
-      </p>
-    </div>
+    <li className="flex gap-3">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center border border-[var(--rule)] text-[10px] text-[var(--ink)]">
+        {n}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="tracking-[0.08em] text-[var(--ink)]">{title}</p>
+        <div className="mt-2">{children}</div>
+      </div>
+    </li>
+  );
+}
+
+function Rows({ rows }: { rows: [string, string][] }) {
+  return (
+    <dl className="space-y-1 text-[var(--ink-muted)]">
+      {rows.map(([k, v]) => (
+        <div key={k} className="grid grid-cols-[5.5rem_1fr] gap-2">
+          <dt>{k}</dt>
+          <dd className="text-[var(--ink)]">{v}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

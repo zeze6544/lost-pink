@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
-import { MailboxOfferInfo } from "@/components/MailboxOfferInfo";
-import { Stage } from "@/components/Stage";
-import { LANDING_ATMOSPHERE_TEXT } from "@/lib/landing-voice";
-import { defaultLookForSlug, DEFAULT_LOOK, stageStyle } from "@/lib/looks";
+import { SiteFooter } from "@/components/SiteFrame";
+import { LANDING_HERO_LINES } from "@/lib/landing-voice";
 import { MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
 import { normalizeWord } from "@/lib/slug";
 import type { CheckoutKind } from "@/lib/mailbox-status";
@@ -23,22 +22,11 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
   const [check, setCheck] = useState<Check>({ status: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const trayRef = useRef<HTMLDivElement>(null);
-  const [trayH, setTrayH] = useState(88);
   const slug = useMemo(() => normalizeWord(raw), [raw]);
-  const look = useMemo(
-    () => (slug ? defaultLookForSlug(slug) : DEFAULT_LOOK),
-    [slug],
-  );
 
   useEffect(() => {
-    const node = trayRef.current;
-    if (!node) return;
-    const measure = () => setTrayH(node.getBoundingClientRect().height + 24);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(node);
-    return () => ro.disconnect();
+    const u = new URLSearchParams(window.location.search).get("u");
+    if (u) setRaw(u);
   }, []);
 
   useEffect(() => {
@@ -105,116 +93,119 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         ? `${check.local}@lost.pink is available`
         : check.status === "held" || check.status === "invalid"
           ? check.error
-          : slug && slug.length < 2
-            ? "at least 2 characters."
-            : slug
-              ? "at least 2 characters."
-              : "this becomes you@lost.pink";
+          : check.status === "taken"
+            ? null
+            : null;
 
   return (
-    <div
-      className="landing-home relative min-h-[100dvh] overflow-hidden"
-      style={
-        {
-          "--tray-h": `${trayH}px`,
-          ...stageStyle(look),
-        } as React.CSSProperties
-      }
-    >
-      <Stage
-        word={slug}
-        look={look}
-        alias={null}
-        atmosphereText={LANDING_ATMOSPHERE_TEXT}
-        atmosphereVariant="landing"
-        className="stage--landing"
-        animate
-      />
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
-        <BrandMark className="pointer-events-auto text-[13px] text-[var(--stage-ink)]/85" />
+    <div className="lp-shell relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <Atmosphere wash={1} variant="landing" />
+      </div>
+
+      <header className="absolute left-0 top-0 z-20 p-5 sm:p-8">
+        <BrandMark className="text-[13px] tracking-[0.04em] text-[var(--ink)]/90" />
       </header>
 
-      <div className="landing-tray absolute inset-x-0 z-20 p-3 sm:p-6">
-        <div ref={trayRef} className="mx-auto w-full max-w-md">
-          <form
-            className="quiet-tray quiet-tray--landing px-3 py-2.5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              buy("mailbox_subscription");
-            }}
-          >
-            <label htmlFor="name" className="field-label">
-              username
-            </label>
-            <input
-              id="name"
-              value={raw}
-              onChange={(e) => setRaw(e.target.value)}
-              placeholder="@"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
-              autoFocus
-              className="quiet-field w-full border-0 bg-transparent pb-1 text-xl text-[var(--ink)] outline-none"
-            />
-            <div className="min-h-[1.15rem]" aria-live="polite">
+      <div className="relative z-10 flex min-h-[100dvh] flex-col">
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8 pt-24">
+          <h1 className="lp-hero font-display text-center text-[clamp(3.4rem,11vw,7.5rem)] font-medium leading-[0.9] tracking-[-0.04em] text-[var(--ink)]">
+            {LANDING_HERO_LINES.map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
+          </h1>
+        </div>
+
+        <div className="relative z-10 w-full">
+          <div className="site-rule" aria-hidden />
+
+          <div className="mx-auto flex max-w-lg flex-col items-center px-6 py-5">
+            <label
+              htmlFor="name"
+              className="mark text-[10px] tracking-[0.14em] text-[var(--ink-muted)]"
+            >ENTER YOUR USERNAME</label>
+            <div className="lp-underline-field mt-3 flex w-full max-w-sm items-baseline justify-center gap-0 border-b border-[var(--rule)] pb-1">
+              <input
+                id="name"
+                value={raw}
+                onChange={(e) => setRaw(e.target.value)}
+                placeholder="you"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                autoFocus
+                className="min-w-0 flex-1 border-0 bg-transparent text-center font-mono text-[15px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/70"
+              />
+              <span className="shrink-0 font-mono text-[15px] text-[var(--ink-muted)]">
+                @lost.pink
+              </span>
+            </div>
+            <div className="mt-2 min-h-[1rem] text-center" aria-live="polite">
               {check.status === "taken" ? (
-                <p className="mt-1 text-[11px] text-[var(--ink-muted)]">
+                <p className="mark text-[11px] text-[var(--ink-muted)]">
                   that name is taken.{" "}
                   <a
                     href={`/${check.slug}`}
-                    className="cursor-pointer underline underline-offset-2"
+                    className="underline underline-offset-2"
                   >
                     view their page
                   </a>
                 </p>
-              ) : (
-                <p className="mt-1 text-[11px] text-[var(--ink-muted)]">{hint}</p>
-              )}
+              ) : hint ? (
+                <p className="mark text-[11px] text-[var(--ink-muted)]">{hint}</p>
+              ) : null}
+              {error ? (
+                <p className="mark text-[11px] text-[var(--ink-muted)]" role="alert">
+                  {error}
+                </p>
+              ) : null}
             </div>
-            {error ? (
-              <p className="mt-1 text-xs text-[var(--ink-muted)]" role="alert">
-                {error}
-              </p>
-            ) : null}
-            <div className="mt-2 grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-2">
-              {MAILBOX_OFFERS.map((offer) => (
-                <div key={offer.kind} className="flex min-w-0 items-center gap-1">
-                  <button
-                    type={offer.kind === "mailbox_subscription" ? "submit" : "button"}
-                    disabled={pending || check.status !== "free"}
-                    onClick={
-                      offer.kind === "mailbox_subscription"
-                        ? undefined
-                        : () => buy(offer.kind)
-                    }
-                    className="mailbox-offer-button min-h-9 min-w-0 flex-1 cursor-pointer text-left text-[12px] text-[var(--ink)]/80 disabled:cursor-not-allowed disabled:opacity-25 sm:text-[13px]"
-                  >
-                    {pending ? "opening checkout…" : offer.label}
-                  </button>
-                  <MailboxOfferInfo
-                    label={offer.label}
-                    explanation={offer.explanation}
-                  />
-                </div>
-              ))}
-            </div>
-          </form>
-          <p className="mark mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[10px] text-[var(--stage-ink)]/50">
-            <a href={signedIn ? "/settings" : "/come"} className="underline-offset-2 hover:underline">
-              {signedIn ? "settings" : "log in"}
-            </a>
-            <a href="/support" className="underline-offset-2 hover:underline">
-              support
-            </a>
-            <a href="/privacy" className="underline-offset-2 hover:underline">
-              privacy
-            </a>
-            <a href="/terms" className="underline-offset-2 hover:underline">
-              terms
-            </a>
-          </p>
+          </div>
+
+          <div className="site-rule" aria-hidden />
+
+          <div className="lp-price-row grid grid-cols-2 border-b border-[var(--rule)] sm:grid-cols-4">
+            {MAILBOX_OFFERS.map((offer, i) => (
+              <button
+                key={offer.kind}
+                type="button"
+                disabled={pending || check.status !== "free"}
+                onClick={() => buy(offer.kind)}
+                className={`flex min-h-[4.5rem] flex-col items-center justify-center gap-1 px-3 py-4 text-center transition enabled:hover:bg-white/[0.03] disabled:cursor-not-allowed disabled:opacity-35 ${
+                  i > 0 ? "border-l border-[var(--rule)]" : ""
+                } ${i === 2 ? "max-sm:border-l-0" : ""} ${
+                  i >= 2 ? "max-sm:border-t max-sm:border-[var(--rule)]" : ""
+                }`}
+              >
+                <span className="font-display text-[1.35rem] leading-none tracking-[-0.02em] text-[var(--ink)]">
+                  {pending ? "…" : offer.label}
+                </span>
+                <span className="mark text-[10px] tracking-[0.04em] text-[var(--ink-muted)]">
+                  {offer.explanation}
+                </span>
+              </button>
+            ))}
+          </div>
+
+                    <SiteFooter
+            left={<span className="sr-only">lost.pink</span>}
+            center={
+              <>
+                <a href={signedIn ? "/settings" : "/come"}>you&apos;re back</a>
+                <span aria-hidden> · </span>
+                <a href="/support">support</a>
+                <span aria-hidden> · </span>
+                <a href="/privacy">privacy</a>
+                <span aria-hidden> · </span>
+                <a href="/terms">terms</a>
+              </>
+            }
+            right={null}
+            className="lp-footer-flat"
+          />
         </div>
       </div>
     </div>

@@ -4,9 +4,7 @@ import { useState, useTransition } from "react";
 
 export function ComeClient({ next }: { next: string }) {
   const [inbox, setInbox] = useState("");
-  const [linkEmail, setLinkEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -28,112 +26,69 @@ export function ComeClient({ next }: { next: string }) {
     });
   }
 
-  function onLink(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    startTransition(async () => {
-      const res = await fetch("/api/auth/otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: linkEmail, next }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "couldn't send that.");
-        return;
-      }
-      setSent(true);
-    });
-  }
-
-  if (sent) {
-    return (
-      <p className="mt-4 text-[13px] text-[var(--ink)]">
-        check your email for the sign-in link. it expires soon.
-      </p>
-    );
-  }
-
   return (
-    <div className="mt-4">
-      <form onSubmit={onPassword}>
-        <p className="field-label">inbox and password</p>
+    <div className="mt-5">
+      <form onSubmit={onPassword} className="space-y-3">
+        <p className="field-label">INBOX AND PASSWORD</p>
         <label htmlFor="inbox-email" className="sr-only">
           lost.pink inbox
         </label>
-        <input
-          id="inbox-email"
-          type="text"
-          required
-          value={inbox}
-          onChange={(e) => setInbox(e.target.value)}
-          placeholder="you@lost.pink"
-          autoComplete="username"
-          className="quiet-field w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
-        />
+        <div className="lp-boxed-field flex items-center gap-2 border border-[var(--rule)] px-3 py-2.5">
+          <span className="text-[13px] text-[var(--ink-muted)]" aria-hidden>
+            @
+          </span>
+          <input
+            id="inbox-email"
+            type="text"
+            required
+            value={inbox}
+            onChange={(e) => setInbox(e.target.value)}
+            placeholder="you@lost.pink"
+            autoComplete="username"
+            className="w-full border-0 bg-transparent font-mono text-[14px] text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
+          />
+        </div>
         <label htmlFor="password" className="sr-only">
           password
         </label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="password"
-          autoComplete="current-password"
-          className="quiet-field mt-3 w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
-        />
+        <div className="lp-boxed-field flex items-center gap-2 border border-[var(--rule)] px-3 py-2.5">
+          <span className="text-[var(--ink-muted)]" aria-hidden>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <rect x="2.5" y="5.5" width="7" height="5" stroke="currentColor" strokeWidth="1" />
+              <path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" stroke="currentColor" strokeWidth="1" />
+            </svg>
+          </span>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="password"
+            autoComplete="current-password"
+            className="w-full border-0 bg-transparent font-mono text-[14px] text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
+          />
+        </div>
         {error ? (
-          <p className="mt-2 text-xs text-[var(--ink-muted)]" role="alert">
+          <p className="text-xs text-[var(--ink-muted)]" role="alert">
             {error}
           </p>
         ) : null}
         <button
           type="submit"
           disabled={pending || !inbox.trim() || !password}
-          className="mt-3 cursor-pointer text-[13px] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
+          className="lp-boxed-field w-full cursor-pointer border border-[var(--rule)] bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] py-2.5 font-mono text-[13px] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
         >
           {pending ? "opening…" : "open"}
         </button>
       </form>
-      <p className="mt-3 text-[11px] text-[var(--ink-muted)]">
+      <p className="mt-3 text-center font-mono text-[11px] text-[var(--ink-muted)]">
         <a
           href={`/come/forgot${inbox.trim() ? `?email=${encodeURIComponent(inbox.trim())}` : ""}`}
-          className="underline-offset-2 hover:underline"
+          className="underline underline-offset-2"
         >
           forgot the password
         </a>
       </p>
-      <form
-        onSubmit={onLink}
-        className="mt-6 border-t border-[var(--ink)]/10 pt-4"
-      >
-        <p className="field-label">page sign-in link</p>
-        <p className="mb-3 text-[11px] text-[var(--ink-muted)]">
-          left a page without an inbox? enter the email you used and we will
-          send a sign-in link.
-        </p>
-        <label htmlFor="link-email" className="sr-only">
-          email used for the page
-        </label>
-        <input
-          id="link-email"
-          type="email"
-          required
-          value={linkEmail}
-          onChange={(e) => setLinkEmail(e.target.value)}
-          placeholder="you@example.com"
-          autoComplete="email"
-          className="quiet-field w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
-        />
-        <button
-          type="submit"
-          disabled={pending || !linkEmail.trim()}
-          className="mt-3 cursor-pointer text-[13px] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          {pending ? "sending…" : "send sign-in link"}
-        </button>
-      </form>
     </div>
   );
 }

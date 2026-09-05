@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { GmailSetup } from "@/components/GmailSetup";
-import { AccountShell } from "@/components/SiteFrame";
+import { HomeMark, SiteFooter, SiteFrame } from "@/components/SiteFrame";
 import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
 import { getMailboxByOwnerId } from "@/lib/mailbox-store";
 import { listOwnedPages } from "@/lib/pages";
@@ -15,19 +15,21 @@ export default async function GmailSetupPage() {
 
   const cookieStore = await cookies();
   const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
-  if (parsed) {
-    redirect("/settings");
-  }
+  if (parsed) redirect("/settings");
 
   const pages = await listOwnedPages(userId);
   const mailbox = await getMailboxByOwnerId(userId);
   const page = pages.find((p) => p.id === mailbox?.page_id) ?? pages[0] ?? null;
 
   return (
-    <AccountShell title="connect a mail app">
-      <div className="quiet-tray px-5 py-5">
-        <GmailSetup pageId={page?.id ?? null} />
+    <SiteFrame atmosphere="landing">
+      <div className="flex min-h-[100dvh] flex-col">
+        <HomeMark className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8" />
+        <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-5 py-24">
+          <GmailSetup pageId={page?.id ?? null} />
+        </div>
+        <SiteFooter left="setup" />
       </div>
-    </AccountShell>
+    </SiteFrame>
   );
 }

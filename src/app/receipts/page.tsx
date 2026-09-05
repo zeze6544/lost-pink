@@ -118,7 +118,7 @@ export default async function ReceiptsPage() {
                 {polar.map((item) => (
                   <li
                     key={item.id}
-                    className="border-t border-[var(--ink)]/10 pt-2 first:border-0 first:pt-0"
+                    className="border-t border-[var(--rule)] pt-2 first:border-0 first:pt-0"
                   >
                     <p className="text-[13px] text-[var(--ink)]">
                       {item.label}
@@ -149,7 +149,7 @@ export default async function ReceiptsPage() {
                 {stored.map((item) => (
                   <li
                     key={item.id}
-                    className="border-t border-[var(--ink)]/10 pt-2 first:border-0 first:pt-0"
+                    className="border-t border-[var(--rule)] pt-2 first:border-0 first:pt-0"
                   >
                     <p className="text-[13px]">{paymentKindLabel(item.kind)}</p>
                     <p className="mark text-[10px] text-[var(--ink-faint)]">

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { BrandMark } from "@/components/BrandMark";
+import { SiteFooter } from "@/components/SiteFrame";
 import { Stage } from "@/components/Stage";
 import {
   DEFAULT_LOOK,
@@ -366,7 +367,7 @@ export function Generator({
         )}
       </header>
 
-      <div className="absolute inset-x-0 bottom-0 z-20 p-3 sm:p-6">
+      <div className="absolute inset-x-0 bottom-0 z-20 pb-[var(--site-footer-h,2.75rem)] p-3 sm:p-6">
         <div ref={trayRef} className="mx-auto w-full max-w-md">
           <form onSubmit={onSubmit} className="quiet-tray px-3 py-2.5">
             {panel === "title" ? (
@@ -648,52 +649,60 @@ export function Generator({
               </button>
             </div>
             {editing && handle ? (
-              <div className="mt-2 flex justify-end">
+              <div className="mt-2 flex items-center justify-between gap-3">
+                {page && !page.kept ? (
+                  <button
+                    type="button"
+                    className="cursor-pointer text-[11px] text-[var(--ink-muted)]"
+                    onClick={keepIt}
+                    disabled={pending}
+                  >
+                    {keepLabel(display)}
+                  </button>
+                ) : (
+                  <span />
+                )}
                 <a href={publicPagePath(handle)} className="tray-btn inline-flex items-center">
                   view live page
                 </a>
               </div>
             ) : null}
           </form>
-          <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[10px] text-[var(--stage-ink)]/55">
-            {editing ? (
-              <>
-                <button
-                  type="button"
-                  className="cursor-pointer"
-                  aria-live="polite"
-                  onClick={() => void share()}
-                >
-                  {copied ? "copied" : "share"}
-                </button>
-                {page && !page.kept ? (
-                  <button type="button" className="cursor-pointer" onClick={keepIt} disabled={pending}>
-                    {keepLabel(display)}
-                  </button>
-                ) : null}
-                <a href="/settings" className="underline-offset-2 hover:underline">
-                  settings
-                </a>
-              </>
-            ) : (
-              <>
-                <span>an inbox you keep</span>
-                <a href="/come" className="underline-offset-2 hover:underline">
-                  log in
-                </a>
-              </>
-            )}
-            <a href="/support" className="underline-offset-2 hover:underline">
-              support
-            </a>
-            <a href="/privacy" className="underline-offset-2 hover:underline">
-              privacy
-            </a>
-            <a href="/terms" className="underline-offset-2 hover:underline">
-              terms
-            </a>
-          </p>
         </div>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 z-20">
+        <SiteFooter
+          left={
+            editing ? (
+              <a href="/settings">settings</a>
+            ) : (
+              <a href="/come">log in</a>
+            )
+          }
+          center={
+            <>
+              <a href="/support">support</a>
+              <span aria-hidden> · </span>
+              <a href="/privacy">privacy</a>
+              <span aria-hidden> · </span>
+              <a href="/terms">terms</a>
+            </>
+          }
+          right={
+            editing ? (
+              <button
+                type="button"
+                className="cursor-pointer"
+                aria-live="polite"
+                onClick={() => void share()}
+              >
+                {copied ? "copied" : "share"}
+              </button>
+            ) : (
+              <span>an inbox you keep</span>
+            )
+          }
+        />
       </div>
     </div>
   );

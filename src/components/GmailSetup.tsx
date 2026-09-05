@@ -20,59 +20,119 @@ export function GmailSetup({ pageId }: { pageId: string | null }) {
       .then(async (res) => {
         const data = (await res.json()) as Creds & { error?: string };
         if (!res.ok) {
-          setError(data.error ?? "come back first.");
+          setError(data.error ?? "sign in first.");
           return;
         }
         setCreds(data);
       })
-      .catch(() => setError("couldn't look."));
+      .catch(() => setError("couldn't load credentials."));
   }, [pageId]);
 
   if (!pageId) {
     return (
-      <p className="mt-4 text-[13px] text-[var(--ink-muted)]">
+      <p className="mt-4 font-mono text-[13px] text-[var(--ink-muted)]">
         buy an inbox first. then this page has the keys.
       </p>
     );
   }
 
+  const user = creds?.user ?? "you@lost.pink";
+  const imapHost = creds?.imap.host ?? "imap.migadu.com";
+  const imapPort = creds?.imap.port ?? 993;
+  const imapSec = creds?.imap.security ?? "SSL/TLS";
+  const smtpHost = creds?.smtp.host ?? "smtp.migadu.com";
+  const smtpPort = creds?.smtp.port ?? 465;
+  const smtpSec = creds?.smtp.security ?? "SSL/TLS";
+
   return (
-    <div className="mt-4 space-y-3 text-[13px] leading-relaxed text-[var(--ink-muted)]">
-      <p>
-        IMAP is how another app, like Gmail, reads this inbox. SMTP is how it
-        sends as you@lost.pink. lost.pink still keeps its own reading room.
-      </p>
-      <ol className="list-decimal space-y-2 pl-4">
-        <li>In Gmail, open Settings → See all settings → Accounts and Import.</li>
-        <li>Check mail from other accounts → Add a mail account.</li>
-        <li>Enter the address below. Choose IMAP. Paste the host, port, and password.</li>
-        <li>To send as this address, add it under Send mail as, with the SMTP line.</li>
+    <div className="border border-[var(--rule)] bg-[color-mix(in_srgb,#080808_70%,transparent)] px-5 py-5 sm:px-6 sm:py-6">
+      <h2 className="font-mono text-[14px] tracking-[0.04em] text-[var(--ink)]">
+        gmail
+      </h2>
+      <div className="mt-3 border-t border-[var(--rule)]" aria-hidden />
+
+      <ol className="mt-5 space-y-5 font-mono text-[12px] leading-relaxed">
+        <Step n={1} title="ENABLE IMAP">
+          <p className="text-[var(--ink-muted)]">
+            Turn on IMAP in your Google Account settings.
+          </p>
+        </Step>
+        <Step n={2} title="INCOMING MAIL (IMAP)">
+          <Rows
+            rows={[
+              ["Server", imapHost],
+              ["Port", String(imapPort)],
+              ["Security", imapSec],
+            ]}
+          />
+        </Step>
+        <Step n={3} title="OUTGOING MAIL (SMTP)">
+          <Rows
+            rows={[
+              ["Server", smtpHost],
+              ["Port", String(smtpPort)],
+              ["Security", smtpSec],
+            ]}
+          />
+        </Step>
+        <Step n={4} title="USERNAME">
+          <p className="text-[var(--ink-muted)]">{user}</p>
+        </Step>
+        <Step n={5} title="PASSWORD">
+          <p className="text-[var(--ink-muted)]">
+            {creds ? (
+              <>
+                {showPass ? creds.password : "••••••••••••"}{" "}
+                <button
+                  type="button"
+                  className="underline underline-offset-2"
+                  onClick={() => setShowPass((v) => !v)}
+                >
+                  {showPass ? "hide" : "show"}
+                </button>
+              </>
+            ) : (
+              "Use your Gmail app password."
+            )}
+          </p>
+          {error ? <p className="mt-2 text-[var(--ink-muted)]">{error}</p> : null}
+        </Step>
       </ol>
-      {error ? <p>{error}</p> : null}
-      {creds ? (
-        <dl className="space-y-1 text-[12px] text-[var(--ink)]">
-          <div>address · {creds.user}</div>
-          <div>
-            password ·{" "}
-            {showPass ? creds.password : "••••••••"}
-            <button
-              type="button"
-              className="ml-2 text-[var(--ink-faint)]"
-              onClick={() => setShowPass((v) => !v)}
-            >
-              {showPass ? "hide" : "show"}
-            </button>
-          </div>
-          <div>
-            IMAP · {creds.imap.host} · {creds.imap.port} · {creds.imap.security}
-          </div>
-          <div>
-            SMTP · {creds.smtp.host} · {creds.smtp.port} · {creds.smtp.security}
-          </div>
-        </dl>
-      ) : (
-        <p>looking…</p>
-      )}
     </div>
+  );
+}
+
+function Step({
+  n,
+  title,
+  children,
+}: {
+  n: number;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex gap-3">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center border border-[var(--rule)] text-[10px] text-[var(--ink)]">
+        {n}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="tracking-[0.08em] text-[var(--ink)]">{title}</p>
+        <div className="mt-2">{children}</div>
+      </div>
+    </li>
+  );
+}
+
+function Rows({ rows }: { rows: [string, string][] }) {
+  return (
+    <dl className="space-y-1 text-[var(--ink-muted)]">
+      {rows.map(([k, v]) => (
+        <div key={k} className="grid grid-cols-[5.5rem_1fr] gap-2">
+          <dt>{k}</dt>
+          <dd className="text-[var(--ink)]">{v}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

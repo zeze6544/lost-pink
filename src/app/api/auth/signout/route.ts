@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createRouteSupabase } from "@/lib/supabase/route";
 
 export async function POST(request: Request) {
-  const supabase = await createServerSupabase();
-  if (supabase) {
-    await supabase.auth.signOut();
+  const route = await createRouteSupabase();
+  if (route) {
+    await route.supabase.auth.signOut();
   }
-  return NextResponse.redirect(new URL("/", request.url), { status: 303 });
+  const redirect = NextResponse.redirect(new URL("/", request.url), {
+    status: 303,
+  });
+  return route ? route.applyCookies(redirect) : redirect;
 }

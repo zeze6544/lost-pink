@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   const file = form.get("file");
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Missing file." }, { status: 400 });
+    return NextResponse.json({ error: "missing file." }, { status: 400 });
   }
   if (file.size > MAX_IMAGE_BYTES) {
     return NextResponse.json(
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ url });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Could not store photo.";
+      err instanceof Error ? err.message : "could not store photo.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

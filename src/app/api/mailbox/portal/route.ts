@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireOwnedPage } from "@/lib/mailbox-auth";
 import { getMailboxByPageId } from "@/lib/mailbox-store";
 import { createCustomerPortalUrl } from "@/lib/polar";
+import { polarCustomerBelongsToMailbox } from "@/lib/polar-receipts";
 
 export async function GET(request: NextRequest) {
   const pageId = request.nextUrl.searchParams.get("pageId")?.trim();
   if (!pageId) {
-    return NextResponse.json({ error: "Missing page." }, { status: 400 });
+    return NextResponse.json({ error: "missing page." }, { status: 400 });
   }
 
   const owned = await requireOwnedPage(pageId);
@@ -23,6 +24,20 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const belongs = await polarCustomerBelongsToMailbox(
+      mailbox.polar_customer_id,
+      mailbox.id,
+    );
+    if (!belongs) {
+      console.error("blocked mis-bound polar portal", {
+        mailboxId: mailbox.id,
+        customerId: mailbox.polar_customer_id,
+      });
+      return NextResponse.json(
+        { error: "portal needs account repair. write support." },
+        { status: 409 },
+      );
+    }
     const url = await createCustomerPortalUrl(mailbox.polar_customer_id);
     if (!url) {
       return NextResponse.json(

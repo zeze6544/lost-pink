@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { MailboxOfferInfo } from "@/components/MailboxOfferInfo";
+import { mailboxCheckoutKind, MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
+import type { CheckoutKind, PublicMailboxLabel } from "@/lib/mailbox-status";
 import type { OwnerMailboxView } from "@/lib/mailbox-view";
-import type { PublicMailboxLabel } from "@/lib/mailbox-status";
 import {
-  formatPaidThrough,
+  formatPaidDate,
   inboxArriving,
   inboxDarkCopy,
   inboxDisplayOnly,
@@ -12,10 +14,7 @@ import {
   inboxNeedAlias,
   inboxNeedComeBack,
   inboxNeedKeep,
-  inboxOnceLabel,
-  inboxOpenLabel,
   inboxTerminationNotice,
-  inboxYearlyLabel,
 } from "@/lib/voice";
 
 type Props = {
@@ -42,9 +41,10 @@ export function InboxPanel({
   mailbox,
   compact = false,
   inviteComeBack = false,
-  nextPath = "/you",
+  nextPath = "/settings",
   beforeCheckout,
   onNeedAlias,
+  writePath = null,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -62,7 +62,7 @@ export function InboxPanel({
     });
   }
 
-  async function startCheckout(kind: "mailbox_once" | "mailbox_subscription") {
+  async function startCheckout(kind: Exclude<CheckoutKind, "keep">) {
     if (beforeCheckout) {
       const ok = await beforeCheckout();
       if (!ok) return;
@@ -108,38 +108,27 @@ export function InboxPanel({
     window.location.reload();
   }
 
-  async function setupHelp() {
-    const res = await fetch("/api/mailbox/setup-help", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pageId }),
-    });
-    const data = (await res.json()) as { error?: string };
-    if (!res.ok) {
-      setError(data.error ?? "couldn't send help.");
-      return;
-    }
-    setNote("setup help is on its way.");
-  }
-
-  const aliasNote =
-    publicLabel === "open"
-      ? inboxOpenLabel()
-      : publicLabel === "display" || alias
-        ? inboxDisplayOnly()
-        : null;
+  const openNote = writePath ? (
+    <a href={writePath} className="underline-offset-2 hover:underline">
+      write
+    </a>
+  ) : null;
+  const displayNote =
+    publicLabel === "display" || alias ? inboxDisplayOnly() : null;
 
   if (!signedIn && !inviteComeBack) {
-    return aliasNote ? (
-      <p className="text-[12px] text-[var(--ink-faint)]">{aliasNote}</p>
-    ) : null;
+    return null;
   }
 
   if (!kept) {
     return (
       <p className="text-[12px] text-[var(--ink-muted)]">
         {inboxNeedKeep()}
-        {aliasNote ? <span className="ml-1 opacity-70">· {aliasNote}</span> : null}
+        {publicLabel === "open" ? (
+          <span className="ml-1 opacity-70">· {openNote}</span>
+        ) : displayNote ? (
+          <span className="ml-1 opacity-70">· {displayNote}</span>
+        ) : null}
       </p>
     );
   }
@@ -147,27 +136,27 @@ export function InboxPanel({
   if (!signedIn) {
     if (inviteComeBack) {
       return (
-        <p className="text-[12px] text-[var(--ink)]">
+        <div className="flex flex-col gap-1 text-[12px] text-[var(--ink)]">
           <a href={`/come?next=${encodeURIComponent(nextPath)}`}>
             {inboxNeedComeBack(
               publicLabel === "open" || mailbox?.status === "live",
             )}
           </a>
-          {aliasNote ? (
-            <span className="ml-1 text-[var(--ink-faint)]">· {aliasNote}</span>
-          ) : null}
-        </p>
+        </div>
       );
     }
-    return aliasNote ? (
-      <p className="text-[12px] text-[var(--ink-faint)]">{aliasNote}</p>
+    if (publicLabel === "open") {
+      return <p className="text-[12px] text-[var(--ink)]">{openNote}</p>;
+    }
+    return displayNote ? (
+      <p className="text-[12px] text-[var(--ink-faint)]">{displayNote}</p>
     ) : null;
   }
 
   if (!alias) {
     return (
       <p className="text-[12px] text-[var(--ink)]">
-        <button type="button" onClick={onNeedAlias}>
+        <button type="button" onClick={onNeedAlias} className="cursor-pointer">
           {inboxNeedAlias()}
         </button>
       </p>
@@ -186,11 +175,12 @@ export function InboxPanel({
           <button
             type="button"
             disabled={pending}
+            className="cursor-pointer"
             onClick={() =>
               run(() =>
                 startCheckout(
-                  mailbox.plan === "subscription"
-                    ? "mailbox_subscription"
+                  mailbox.plan
+                    ? mailboxCheckoutKind(mailbox.plan)
                     : "mailbox_once",
                 ),
               )
@@ -201,6 +191,7 @@ export function InboxPanel({
           <button
             type="button"
             disabled={pending}
+            className="cursor-pointer"
             onClick={() => run(clearCheckout)}
           >
             clear
@@ -229,6 +220,7 @@ export function InboxPanel({
           <button
             type="button"
             disabled={pending}
+            className="cursor-pointer"
             onClick={() => run(retryProvision)}
           >
             try again
@@ -242,61 +234,82 @@ export function InboxPanel({
 
   if (mailbox?.status === "live") {
     return (
-      <div className="space-y-1 text-[12px] text-[var(--ink)]">
-        <p>
-          {mailbox.address}
-          <span className="ml-1 text-[var(--ink-faint)]">{inboxOpenLabel()}</span>
-        </p>
+      <div className="space-y-2 text-[12px] text-[var(--ink)]">
+        {!compact ? (
+          <div>
+            <p className="field-label">inbox</p>
+            <p className="mark text-[12px] text-[var(--ink)]">{mailbox.address}</p>
+          <p className="mt-0.5 text-[11px] text-[var(--ink-muted)]">
+            {openNote}
+          </p>
+          </div>
+        ) : (
+          <p className="text-[11px] text-[var(--ink-muted)]">{openNote}</p>
+        )}
         {!compact ? (
           <>
             {mailbox.recoveryEmail ? (
-              <p className="text-[var(--ink-faint)]">
-                recovery · {mailbox.recoveryEmail}
-              </p>
+              <div>
+                <p className="field-label">recovery</p>
+                <p className="text-[var(--ink-faint)]">{mailbox.recoveryEmail}</p>
+              </div>
             ) : null}
             {mailbox.paidThrough ? (
-              <p className="text-[var(--ink-faint)]">
-                {formatPaidThrough(mailbox.paidThrough)}
-                {mailbox.plan === "subscription" ? " · yearly" : " · one year"}
-              </p>
+              <div>
+                <p className="field-label">paid through</p>
+                <p className="text-[var(--ink-faint)]">
+                  {formatPaidDate(mailbox.paidThrough)}
+                  {mailbox.plan === "subscription"
+                    ? " · yearly"
+                    : mailbox.plan === "month"
+                      ? " · a month"
+                      : mailbox.plan === "day"
+                        ? " · a day"
+                        : " · a year"}
+                </p>
+              </div>
             ) : null}
-            <p className="text-[var(--ink-faint)]">
-              IMAP {mailbox.imap.host}:{mailbox.imap.port} · SMTP{" "}
-              {mailbox.smtp.host}:{mailbox.smtp.port}
-            </p>
           </>
+        ) : mailbox.paidThrough ? (
+          <p className="text-[11px] text-[var(--ink-faint)]">
+            {formatPaidDate(mailbox.paidThrough)}
+            {mailbox.plan === "subscription"
+              ? " · yearly"
+              : mailbox.plan === "month"
+                ? " · a month"
+                : mailbox.plan === "day"
+                  ? " · a day"
+                  : " · a year"}
+          </p>
         ) : null}
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
-          <a href={mailbox.webmailUrl} target="_blank" rel="noreferrer">
-            webmail
-          </a>
-          {mailbox.hasPortal ? (
-            <a href={`/api/mailbox/portal?pageId=${encodeURIComponent(pageId)}`}>
-              receipts
-            </a>
-          ) : null}
-          {mailbox.plan === "once" ? (
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => run(() => startCheckout("mailbox_once"))}
-            >
-              renew one year
-            </button>
-          ) : (
-            <span className="text-[var(--ink-faint)]">renews on its own</span>
-          )}
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => run(setupHelp)}
-          >
-            setup help
-          </button>
-          <a href={mailbox.recoveryUrl} target="_blank" rel="noreferrer">
-            forgot password
-          </a>
-          <a href="/support">support</a>
+        <div>
+          <p className="field-label">actions</p>
+          <div className="tray-actions">
+            {mailbox.plan === "subscription" ? (
+              <span className="block py-2 text-[var(--ink-faint)]">
+                renews on its own
+              </span>
+            ) : (
+              <button
+                type="button"
+                disabled={pending}
+                className="cursor-pointer"
+                onClick={() =>
+                  run(() =>
+                    startCheckout(
+                      mailbox.plan
+                        ? mailboxCheckoutKind(mailbox.plan)
+                        : "mailbox_once",
+                    ),
+                  )
+                }
+              >
+                buy more time
+              </button>
+            )}
+            <a href="/settings">settings</a>
+            <a href="/support">support</a>
+          </div>
         </div>
         <Status error={error} note={note} />
       </div>
@@ -311,8 +324,7 @@ export function InboxPanel({
         error={error}
         note={note}
         lead={inboxDarkCopy()}
-        onOnce={() => run(() => startCheckout("mailbox_once"))}
-        onYearly={() => run(() => startCheckout("mailbox_subscription"))}
+        onBuy={(kind) => run(() => startCheckout(kind))}
       />
     );
   }
@@ -323,9 +335,8 @@ export function InboxPanel({
       pending={pending}
       error={error}
       note={note}
-      lead={aliasNote}
-      onOnce={() => run(() => startCheckout("mailbox_once"))}
-      onYearly={() => run(() => startCheckout("mailbox_subscription"))}
+      lead={displayNote}
+      onBuy={(kind) => run(() => startCheckout(kind))}
     />
   );
 }
@@ -336,27 +347,35 @@ function BuyChoices({
   error,
   note,
   lead,
-  onOnce,
-  onYearly,
+  onBuy,
 }: {
   compact: boolean;
   pending: boolean;
   error: string | null;
   note: string | null;
   lead?: string | null;
-  onOnce: () => void;
-  onYearly: () => void;
+  onBuy: (kind: Exclude<CheckoutKind, "keep">) => void;
 }) {
   return (
     <div className="space-y-1 text-[12px] text-[var(--ink)]">
       {lead ? <p className="text-[var(--ink-faint)]">{lead}</p> : null}
       <div className="flex flex-wrap gap-x-3 gap-y-1">
-        <button type="button" disabled={pending} onClick={onOnce}>
-          {pending ? "opening…" : inboxOnceLabel()}
-        </button>
-        <button type="button" disabled={pending} onClick={onYearly}>
-          {inboxYearlyLabel()}
-        </button>
+        {MAILBOX_OFFERS.map((offer) => (
+          <span key={offer.kind} className="flex items-center gap-1">
+            <button
+              type="button"
+              disabled={pending}
+              className="cursor-pointer"
+              onClick={() => onBuy(offer.kind)}
+            >
+              {pending ? "opening…" : offer.label}
+            </button>
+            <MailboxOfferInfo
+              label={offer.label}
+              explanation={offer.explanation}
+            />
+          </span>
+        ))}
       </div>
       {!compact ? (
         <p className="text-[11px] text-[var(--ink-faint)]">

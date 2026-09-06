@@ -1,17 +1,14 @@
 import { BuyMoreTime } from "@/components/BuyMoreTime";
 import { AccountShell } from "@/components/SiteFrame";
-import { countInbox } from "@/lib/mail-imap";
 import {
   getMailboxByOwnerId,
   listMailboxesByPageIds,
   toOwnerMailboxView,
 } from "@/lib/mailbox-store";
 import { listOwnedPages, pageHandle } from "@/lib/pages";
-import { publicPagePath } from "@/lib/site";
 import { displayLostEmail } from "@/lib/slug";
 import { getAuthUserId } from "@/lib/supabase/server";
 import {
-  formatMemberSince,
   formatPaidThrough,
   formatTimeLeft,
   planLabel,
@@ -31,103 +28,73 @@ export default async function BillingPage() {
     pages.find((row) => row.id === ownedMailbox?.page_id) ?? pages[0] ?? null;
   const mailbox = page ? mailboxes.get(page.id) ?? ownedMailbox : ownedMailbox;
   const view = mailbox ? toOwnerMailboxView(mailbox) : null;
-  const mailCount =
-    mailbox?.status === "live" ? await countInbox(mailbox) : null;
-  const photoCount = page
-    ? Number(Boolean(page.bg_url)) + Number(Boolean(page.token_url))
-    : 0;
-  const since = mailbox?.created_at ?? page?.created_at ?? null;
+  const handle = page ? pageHandle(page) : null;
+  const inbox = page
+    ? displayLostEmail(page.email_local || page.slug)
+    : null;
 
   return (
-    <AccountShell title="billing">
+    <AccountShell title="subscription" align="left">
       {!page || !view ? (
-        <div className="quiet-tray px-4 py-4">
-          <p className="text-[13px] text-[var(--ink-muted)]">
+        <div>
+          <p className="font-mono text-[13px] text-[var(--ink-muted)]">
             no paid inbox on this account yet.
           </p>
-          <a href="/" className="tray-btn mt-4 inline-flex items-center">
+          <a
+            href="/"
+            className="mt-4 inline-block font-mono text-[12px] underline underline-offset-2"
+          >
             get an inbox
           </a>
         </div>
       ) : (
-        <div className="quiet-tray space-y-4 px-4 py-4">
+        <div className="max-w-lg space-y-10">
           <div>
-            <p className="field-label">inbox</p>
-            <p className="mark text-[12px]">
-              {displayLostEmail(page.email_local || page.slug)}
-            </p>
-            <p className="mt-0.5 text-[11px] text-[var(--ink-faint)]">
-              lost.pink/{pageHandle(page)}
+            <p className="font-mono text-[13px] text-[var(--ink)]">{inbox}</p>
+            <p className="mt-1 font-mono text-[12px] text-[var(--ink-muted)]">
+              lost.pink/{handle}
             </p>
           </div>
-          <div>
-            <p className="field-label">plan</p>
-            <p className="text-[13px]">{planLabel(view.plan)}</p>
-          </div>
-          {view.paidThrough ? (
+
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-4">
+            <div>
+              <p className="field-label">plan</p>
+              <p className="mt-1 font-mono text-[13px] text-[var(--ink)]">
+                {planLabel(view.plan)}
+              </p>
+            </div>
+            <div>
+              <p className="field-label">paid through</p>
+              <p className="mt-1 font-mono text-[13px] text-[var(--ink)]">
+                {view.paidThrough
+                  ? formatPaidThrough(view.paidThrough).replace(/^paid through /, "")
+                  : "—"}
+              </p>
+            </div>
             <div>
               <p className="field-label">time left</p>
-              <p className="text-[13px]">
-                {formatTimeLeft(view.paidThrough)}
-              </p>
-              <p className="mt-0.5 text-[11px] text-[var(--ink-faint)]">
-                {formatPaidThrough(view.paidThrough)}
+              <p className="mt-1 font-mono text-[13px] text-[var(--ink)]">
+                {view.paidThrough ? formatTimeLeft(view.paidThrough) : "—"}
               </p>
             </div>
-          ) : null}
-          {since ? (
             <div>
-              <p className="field-label">member since</p>
-              <p className="text-[13px]">{formatMemberSince(since)}</p>
+              <p className="field-label">cancel</p>
+              <p className="mt-1 font-mono text-[13px] text-[var(--ink)]">
+                {view.hasPortal ? (
+                  <a
+                    href={`/api/mailbox/portal?pageId=${encodeURIComponent(page.id)}`}
+                    className="underline underline-offset-2"
+                  >
+                    cancel
+                  </a>
+                ) : (
+                  "—"
+                )}
+              </p>
             </div>
-          ) : null}
-          <div>
-            <p className="field-label">mail in inbox</p>
-            <p className="text-[13px]">
-              {mailCount === null
-                ? mailbox?.status === "live"
-                  ? "couldn't count mail right now"
-                  : "inbox isn’t live, so there’s no count"
-                : `${mailCount} ${mailCount === 1 ? "message" : "messages"}`}
-            </p>
           </div>
-          <div>
-            <p className="field-label">photos on the page</p>
-            <p className="text-[13px]">
-              {photoCount === 0
-                ? "none"
-                : `${photoCount} ${photoCount === 1 ? "photo" : "photos"}`}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {view.hasPortal ? (
-              <a
-                href={`/api/mailbox/portal?pageId=${encodeURIComponent(page.id)}`}
-                className="tray-btn inline-flex items-center"
-              >
-                polar customer portal
-              </a>
-            ) : null}
-            <a
-              href={publicPagePath(pageHandle(page))}
-              className="tray-btn inline-flex items-center"
-            >
-              view live page
-            </a>
-            <a href="/receipts" className="tray-btn inline-flex items-center">
-              receipts
-            </a>
-            <a href="/settings" className="tray-btn inline-flex items-center">
-              settings
-            </a>
-          </div>
-          {view.plan !== "subscription" ? (
-            <BuyMoreTime pageId={page.id} plan={view.plan} />
-          ) : view.hasPortal ? (
-            <p className="text-[12px] text-[var(--ink-faint)]">
-              cancel or change the renewing year in the polar portal.
-            </p>
-          ) : null}
+
+          <BuyMoreTime pageId={page.id} plan={view.plan} />
         </div>
       )}
     </AccountShell>

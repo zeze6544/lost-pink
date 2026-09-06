@@ -1,10 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { MailboxOfferInfo } from "@/components/MailboxOfferInfo";
-import { MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
+import { HOME_MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
 import type { CheckoutKind } from "@/lib/mailbox-status";
 import type { MailboxPlan } from "@/lib/mailbox-status";
+
+function offerPhrase(plan: MailboxPlan): string {
+  if (plan === "day") return "$1 day";
+  if (plan === "month") return "$5 month";
+  return "$20 year";
+}
 
 export function BuyMoreTime({
   pageId,
@@ -35,24 +40,25 @@ export function BuyMoreTime({
 
   return (
     <div className="space-y-2">
-      <p className="field-label">buy more time</p>
-      <div className="flex flex-col gap-1">
-        {MAILBOX_OFFERS.map((offer) => (
-          <div key={offer.kind} className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={pending}
-              className="tray-btn min-w-0 flex-1 text-left"
-              onClick={() => buy(offer.kind)}
-            >
-              {pending ? "opening…" : offer.label}
-            </button>
-            <MailboxOfferInfo
-              label={offer.label}
-              explanation={offer.explanation}
-            />
-          </div>
-        ))}
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+        <span className="font-display text-[1.35rem] leading-none tracking-[-0.02em] text-[var(--ink)]">
+          buy more time
+        </span>
+        <p className="font-mono text-[12px] text-[var(--ink-muted)]">
+          {HOME_MAILBOX_OFFERS.map((offer, i) => (
+            <span key={offer.kind}>
+              {i > 0 ? " · " : null}
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => buy(offer.kind)}
+                className="cursor-pointer underline underline-offset-2 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                {offerPhrase(offer.plan)}
+              </button>
+            </span>
+          ))}
+        </p>
       </div>
       {plan === "subscription" ? (
         <p className="text-[11px] text-[var(--ink-faint)]">

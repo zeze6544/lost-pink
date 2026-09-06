@@ -29,9 +29,8 @@ export function ComeClient({ next }: { next: string }) {
   return (
     <div className="mt-5">
       <form onSubmit={onPassword} className="space-y-3">
-        <p className="field-label">INBOX AND PASSWORD</p>
         <label htmlFor="inbox-email" className="sr-only">
-          lost.pink inbox
+          inbox
         </label>
         <div className="lp-boxed-field flex items-center gap-2 border border-[color-mix(in_srgb,var(--ink)_40%,transparent)] px-3 py-2.5">
           <span className="text-[13px] text-[var(--ink-muted)]" aria-hidden>
@@ -43,7 +42,7 @@ export function ComeClient({ next }: { next: string }) {
             required
             value={inbox}
             onChange={(e) => setInbox(e.target.value)}
-            placeholder="you@lost.pink"
+            placeholder="inbox"
             autoComplete="username"
             className="w-full border-0 bg-transparent font-mono text-[14px] text-[var(--ink)] outline-none placeholder:text-[var(--ink-muted)]"
           />
@@ -86,15 +85,14 @@ export function ComeClient({ next }: { next: string }) {
           href={`/come/forgot${inbox.trim() ? `?email=${encodeURIComponent(inbox.trim())}` : ""}`}
           className="underline underline-offset-2"
         >
-          forgot the password
+          forgot password
         </a>
       </p>
       <p className="mt-5 text-center font-mono text-[12px] leading-relaxed text-[var(--ink)]/78">
         left a page without an inbox?{" "}
         <a href="/come/forgot" className="underline underline-offset-2">
-          we&apos;ll send a sign-in link
+          we&apos;ll send a sign-in link.
         </a>
-        .
       </p>
     </div>
   );

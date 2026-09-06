@@ -22,7 +22,7 @@ export default async function DeleteNamePage({ params }: Props) {
   const handle = pageHandle(page);
 
   return (
-    <AccountShell title={`delete ${page.word || handle}`}>
+    <AccountShell title={`delete ${page.word || handle}`} align="left">
       <DeleteNameClient handle={handle} word={page.word || handle} />
     </AccountShell>
   );

@@ -62,10 +62,41 @@ export function SettingsClient({
   }
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={changeRecovery} className="space-y-2">
+    <div className="mt-12 space-y-10">
+      <form id="password" onSubmit={changePassword} className="scroll-mt-28 space-y-2">
+        <label htmlFor="new-password" className="field-label">
+          password
+        </label>
+        <input
+          id="new-password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="at least 8 characters"
+          autoComplete="new-password"
+          className="quiet-field w-full border-0 bg-transparent py-2 font-mono text-[14px] outline-none"
+        />
+        <button
+          type="submit"
+          disabled={pending || password.length < 8}
+          className="tray-btn"
+        >
+          {pending ? "saving…" : "update password"}
+        </button>
+        {inbox ? (
+          <p className="pt-1">
+            <a
+              href="/come/forgot"
+              className="font-mono text-[12px] text-[var(--ink-muted)] underline underline-offset-2"
+            >
+              forgot password
+            </a>
+          </p>
+        ) : null}
+      </form>
+      <form id="recovery" onSubmit={changeRecovery} className="scroll-mt-28 space-y-2">
         <label htmlFor="recovery-email" className="field-label">
-          recovery email
+          recovery
         </label>
         <input
           id="recovery-email"
@@ -74,7 +105,7 @@ export function SettingsClient({
           onChange={(e) => setRecovery(e.target.value)}
           placeholder="not @lost.pink"
           autoComplete="email"
-          className="quiet-field w-full border-0 bg-transparent py-2 text-[14px] outline-none"
+          className="quiet-field w-full border-0 bg-transparent py-2 font-mono text-[14px] outline-none"
         />
         {recoveryNeedsOther ? (
           <p className="text-[12px] text-[var(--ink-muted)]">
@@ -94,32 +125,6 @@ export function SettingsClient({
           {pending ? "saving…" : "save recovery email"}
         </button>
       </form>
-      <form onSubmit={changePassword} className="space-y-2">
-        <label htmlFor="new-password" className="field-label">
-          change password
-        </label>
-        <input
-          id="new-password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="at least 8 characters"
-          autoComplete="new-password"
-          className="quiet-field w-full border-0 bg-transparent py-2 text-[14px] outline-none"
-        />
-        <button
-          type="submit"
-          disabled={pending || password.length < 8}
-          className="tray-btn"
-        >
-          {pending ? "saving…" : "update password"}
-        </button>
-      </form>
-      {inbox ? (
-        <a href="/come/forgot" className="tray-btn inline-flex items-center">
-          forgot password
-        </a>
-      ) : null}
       {error ? (
         <p className="text-[12px] text-[var(--ink-muted)]" role="alert">
           {error}

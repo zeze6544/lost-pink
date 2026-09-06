@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { MAIL_GRACE_DAYS } from "@/lib/product-rules";
 
 export function DeleteNameClient({
   handle,
-  word,
 }: {
   handle: string;
   word: string;
@@ -12,7 +12,6 @@ export function DeleteNameClient({
   const [confirm, setConfirm] = useState("");
   const [pending, startTransition] = useTransition();
   const [done, setDone] = useState(false);
-  const label = word || handle;
   const ready = confirm.trim().toLowerCase() === handle.toLowerCase();
 
   function onDelete(e: React.FormEvent) {
@@ -22,7 +21,7 @@ export function DeleteNameClient({
       // No silent destroy API yet — open a support request with the typed name.
       const subject = encodeURIComponent(`delete ${handle}`);
       const body = encodeURIComponent(
-        `please delete ${handle}.\n\nI understand this removes the page, the inbox, and recovery access.\nMail is kept 7 days after deletion starts, then gone.\nThe name may return to the pool only after that window.\nThis does not refund remaining paid time.\n`,
+        `please delete ${handle}.\n\nI understand this removes the page, the inbox, and recovery access.\nMail is kept ${MAIL_GRACE_DAYS} days after deletion starts, then gone.\nThe name may return to the pool only after that window.\nThis does not refund remaining paid time.\n`,
       );
       window.location.href = `mailto:support@lost.pink?subject=${subject}&body=${body}`;
       setDone(true);
@@ -42,10 +41,12 @@ export function DeleteNameClient({
   }
 
   return (
-    <form onSubmit={onDelete} className="mx-auto w-full max-w-md text-left">
+    <form onSubmit={onDelete} className="w-full max-w-md text-left">
       <div className="space-y-3 font-mono text-[13px] leading-relaxed text-[var(--ink-muted)]">
         <p>this removes the page, the inbox, and recovery access.</p>
-        <p>mail is kept 7 days after deletion starts, then gone.</p>
+        <p>
+          mail is kept {MAIL_GRACE_DAYS} days after deletion starts, then gone.
+        </p>
         <p>the name may return to the pool only after that window.</p>
         <p>this does not refund remaining paid time.</p>
       </div>

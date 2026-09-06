@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   displayFrom,
   formatMailWhen,
+  inboxEmptyCopy,
   inboxLabel,
   inboxOnceLabel,
   inboxYearlyLabel,
@@ -33,4 +34,9 @@ test("annual inbox copy states the A$20 year price", () => {
   assert.equal(inboxOnceLabel(), "A$20 one-year");
   assert.equal(inboxYearlyLabel(), "A$20 annually");
   assert.match(inboxLabel(), /A\$20 a year/);
+});
+
+test("empty inbox copy is a phrase, not a placeholder", () => {
+  assert.equal(inboxEmptyCopy("inbox"), "the page is here. the letters aren't.");
+  assert.doesNotMatch(inboxEmptyCopy("inbox"), /nothing in here yet/);
 });

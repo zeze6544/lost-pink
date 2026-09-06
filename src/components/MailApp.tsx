@@ -17,7 +17,7 @@ import type {
   MailListItem,
 } from "@/lib/mail-types";
 import { displayLostEmail } from "@/lib/slug";
-import { displayFrom, formatMailWhen } from "@/lib/voice";
+import { displayFrom, formatMailWhen, inboxEmptyCopy } from "@/lib/voice";
 
 type Folder = "inbox" | "sent" | "trash";
 type Pane = "list" | "letter" | "compose" | "page";
@@ -373,7 +373,7 @@ export function MailApp({
                     {!loaded
                       ? "loading…"
                       : empty
-                        ? "nothing in here yet."
+                        ? inboxEmptyCopy(folder)
                         : "loading…"}
                   </p>
                   {gmailHint && empty && folder === "inbox" ? (
@@ -659,7 +659,7 @@ export function MailApp({
             <div className="hidden min-h-[12rem] sm:flex">
               <div className="quiet-tray flex flex-1 items-center justify-center px-6 text-center text-[13px] text-[var(--ink-muted)]">
                 {empty
-                  ? "nothing in here yet."
+                  ? inboxEmptyCopy(folder)
                   : "open a letter from the list."}
               </div>
             </div>

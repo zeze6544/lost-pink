@@ -104,6 +104,12 @@ export function inboxArriving(): string {
   return "the inbox is still arriving.";
 }
 
+export function inboxEmptyCopy(folder: "inbox" | "sent" | "trash" = "inbox"): string {
+  if (folder === "sent") return "nothing has left yet.";
+  if (folder === "trash") return "the fire already ate it.";
+  return "the page is here. the letters aren't.";
+}
+
 export function inboxFailedCopy(): string {
   return "couldn't open it. try again, or write support.";
 }

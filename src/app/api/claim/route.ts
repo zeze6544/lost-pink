@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
+import {
+  CLAIM_COOKIE,
+  clearClaimCookies,
+  parseClaimCookie,
+} from "@/lib/claim";
 import { claimPage } from "@/lib/pages";
 import { getAuthUserId } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   const userId = await getAuthUserId();
   if (!userId) {
-    return NextResponse.json({ error: "come back first." }, { status: 401 });
+    return NextResponse.json({ error: "sign in first." }, { status: 401 });
   }
 
   let body: { pageId?: unknown; token?: unknown } = {};
@@ -37,6 +41,6 @@ export async function POST(request: NextRequest) {
   }
 
   const res = NextResponse.json({ slug: page.slug });
-  res.cookies.set(CLAIM_COOKIE, "", { path: "/", maxAge: 0 });
+  clearClaimCookies(res.cookies);
   return res;
 }

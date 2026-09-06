@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Stage } from "@/components/Stage";
-import { defaultLookForSlug, DEFAULT_LOOK, stageStyle } from "@/lib/looks";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { Atmosphere } from "@/components/Atmosphere";
+import { BrandMark } from "@/components/BrandMark";
+import { SiteFooter } from "@/components/SiteFrame";
+import { LANDING_HERO_LINES } from "@/lib/landing-voice";
 import { MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
 import { normalizeWord } from "@/lib/slug";
-import { comeBackLabel } from "@/lib/voice";
 import type { CheckoutKind } from "@/lib/mailbox-status";
 
 type Check =
   | { status: "idle" }
   | { status: "looking" }
   | { status: "invalid"; error: string }
-  | { status: "taken"; error: string }
+  | { status: "taken"; error: string; slug: string }
   | { status: "held"; error: string }
   | { status: "free"; local: string };
 
@@ -21,22 +22,11 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
   const [check, setCheck] = useState<Check>({ status: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const trayRef = useRef<HTMLDivElement>(null);
-  const [trayH, setTrayH] = useState(88);
   const slug = useMemo(() => normalizeWord(raw), [raw]);
-  const look = useMemo(
-    () => (slug ? defaultLookForSlug(slug) : DEFAULT_LOOK),
-    [slug],
-  );
 
   useEffect(() => {
-    const node = trayRef.current;
-    if (!node) return;
-    const measure = () => setTrayH(node.getBoundingClientRect().height + 24);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(node);
-    return () => ro.disconnect();
+    const u = new URLSearchParams(window.location.search).get("u");
+    if (u) setRaw(u);
   }, []);
 
   useEffect(() => {
@@ -45,11 +35,17 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
       return;
     }
     setCheck({ status: "looking" });
+    let cancelled = false;
     const t = window.setTimeout(async () => {
       const res = await fetch(
         `/api/alias/available?q=${encodeURIComponent(slug)}`,
       );
-      const data = (await res.json()) as Check & { error?: string; local?: string };
+      const data = (await res.json()) as Check & {
+        error?: string;
+        local?: string;
+        slug?: string;
+      };
+      if (cancelled) return;
       if (data.status === "free" && data.local) {
         setCheck({ status: "free", local: data.local });
         return;
@@ -59,15 +55,22 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         return;
       }
       if (data.status === "held") {
-        setCheck({ status: "held", error: data.error ?? "someone’s holding that name." });
+        setCheck({
+          status: "held",
+          error: data.error ?? "someone is holding that name.",
+        });
         return;
       }
       setCheck({
         status: "taken",
         error: data.error ?? "that name is taken.",
+        slug: data.slug || slug,
       });
     }, 220);
-    return () => window.clearTimeout(t);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
   }, [slug]);
 
   function buy(kind: Exclude<CheckoutKind, "keep">) {
@@ -81,115 +84,138 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) {
-        setError(data.error ?? "couldn't start that.");
+        setError(data.error ?? "couldn't start checkout.");
         return;
       }
       window.location.href = data.url;
     });
   }
 
-  const note =
+  const hint =
     check.status === "looking"
-      ? "looking…"
+      ? "checking…"
       : check.status === "free"
-        ? "that name is free."
-        : check.status === "taken" || check.status === "held" || check.status === "invalid"
+        ? `${check.local}@lost.pink is available`
+        : check.status === "held" || check.status === "invalid"
           ? check.error
-          : slug
-            ? "keep typing."
-            : "username, then an @lost.pink inbox";
+          : check.status === "taken"
+            ? null
+            : null;
 
   return (
-    <div
-      className="relative min-h-[100dvh] overflow-hidden"
-      style={
-        {
-          "--tray-h": `${trayH}px`,
-          ...stageStyle(look),
-        } as React.CSSProperties
-      }
-    >
-      <Stage
-        word={slug}
-        look={look}
-        alias={null}
-        aliasNote={slug.length >= 2 ? `lost.pink/${slug}` : null}
-        idleHero={slug ? null : "pity is a terrible religion"}
-        animate
-      />
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
-        <p className="mark text-sm text-[var(--stage-ink)] sm:text-[15px]">
-          lost.pink
-        </p>
+    <div className="lp-shell relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <Atmosphere wash={1} variant="landing" />
+      </div>
+
+      <header className="absolute left-0 top-0 z-20 p-5 sm:p-8">
+        <BrandMark className="text-[13px] tracking-[0.04em] text-[var(--ink)]/90" />
       </header>
 
-      <div className="absolute inset-x-0 bottom-0 z-20 p-3 sm:p-6">
-        <div ref={trayRef} className="mx-auto w-full max-w-md">
-          {slug ? (
-            <p className="mark mb-2 px-0.5 text-[10px] leading-relaxed text-[var(--stage-ink)]/45">
-              the inbox stays. the page can wait.
-            </p>
-          ) : null}
-          <form
-            className="quiet-tray px-3 py-2.5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              buy("mailbox_subscription");
-            }}
-          >
-            <label htmlFor="name" className="sr-only">
-              username
+      <div className="relative z-10 flex min-h-[100dvh] flex-col">
+        {/* Hero sits in the upper stage above the floor / tray */}
+        <div className="flex flex-[0.92] flex-col items-center justify-center px-6 pb-0 pt-12 sm:pt-10">
+          <h1 className="lp-hero font-display text-center text-[clamp(3.8rem,12vw,7.9rem)] font-medium leading-[0.88] tracking-[-0.04em] text-[var(--ink)]">
+            {LANDING_HERO_LINES.map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
+          </h1>
+        </div>
+
+        <div className="relative z-10 w-full shrink-0">
+          <div className="site-rule" aria-hidden />
+
+          <div className="mx-auto flex flex-col items-center px-6 py-5">
+            <label
+              htmlFor="name"
+              className="mark text-[11px] tracking-[0.16em] text-[var(--ink-muted)]"
+            >
+              ENTER YOUR USERNAME
             </label>
-            <input
-              id="name"
-              value={raw}
-              onChange={(e) => setRaw(e.target.value)}
-              placeholder="username"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
-              autoFocus
-              className="quiet-field w-full border-0 bg-transparent pb-1 text-xl text-[var(--ink)] outline-none"
-            />
-            <p className="mt-1 text-[11px] text-[var(--ink-muted)]">{note}</p>
-            {error ? (
-              <p className="mt-1 text-xs text-[var(--ink-muted)]" role="alert">
-                {error}
-              </p>
-            ) : null}
-            <div className="mt-2 grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-2">
-              {MAILBOX_OFFERS.map((offer) => (
-                <button
-                  key={offer.kind}
-                  type={offer.kind === "mailbox_subscription" ? "submit" : "button"}
-                  disabled={pending || check.status !== "free"}
-                  onClick={
-                    offer.kind === "mailbox_subscription"
-                      ? undefined
-                      : () => buy(offer.kind)
-                  }
-                  className="min-h-9 text-left text-[12px] text-[var(--ink)]/80 disabled:opacity-25 sm:text-[13px]"
-                >
-                  {pending ? "holding…" : offer.label}
-                </button>
-              ))}
+            {/* Continuous centered you@lost.pink underline — wider rule like refs */}
+            <div className="lp-underline-field mt-3 flex w-[min(34rem,78vw)] items-baseline justify-center border-b border-[var(--rule)] pb-1.5">
+              <input
+                id="name"
+                value={raw}
+                onChange={(e) => setRaw(e.target.value)}
+                placeholder="you"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                autoFocus
+                size={Math.max(3, (raw || "you").length)}
+                className="w-auto min-w-[2.5ch] border-0 bg-transparent text-right font-mono text-[17px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/85"
+              />
+              <span className="shrink-0 font-mono text-[17px] text-[var(--ink)]/80">
+                @lost.pink
+              </span>
             </div>
-          </form>
-          <p className="mark mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[10px] text-[var(--stage-ink)]/50">
-            <a href={signedIn ? "/you" : "/come"} className="underline-offset-2 hover:underline">
-              {signedIn ? "yours" : comeBackLabel()}
-            </a>
-            <a href="/support" className="underline-offset-2 hover:underline">
-              support
-            </a>
-            <a href="/privacy" className="underline-offset-2 hover:underline">
-              privacy
-            </a>
-            <a href="/terms" className="underline-offset-2 hover:underline">
-              terms
-            </a>
-          </p>
+            <div className="mt-2 min-h-[1rem] text-center" aria-live="polite">
+              {check.status === "taken" ? (
+                <p className="mark text-[11px] text-[var(--ink-muted)]">
+                  that name is taken.{" "}
+                  <a
+                    href={`/${check.slug}`}
+                    className="underline underline-offset-2"
+                  >
+                    view their page
+                  </a>
+                </p>
+              ) : hint ? (
+                <p className="mark text-[11px] text-[var(--ink-muted)]">{hint}</p>
+              ) : null}
+              {error ? (
+                <p className="mark text-[11px] text-[var(--ink-muted)]" role="alert">
+                  {error}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="site-rule" aria-hidden />
+
+          <div className="lp-price-row grid grid-cols-2 border-b border-[var(--rule)] sm:grid-cols-4">
+            {MAILBOX_OFFERS.map((offer, i) => (
+              <button
+                key={offer.kind}
+                type="button"
+                disabled={pending || check.status !== "free"}
+                onClick={() => buy(offer.kind)}
+                className={`flex min-h-[7rem] flex-col items-center justify-center gap-2 px-3 py-5 text-center transition enabled:hover:bg-white/[0.03] disabled:cursor-not-allowed ${
+                  i > 0 ? "border-l border-[var(--rule)]" : ""
+                } ${i === 2 ? "max-sm:border-l-0" : ""} ${
+                  i >= 2 ? "max-sm:border-t max-sm:border-[var(--rule)]" : ""
+                }`}
+              >
+                <span className="font-display text-[2.65rem] leading-none tracking-[-0.03em] text-[var(--ink)]">
+                  {pending ? "…" : offer.label}
+                </span>
+                <span className="mark text-[11px] tracking-[0.05em] text-[var(--ink-muted)]">
+                  {offer.explanation}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <SiteFooter
+            left={<span className="sr-only">lost.pink</span>}
+            center={
+              <>
+                <a href={signedIn ? "/settings" : "/come"}>you&apos;re back</a>
+                <span aria-hidden> · </span>
+                <a href="/support">support</a>
+                <span aria-hidden> · </span>
+                <a href="/privacy">privacy</a>
+                <span aria-hidden> · </span>
+                <a href="/terms">terms</a>
+              </>
+            }
+            right={null}
+            className="lp-footer-flat"
+          />
         </div>
       </div>
     </div>

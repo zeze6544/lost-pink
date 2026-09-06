@@ -1,31 +1,39 @@
+import { DocPage, DocQuestion } from "@/components/SiteFrame";
+
 export default function SupportPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16 text-[var(--ink)]">
-      <a href="/" className="mark text-sm">
-        lost.pink
-      </a>
-      <h1 className="mt-10 font-display text-4xl">support</h1>
-      <div className="mt-6 space-y-4 text-sm leading-relaxed text-[var(--ink-muted)]">
+    <DocPage title="support">
+      <DocQuestion q="how do i reach you?">
         <p>
-          write <a href="mailto:support@lost.pink">support@lost.pink</a>. include
-          the name (lost.pink/yourword) and, if you have it, the Polar order.
+          email <a href="mailto:support@lost.pink">support@lost.pink</a>.
+          include the page name (lost.pink/yourword) and the polar order if you
+          have it. a person will reply. no ticket maze, no phone queue, no sms
+          code nonsense.
         </p>
+      </DocQuestion>
+      <DocQuestion q="how do i sign in?">
         <p>
-          sign in with you@lost.pink and the password you set. forgot it? we
-          write the recovery email, not the inbox you’re locked out of.
+          you made a password when you paid. use{" "}
+          <a href="mailto:you@lost.pink">you@lost.pink</a> and that password.
+          forgot it? reset it through your recovery email. the password box
+          appears after you enter your lost.pink address.
         </p>
+      </DocQuestion>
+      <DocQuestion q="can i use apple mail or gmail?">
         <p>
-          to read the same mail in Gmail, use IMAP: imap.migadu.com · 993 · SSL.
-          SMTP: smtp.migadu.com · 465 · SSL. username is you@lost.pink. password
-          is the same one. there is a walkthrough at /setup/gmail when you are
-          signed in.
+          yes. <a href="/setup/gmail">connect a mail app</a> has the IMAP and
+          SMTP details for iPhone, Android and desktop. Gmail’s website stopped
+          fetching new third-party inboxes, because apparently that was too
+          useful. use the Gmail app or another mail client.
         </p>
+      </DocQuestion>
+      <DocQuestion q="refunds and cancellations?">
         <p>
-          refunds go through Polar. a refund, a cancelled yearly inbox, or a
-          failed yearly charge closes the inbox immediately. a dark mailbox
-          keeps the alias reserved so you can open it again.
+          polar handles the money. refunds, cancelled yearly plans and failed
+          renewals close the inbox. when your paid time ends, the inbox goes
+          dark, but the name stays yours in case you come back.
         </p>
-      </div>
-    </main>
+      </DocQuestion>
+    </DocPage>
   );
 }

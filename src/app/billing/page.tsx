@@ -85,7 +85,7 @@ export default async function BillingPage() {
                     href={`/api/mailbox/portal?pageId=${encodeURIComponent(page.id)}`}
                     className="underline underline-offset-2"
                   >
-                    cancel
+                    polar customer portal
                   </a>
                 ) : (
                   "—"

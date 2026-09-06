@@ -68,22 +68,22 @@ export function WriteLetter({
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="your name"
-                  className="quiet-field mt-4 w-full border-0 bg-transparent pb-1 text-[14px] outline-none"
+                  placeholder="name"
+                  className="quiet-field mt-4 w-full border border-[var(--rule)] bg-transparent px-3 py-2.5 font-mono text-[14px] outline-none"
                 />
                 <input
                   type="email"
                   required
                   value={from}
                   onChange={(e) => setFrom(e.target.value)}
-                  placeholder="your email, for the reply"
-                  className="quiet-field mt-3 w-full border-0 bg-transparent pb-1 text-[14px] outline-none"
+                  placeholder="email"
+                  className="quiet-field mt-3 w-full border border-[var(--rule)] bg-transparent px-3 py-2.5 font-mono text-[14px] outline-none"
                 />
                 <input
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   placeholder="subject"
-                  className="quiet-field mt-3 w-full border-0 bg-transparent pb-1 text-[14px] outline-none"
+                  className="quiet-field mt-3 w-full border border-[var(--rule)] bg-transparent px-3 py-2.5 font-mono text-[14px] outline-none"
                 />
                 <textarea
                   required
@@ -91,20 +91,24 @@ export function WriteLetter({
                   onChange={(e) => setText(e.target.value)}
                   placeholder="the letter"
                   rows={8}
-                  className="mt-4 w-full resize-none border-0 bg-transparent text-[15px] leading-relaxed outline-none"
+                  className="mt-3 w-full resize-none border border-[var(--rule)] bg-transparent px-3 py-2.5 font-mono text-[14px] leading-relaxed outline-none"
                 />
                 {error ? (
                   <p className="mt-2 text-xs text-[var(--ink-muted)]" role="alert">
                     {error}
                   </p>
                 ) : null}
-                <div className="mt-4 flex gap-4 text-[13px]">
-                  <button type="submit" disabled={pending}>
+                <div className="mt-4 flex flex-wrap items-center gap-4 text-[13px]">
+                  <button
+                    type="submit"
+                    disabled={pending}
+                    className="cursor-pointer border border-[var(--rule)] px-4 py-2 font-mono disabled:cursor-not-allowed disabled:opacity-40"
+                  >
                     {pending ? "sending…" : "send"}
                   </button>
-                  <a href={`/${slug}`} className="text-[var(--ink-muted)]">
-                    leave
-                  </a>
+                  <p className="font-mono text-[11px] text-[var(--ink-muted)]">
+                    lands in their inbox — not a chat on your phone.
+                  </p>
                 </div>
               </>
             )}

@@ -192,6 +192,70 @@ export function PageActions({
     );
   }
 
+  // Curated master public footer: share · keep · write
+  if (!owned) {
+    return (
+      <div
+        ref={trayRef}
+        className="absolute bottom-0 left-0 right-0 z-20 px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4"
+      >
+        <div className="mx-auto flex max-w-md flex-col items-center gap-2">
+          <nav
+            aria-label="page actions"
+            className="flex flex-wrap items-center justify-center gap-x-2 font-mono text-[12px] tracking-[0.04em] text-[var(--ink)]"
+          >
+            <button
+              type="button"
+              onClick={() => void share()}
+              aria-live="polite"
+              className="cursor-pointer underline-offset-2 hover:underline"
+            >
+              {copied ? "copied" : "share"}
+            </button>
+            <span aria-hidden className="text-[var(--ink-muted)]">
+              ·
+            </span>
+            {!kept ? (
+              <button
+                type="button"
+                onClick={keepIt}
+                disabled={pending}
+                className="cursor-pointer underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {pending ? "keeping…" : "keep"}
+              </button>
+            ) : (
+              <span className="text-[var(--ink-muted)]">kept</span>
+            )}
+            <span aria-hidden className="text-[var(--ink-muted)]">
+              ·
+            </span>
+            {writePath ? (
+              <a
+                href={writePath}
+                className="underline-offset-2 hover:underline"
+              >
+                write
+              </a>
+            ) : (
+              <span className="text-[var(--ink-muted)]">write</span>
+            )}
+          </nav>
+          {hereLabel && !kept ? (
+            <p className="font-mono text-[10px] text-[var(--ink-faint)]">
+              {hereLabel}
+            </p>
+          ) : null}
+          {error ? (
+            <p className="text-xs text-[var(--ink-muted)]" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={trayRef}
@@ -204,42 +268,19 @@ export function PageActions({
         </div>
         <button
           type="button"
-          onClick={foundThis}
-          className="cursor-pointer text-left text-[13px] text-[var(--ink)] transition-opacity duration-200"
-        >
-          {tapped ? "♥ found this" : "♡ found this"}
-          {found >= 10 ? (
-            <span className="text-[var(--ink-faint)]"> · {found}</span>
-          ) : null}
-        </button>
-        <a href="/" className="text-left text-[13px] text-[var(--ink-faint)]">
-          make one for someone else
-        </a>
-        <button
-          type="button"
           onClick={() => void share()}
           aria-live="polite"
           className="cursor-pointer text-left text-[13px] text-[var(--ink)]"
         >
           {copied ? "copied" : "share"}
         </button>
-        {!kept ? (
-          <button
-            type="button"
-            onClick={keepIt}
-            disabled={pending}
-            className="cursor-pointer text-left text-[13px] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {pending ? "keeping…" : keepLabel(word)}
-          </button>
-        ) : null}
         <InboxPanel
           pageId={pageId}
           kept={kept}
           signedIn={owned}
           alias={alias}
           publicLabel={mailboxStatus}
-          mailbox={owned ? mailbox : null}
+          mailbox={mailbox}
           compact
           inviteComeBack={canComeBack}
           nextPath={`/${slug}`}

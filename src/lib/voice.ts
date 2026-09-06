@@ -153,7 +153,7 @@ export function formatMemberSince(iso: string): string {
 export function planLabel(plan: string | null | undefined): string {
   if (plan === "day") return "day";
   if (plan === "month") return "month";
-  if (plan === "subscription") return "year, renews";
+  if (plan === "subscription") return "year · renews";
   if (plan === "once") return "year";
   return "unknown";
 }

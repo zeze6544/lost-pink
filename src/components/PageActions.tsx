@@ -141,13 +141,13 @@ export function PageActions({
             lost.pink/{slug}
           </p>
           <div className="mt-2.5 flex items-center justify-between gap-3 text-[13px] text-[var(--ink)]">
-            <button type="button" onClick={() => void share()}>
+            <button type="button" className="cursor-pointer" onClick={() => void share()}>
               {copied ? "copied" : "share"}
             </button>
             <button
               type="button"
               onClick={openPage}
-              className="text-[var(--ink-muted)]"
+              className="cursor-pointer text-[var(--ink-muted)]"
             >
               open {word} →
             </button>

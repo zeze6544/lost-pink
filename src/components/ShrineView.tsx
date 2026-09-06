@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BrandMark } from "@/components/BrandMark";
 import { Generator, type GeneratorPage } from "@/components/Generator";
+import { GoBack } from "@/components/GoBack";
 import { PageActions } from "@/components/PageActions";
 import { Stage } from "@/components/Stage";
 import type { Look } from "@/lib/looks";
@@ -59,13 +61,9 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
           caption={formatLeftHere(page.createdAt)}
           animate
         />
-        <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
-          <a
-            href="/"
-            className="mark text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]"
-          >
-            lost.pink
-          </a>
+        <div className="absolute left-4 top-4 z-20 flex items-center gap-2.5 sm:left-8 sm:top-8">
+          <BrandMark className="text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]" />
+          <GoBack className="text-[var(--stage-ink)]" />
         </div>
         {ready ? (
           <PageActions
@@ -122,13 +120,9 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
         caption={formatLeftHere(page.createdAt)}
         animate
       />
-      <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
-          <a
-            href="/"
-            className="mark text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]"
-          >
-          lost.pink
-        </a>
+      <div className="absolute left-4 top-4 z-20 flex items-center gap-2.5 sm:left-8 sm:top-8">
+        <BrandMark className="text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]" />
+        <GoBack className="text-[var(--stage-ink)]" />
       </div>
       <PageActions
         pageId={page.id}

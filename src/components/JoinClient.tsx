@@ -5,11 +5,14 @@ import { useEffect, useState, useTransition } from "react";
 type Step = "name" | "recovery" | "phone" | "code" | "password" | "done";
 
 const STEP_COPY: Record<Exclude<Step, "done">, { title: string; note: string }> = {
-  name: { title: "yours now", note: "what should we call you." },
+  name: { title: "your name", note: "how you sign letters." },
   recovery: { title: "if you lose the key", note: "an email that isn’t @lost.pink." },
   phone: { title: "a phone, for the door", note: "we’ll send a short code." },
   code: { title: "check your phone", note: "six digits, then the password." },
-  password: { title: "a password for the inbox", note: "same key for mail, the site, and gmail." },
+  password: {
+    title: "a password for the inbox",
+    note: "one password for lost.pink, your inbox, and mail apps like Apple Mail or Gmail.",
+  },
 };
 
 // Build-time flag to let deployments skip phone verification and UI.
@@ -189,7 +192,7 @@ export function JoinClient({
         </p>
         <a
           href="/"
-          className="mt-4 inline-block text-[13px] text-[var(--ink)] underline-offset-2 hover:underline"
+          className="mt-4 inline-block cursor-pointer text-[13px] text-[var(--ink)] underline-offset-2 hover:underline"
         >
           start with a name
         </a>
@@ -287,7 +290,7 @@ export function JoinClient({
             type="button"
             disabled={pending}
             onClick={back}
-            className="text-[13px] text-[var(--ink-muted)] disabled:opacity-30"
+            className="cursor-pointer text-[13px] text-[var(--ink-muted)] disabled:cursor-not-allowed disabled:opacity-30"
           >
             back
           </button>
@@ -295,7 +298,7 @@ export function JoinClient({
         <button
           type="submit"
           disabled={pending || step === "done"}
-          className="text-[13px] text-[var(--ink)] disabled:opacity-30"
+          className="cursor-pointer text-[13px] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
         >
           {pending
             ? "working…"
@@ -333,7 +336,7 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="sr-only">
+      <label htmlFor={id} className="field-label">
         {label}
       </label>
       <input
@@ -345,7 +348,7 @@ function Field({
         placeholder={placeholder}
         autoComplete={autoComplete}
         autoFocus
-        className="quiet-field w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
+        className="quiet-field mt-1 w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
       />
     </div>
   );

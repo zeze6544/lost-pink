@@ -1,11 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { Atmosphere } from "@/components/Atmosphere";
+import { BrandMark } from "@/components/BrandMark";
 import { Generator, type GeneratorPage } from "@/components/Generator";
+import { PhraseBackdrop } from "@/components/PhraseBackdrop";
 import { Stage } from "@/components/Stage";
 import type { Look } from "@/lib/looks";
 import { stageStyle } from "@/lib/looks";
 import type { MailListItem } from "@/lib/mail-types";
+import { presetForKey } from "@/lib/phrase-presets";
 import { displayLostEmail } from "@/lib/slug";
 import { displayFrom, formatMailWhen } from "@/lib/voice";
 
@@ -187,9 +191,9 @@ export function MailApp({
         <button
           type="button"
           onClick={() => setPane("list")}
-          className="absolute right-4 top-4 z-30 text-[12px] text-[var(--stage-ink)]/55 sm:right-8 sm:top-8"
+          className="mark absolute right-4 top-4 z-30 cursor-pointer text-sm text-[var(--stage-ink)] sm:right-8 sm:top-8"
         >
-          mail
+          inbox
         </button>
       </div>
     );
@@ -198,13 +202,18 @@ export function MailApp({
   if (status !== "live") {
     return (
       <main className="relative min-h-[100dvh] overflow-hidden" style={stageVars}>
+        <Atmosphere variant="landing" />
+        <PhraseBackdrop
+          preset={presetForKey(page.slug)}
+          variant="site"
+        />
         <Stage word={page.word} look={look} alias={page.emailLocal} animate />
         <Shell
           slug={page.slug}
           address={displayLostEmail(page.emailLocal || page.slug)}
           onWash
         />
-        <p className="absolute inset-x-0 bottom-24 text-center text-[13px] text-[var(--stage-ink)]/70">
+        <p className="absolute inset-x-0 bottom-24 z-20 text-center text-[13px] text-[var(--stage-ink)]/70">
           {status === "dark" ? "this inbox went dark." : "the inbox is still arriving."}
         </p>
       </main>
@@ -215,32 +224,33 @@ export function MailApp({
 
   return (
     <main
-      className="relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]"
+      className="relative min-h-[100dvh] overflow-hidden text-[var(--ink)]"
       style={stageVars}
     >
+      <Atmosphere variant="landing" />
+      <PhraseBackdrop preset={presetForKey(page.slug)} variant="site" />
       <Shell
         slug={page.slug}
         address={displayLostEmail(page.emailLocal || page.slug)}
       />
 
-      <div className="absolute inset-x-0 top-16 bottom-16 z-10 mx-auto flex w-full max-w-5xl flex-col px-4 sm:flex-row sm:px-8">
+      <div className="absolute inset-x-0 top-[7.25rem] bottom-[4.75rem] z-10 mx-auto flex w-full max-w-5xl flex-col gap-3 overflow-hidden px-3 sm:top-[8.25rem] sm:bottom-20 sm:flex-row sm:px-6">
           {pane !== "compose" ? (
             <aside
-              className={`${pane === "letter" ? "hidden sm:flex" : "flex"} min-h-0 w-full flex-col sm:w-72 sm:shrink-0`}
+              className={`${pane === "letter" ? "hidden sm:flex" : "flex"} min-h-0 w-full flex-col sm:w-80 sm:shrink-0`}
             >
-              <div className="mb-3 flex gap-3 text-[12px] tracking-wide">
+              <div className="quiet-tray mb-2 flex flex-wrap items-center gap-1 p-1.5">
                 {(["inbox", "sent", "trash"] as const).map((name) => (
                   <button
                     key={name}
                     type="button"
+                    aria-pressed={folder === name}
                     onClick={() => {
                       setFolder(name);
                       setPane("list");
                       setLetter(null);
                     }}
-                    className={
-                      folder === name ? "text-[var(--ink)]" : "text-[var(--ink-muted)]"
-                    }
+                    className={`tray-btn ${folder === name ? "is-on" : ""}`}
                   >
                     {name}
                   </button>
@@ -248,12 +258,12 @@ export function MailApp({
                 <button
                   type="button"
                   onClick={load}
-                  className="ml-auto text-[var(--ink-muted)]"
+                  className="tray-btn ml-auto"
                 >
-                  {pending ? "looking" : "look"}
+                  {pending ? "refreshing…" : "refresh"}
                 </button>
               </div>
-              <ul className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-6">
+              <ul className="quiet-tray min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-2 pb-6">
                 {items.map((item) => {
                   const active = letter?.uid === item.uid && pane === "letter";
                   return (
@@ -261,7 +271,7 @@ export function MailApp({
                       <button
                         type="button"
                         onClick={() => openLetter(item)}
-                        className={`block w-full text-left ${active ? "opacity-100" : ""}`}
+                        className={`block w-full cursor-pointer py-1.5 text-left ${active ? "opacity-100" : ""}`}
                       >
                         <span className="flex items-baseline justify-between gap-3">
                           <span
@@ -290,9 +300,9 @@ export function MailApp({
             </aside>
           ) : null}
 
-          <section className="min-h-0 min-w-0 flex-1 overflow-y-auto sm:pl-10">
+          <section className="min-h-0 min-w-0 flex-1 overflow-y-auto">
             {pane === "letter" && letter ? (
-              <article className="pb-16">
+              <article className="quiet-tray px-4 py-4 pb-16 sm:px-5">
                 <h1 className="font-display text-3xl">{letter.subject || "no subject"}</h1>
                 <p className="mt-2 text-[12px] text-[var(--ink-muted)]">
                   {displayFrom(letter.from)}
@@ -311,7 +321,7 @@ export function MailApp({
                 {letter.html ? (
                   <button
                     type="button"
-                    className="mt-4 text-[11px] text-[var(--ink-muted)]"
+                    className="mt-4 cursor-pointer text-[11px] text-[var(--ink-muted)]"
                     onClick={() => {
                       setImages(true);
                       openLetter(letter);
@@ -336,33 +346,33 @@ export function MailApp({
 
             {pane === "compose" ? (
               <form
-                className="pb-16"
+                className="quiet-tray px-4 py-4 pb-16 sm:px-5"
                 onSubmit={(e) => {
                   e.preventDefault();
                   send();
                 }}
               >
-                <p className="text-[11px] tracking-[0.12em] text-[var(--ink-muted)]">
+                <p className="mark text-[11px] tracking-[0.12em] text-[var(--ink-muted)]">
                   from {displayLostEmail(page.emailLocal || page.slug)}
                 </p>
                 <input
                   value={to}
                   onChange={(e) => setTo(e.target.value)}
                   placeholder="to"
-                  className="mt-4 w-full border-0 border-b border-[var(--ink)]/18 bg-transparent py-2 text-[14px] outline-none"
+                  className="quiet-field mt-4 w-full border-0 bg-transparent py-2 text-[14px] outline-none"
                 />
                 {showCc ? (
                   <input
                     value={cc}
                     onChange={(e) => setCc(e.target.value)}
                     placeholder="cc"
-                    className="w-full border-0 border-b border-[var(--ink)]/18 bg-transparent py-2 text-[14px] outline-none"
+                    className="quiet-field w-full border-0 bg-transparent py-2 text-[14px] outline-none"
                   />
                 ) : (
                   <button
                     type="button"
                     onClick={() => setShowCc(true)}
-                    className="mt-2 text-[11px] text-[var(--ink-muted)]"
+                    className="mt-2 cursor-pointer text-[11px] text-[var(--ink-muted)]"
                   >
                     more
                   </button>
@@ -371,7 +381,7 @@ export function MailApp({
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   placeholder="subject"
-                  className="w-full border-0 border-b border-[var(--ink)]/18 bg-transparent py-2 text-[14px] outline-none"
+                  className="quiet-field w-full border-0 bg-transparent py-2 text-[14px] outline-none"
                 />
                 <textarea
                   value={text}
@@ -394,26 +404,22 @@ export function MailApp({
               </form>
             ) : null}
 
-            {pane === "list" ? (
-              <p className="pt-8 text-[13px] text-[var(--ink-muted)]">
-                {!loaded
-                  ? "looking."
-                  : items.length === 0
-                    ? "nothing in here yet. write one."
-                    : "a letter, when you want it."}
-              </p>
+            {pane === "list" && items.length === 0 ? (
+              <div className="quiet-tray flex flex-1 items-center justify-center px-6 py-8 text-center text-[13px] text-[var(--ink-muted)]">
+                {!loaded ? "looking." : "nothing in here yet."}
+              </div>
             ) : null}
           </section>
       </div>
 
       {gmailHint && empty ? (
-        <p className="absolute inset-x-0 bottom-24 z-20 px-6 text-center text-[12px] text-[var(--ink-muted)]">
-          <a href="/setup/gmail" className="underline-offset-2 hover:underline">
-            put it in gmail
+        <p className="absolute inset-x-0 bottom-24 z-20 flex flex-wrap items-center justify-center gap-2 px-6 text-center text-[12px] text-[var(--ink-muted)]">
+          <a href="/setup/gmail" className="tray-btn inline-flex items-center">
+            connect a mail app
           </a>
           <button
             type="button"
-            className="ml-3 text-[var(--ink-faint)]"
+            className="text-[var(--ink-faint)]"
             onClick={() => {
               sessionStorage.setItem(`lost.pink:gmail:${page.slug}`, "1");
               setGmailHint(false);
@@ -447,26 +453,32 @@ export function MailApp({
         </p>
       ) : null}
 
-      <nav
-        className="absolute inset-x-0 bottom-0 z-20 flex items-center justify-center gap-5 p-4 text-[12px] tracking-wide text-[var(--ink)]/70"
-      >
-        <button
-          type="button"
-          onClick={() => {
-            if (pane === "compose") return;
-            compose();
-          }}
-        >
-          write
-        </button>
-        <button
-          type="button"
-          onClick={() => requestLeave(() => setPane("page"))}
-        >
-          the page
-        </button>
-        <a href="/setup/gmail">gmail</a>
-        <a href="/you">yours</a>
+      <nav className="absolute inset-x-0 bottom-0 z-20 p-3 sm:p-4">
+        <div className="quiet-tray mx-auto flex w-full max-w-5xl items-center justify-center gap-4 px-2 py-1.5 sm:gap-5">
+          <button
+            type="button"
+            onClick={() => {
+              if (pane === "compose") return;
+              compose();
+            }}
+            className="cursor-pointer text-[12px] tracking-wide text-[var(--ink)]/80"
+          >
+            write
+          </button>
+          <button
+            type="button"
+            onClick={() => requestLeave(() => setPane("page"))}
+            className="cursor-pointer text-[12px] tracking-wide text-[var(--ink)]/80"
+          >
+            the page
+          </button>
+          <a href="/setup/gmail" className="text-[12px] tracking-wide text-[var(--ink)]/80">
+            mail app
+          </a>
+          <a href="/you" className="text-[12px] tracking-wide text-[var(--ink)]/80">
+            yours
+          </a>
+        </div>
       </nav>
     </main>
   );
@@ -483,14 +495,11 @@ function Shell({
 }) {
   return (
     <header className="absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
-      <a
-        href="/"
-        className={`mark text-sm ${
+      <BrandMark
+        className={`text-sm ${
           onWash ? "text-[var(--stage-ink)]/80" : "text-[var(--ink)]/85"
         }`}
-      >
-        lost.pink
-      </a>
+      />
       <p
         className={`font-display text-lg ${
           onWash ? "text-[var(--stage-ink)]" : "text-[var(--ink)]"

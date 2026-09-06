@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BrandMark } from "@/components/BrandMark";
 import { Stage } from "@/components/Stage";
 import { downloadLockScreen } from "@/lib/export-png";
 import type { Look } from "@/lib/looks";
@@ -119,12 +120,7 @@ export function ThanksClient({
         animate
       />
       <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
-        <a
-          href="/"
-          className="mark text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]"
-        >
-          lost.pink
-        </a>
+        <BrandMark className="text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]" />
       </div>
       <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-6">
         <div className="quiet-tray mx-auto w-full max-w-md px-3.5 py-3">

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/mailbox-lifecycle.test.ts src/lib/voice.test.ts"
+    "test": "tsx --test src/lib/mailbox-lifecycle.test.ts src/lib/voice.test.ts src/lib/phrase-presets.test.ts"
   },
   "dependencies": {
     "@polar-sh/nextjs": "^0.9.6",

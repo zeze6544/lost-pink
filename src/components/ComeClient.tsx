@@ -24,7 +24,7 @@ export function ComeClient({ next }: { next: string }) {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "that didn’t open.");
+        setError(data.error ?? "that password didn’t work.");
         return;
       }
       window.location.href = next;
@@ -42,7 +42,7 @@ export function ComeClient({ next }: { next: string }) {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "couldn’t send that.");
+        setError(data.error ?? "couldn’t send the link.");
         return;
       }
       setSent(true);
@@ -52,7 +52,7 @@ export function ComeClient({ next }: { next: string }) {
   if (sent) {
     return (
       <p className="mt-4 text-[13px] text-[var(--ink)]">
-        check your mail. the link is quiet, and it expires.
+        check your email — we sent a sign-in link. it won’t last forever.
       </p>
     );
   }

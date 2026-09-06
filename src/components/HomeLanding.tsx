@@ -90,14 +90,14 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
 
   const note =
     check.status === "looking"
-      ? "looking…"
+      ? "checking…"
       : check.status === "free"
         ? "that name is free."
         : check.status === "taken" || check.status === "held" || check.status === "invalid"
           ? check.error
           : slug
-            ? "keep typing."
-            : "username, then an @lost.pink inbox";
+            ? "a little longer."
+            : "type a name for your @lost.pink inbox";
 
   return (
     <div
@@ -127,7 +127,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         <div ref={trayRef} className="mx-auto w-full max-w-md">
           {slug ? (
             <p className="mark mb-2 px-0.5 text-[10px] leading-relaxed text-[var(--stage-ink)]/45">
-              the inbox stays. the page can wait.
+              the inbox is yours. the page can wait.
             </p>
           ) : null}
           <form
@@ -171,7 +171,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
                   }
                   className="min-h-9 text-left text-[12px] text-[var(--ink)]/80 disabled:opacity-25 sm:text-[13px]"
                 >
-                  {pending ? "holding…" : offer.label}
+                  {pending ? "one moment…" : offer.label}
                 </button>
               ))}
             </div>

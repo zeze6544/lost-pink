@@ -56,30 +56,28 @@ export default async function BillingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-4">
-            <div>
-              <p className="field-label">plan</p>
-              <p className="mt-1 font-mono text-[13px] text-[var(--ink)]">
-                {planLabel(view.plan)}
-              </p>
+          <dl className="space-y-4 font-mono text-[13px]">
+            <div className="grid grid-cols-[7.5rem_1fr] gap-x-4 sm:grid-cols-[9rem_1fr]">
+              <dt className="text-[var(--ink-muted)]">plan</dt>
+              <dd className="text-[var(--ink)]">{planLabel(view.plan)}</dd>
             </div>
-            <div>
-              <p className="field-label">paid through</p>
-              <p className="mt-1 font-mono text-[13px] text-[var(--ink)]">
+            <div className="grid grid-cols-[7.5rem_1fr] gap-x-4 sm:grid-cols-[9rem_1fr]">
+              <dt className="text-[var(--ink-muted)]">paid through</dt>
+              <dd className="text-[var(--ink)]">
                 {view.paidThrough
                   ? formatPaidThrough(view.paidThrough).replace(/^paid through /, "")
                   : "—"}
-              </p>
+              </dd>
             </div>
-            <div>
-              <p className="field-label">time left</p>
-              <p className="mt-1 font-mono text-[13px] text-[var(--ink)]">
+            <div className="grid grid-cols-[7.5rem_1fr] gap-x-4 sm:grid-cols-[9rem_1fr]">
+              <dt className="text-[var(--ink-muted)]">time left</dt>
+              <dd className="text-[var(--ink)]">
                 {view.paidThrough ? formatTimeLeft(view.paidThrough) : "—"}
-              </p>
+              </dd>
             </div>
-            <div>
-              <p className="field-label">cancel</p>
-              <p className="mt-1 font-mono text-[13px] text-[var(--ink)]">
+            <div className="grid grid-cols-[7.5rem_1fr] gap-x-4 sm:grid-cols-[9rem_1fr]">
+              <dt className="text-[var(--ink-muted)]">cancel</dt>
+              <dd className="text-[var(--ink)]">
                 {view.hasPortal ? (
                   <a
                     href={`/api/mailbox/portal?pageId=${encodeURIComponent(page.id)}`}
@@ -90,9 +88,9 @@ export default async function BillingPage() {
                 ) : (
                   "—"
                 )}
-              </p>
+              </dd>
             </div>
-          </div>
+          </dl>
 
           <BuyMoreTime pageId={page.id} plan={view.plan} />
         </div>

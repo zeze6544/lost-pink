@@ -20,6 +20,7 @@ export function BuyMoreTime({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
 
   function buy(kind: Exclude<CheckoutKind, "keep">) {
     setError(null);
@@ -39,34 +40,40 @@ export function BuyMoreTime({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-        <span className="font-display text-[1.35rem] leading-none tracking-[-0.02em] text-[var(--ink)]">
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="cursor-pointer border border-[color-mix(in_srgb,var(--ink)_45%,transparent)] px-5 py-2.5 font-mono text-[13px] tracking-[0.02em] text-[var(--ink)]"
+        >
           buy more time
-        </span>
+        </button>
         <p className="font-mono text-[12px] text-[var(--ink-muted)]">
-          {HOME_MAILBOX_OFFERS.map((offer, i) => (
-            <span key={offer.kind}>
-              {i > 0 ? " · " : null}
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() => buy(offer.kind)}
-                className="cursor-pointer underline underline-offset-2 disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                {offerPhrase(offer.plan)}
-              </button>
-            </span>
-          ))}
+          {open
+            ? HOME_MAILBOX_OFFERS.map((offer, i) => (
+                <span key={offer.kind}>
+                  {i > 0 ? " · " : null}
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => buy(offer.kind)}
+                    className="cursor-pointer text-[var(--ink)] underline underline-offset-2 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    {offerPhrase(offer.plan)}
+                  </button>
+                </span>
+              ))
+            : "$1 day · $5 month · $20 year"}
         </p>
       </div>
       {plan === "subscription" ? (
-        <p className="text-[11px] text-[var(--ink-faint)]">
-          yearly plans renew on their own unless you cancel in the polar portal.
+        <p className="font-mono text-[11px] text-[var(--ink-faint)]">
+          yearly plans renew until you cancel in the polar portal.
         </p>
       ) : null}
       {error ? (
-        <p className="text-[12px] text-[var(--ink-muted)]" role="alert">
+        <p className="font-mono text-[12px] text-[var(--ink-muted)]" role="alert">
           {error}
         </p>
       ) : null}

@@ -60,7 +60,7 @@ export default async function SettingsPage() {
       <form action="/api/auth/signout" method="post" className="mt-14">
         <button
           type="submit"
-          className="cursor-pointer font-mono text-[12px] text-[var(--ink-muted)] underline-offset-2 hover:underline"
+          className="cursor-pointer font-display text-[1.1rem] leading-none tracking-[-0.02em] text-[var(--ink-muted)] transition hover:text-[var(--ink)]"
         >
           leave
         </button>

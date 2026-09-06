@@ -536,11 +536,13 @@ export async function claimPage(
       .from("pages")
       .update({ owner_id: userId, updated_at: new Date().toISOString() })
       .eq("id", pageId)
+      .is("owner_id", null)
       .select("*")
-      .single();
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return null;
     await supabaseAdmin().from("page_claims").delete().eq("page_id", pageId);
-    return data ? mapRow(data) : null;
+    return mapRow(data);
   }
 
   const storedHash = page.claim_token_hash;

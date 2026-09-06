@@ -20,6 +20,22 @@ export async function mailboxFromJoinQuery(input: {
   return null;
 }
 
+function checkoutMatchesMailbox(
+  mailbox: MailboxRow,
+  checkoutId?: string | null,
+): boolean {
+  const expected = mailbox.polar_checkout_id;
+  if (!checkoutId || !expected) return false;
+  return checkoutId === expected;
+}
+
+/** Paid join states still need checkout proof until an owner is attached. */
+function requireCheckoutProof(mailbox: MailboxRow, checkoutId?: string | null) {
+  if (mailbox.owner_id) return true;
+  if (mailbox.status === "live") return true;
+  return checkoutMatchesMailbox(mailbox, checkoutId);
+}
+
 export async function ensureJoinPaid(
   mailbox: MailboxRow,
   checkoutId?: string | null,
@@ -30,6 +46,7 @@ export async function ensureJoinPaid(
     mailbox.status === "live" ||
     mailbox.status === "failed"
   ) {
+    if (!requireCheckoutProof(mailbox, checkoutId)) return null;
     return mailbox;
   }
 

@@ -5,11 +5,11 @@ import { useEffect, useState, useTransition } from "react";
 type Step = "name" | "recovery" | "phone" | "code" | "password" | "done";
 
 const STEP_COPY: Record<Exclude<Step, "done">, { title: string; note: string }> = {
-  name: { title: "yours now", note: "what should we call you." },
-  recovery: { title: "if you lose the key", note: "an email that isn’t @lost.pink." },
-  phone: { title: "a phone, for the door", note: "we’ll send a short code." },
-  code: { title: "check your phone", note: "six digits, then the password." },
-  password: { title: "a password for the inbox", note: "same key for mail, the site, and gmail." },
+  name: { title: "this one’s yours", note: "what should we call you?" },
+  recovery: { title: "a backup email", note: "somewhere that isn’t @lost.pink, in case you get locked out." },
+  phone: { title: "confirm it’s you", note: "we’ll text a short code." },
+  code: { title: "enter the code", note: "six digits from your phone, then choose a password." },
+  password: { title: "choose a password", note: "you’ll use this for mail, the site, and gmail." },
 };
 
 // Build-time flag to let deployments skip phone verification and UI.

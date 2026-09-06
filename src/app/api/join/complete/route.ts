@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ensureJoinPaid, mailboxFromJoinQuery } from "@/lib/join-paid";
 import { readJoinPhoneProof } from "@/lib/join-session";
+import { skipPhoneVerification } from "@/lib/twilio";
 import { provisionMailbox } from "@/lib/mailbox";
 import { encryptSecret } from "@/lib/mailbox-secret";
 import { attachMailboxAccount } from "@/lib/mailbox-store";
@@ -43,7 +44,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ slug: paid.email_local });
   }
 
-  const phone = await readJoinPhoneProof(paid.id);
+  let phone = await readJoinPhoneProof(paid.id);
+  if (!phone && skipPhoneVerification()) {
+    phone = "skipped";
+  }
   if (!phone) {
     return NextResponse.json({ error: "check your phone first." }, { status: 400 });
   }
@@ -81,18 +85,26 @@ export async function POST(request: Request) {
     email_confirm: true,
     user_metadata: { display_name: name },
   });
-  if (created.error || !created.data.user) {
-    if (created.error?.message?.toLowerCase().includes("already")) {
+  let ownerId: string | null = created.data.user?.id ?? null;
+  if (created.error || !ownerId) {
+    if (!created.error?.message?.toLowerCase().includes("already")) {
+      console.error("join create user", created.error);
+      return NextResponse.json({ error: "couldn't open the account." }, { status: 400 });
+    }
+    // Resume a half-finished join: same password must unlock the existing auth user.
+    const resumed = await supabase.auth.signInWithPassword({
+      email: inboxEmail,
+      password,
+    });
+    if (resumed.error || !resumed.data.user) {
       return NextResponse.json(
         { error: "that inbox already has a sign-in. come back." },
         { status: 409 },
       );
     }
-    console.error("join create user", created.error);
-    return NextResponse.json({ error: "couldn't open the account." }, { status: 400 });
+    ownerId = resumed.data.user.id;
   }
 
-  const ownerId = created.data.user.id;
   await setPageOwner(paid.page_id, ownerId);
   await attachMailboxAccount({
     mailboxId: paid.id,
@@ -103,22 +115,30 @@ export async function POST(request: Request) {
     passwordSecret: encryptSecret(password),
   });
   const provisioned = await provisionMailbox(paid.id);
-  if (!provisioned || provisioned.status !== "live") {
-    return NextResponse.json(
-      { error: "couldn't open the inbox. try again in a moment." },
-      { status: 502 },
-    );
+
+  if (!created.data.user) {
+    // Already signed in during resume.
+  } else {
+    const signed = await supabase.auth.signInWithPassword({
+      email: inboxEmail,
+      password,
+    });
+    if (signed.error) {
+      console.error("join sign-in", signed.error);
+      return NextResponse.json(
+        { error: "the inbox is open. come back with that password." },
+        { status: 409 },
+      );
+    }
   }
 
-  const signed = await supabase.auth.signInWithPassword({
-    email: inboxEmail,
-    password,
-  });
-  if (signed.error) {
-    console.error("join sign-in", signed.error);
-    return NextResponse.json(
-      { error: "the inbox is open. come back with that password." },
-      { status: 409 },
+  if (!provisioned || provisioned.status !== "live") {
+    return applyCookies(
+      NextResponse.json({
+        slug: paid.email_local,
+        pending: true,
+        error: "account is ready. the inbox is still catching up — open it and try again.",
+      }),
     );
   }
 

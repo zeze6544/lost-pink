@@ -10,8 +10,22 @@ export async function GET(request: NextRequest) {
   const next = safeNextPath(requestUrl.searchParams.get("next"), "/you");
   const supabase = await createServerSupabase();
 
-  if (code && supabase) {
-    await supabase.auth.exchangeCodeForSession(code);
+  let authError: string | null = null;
+  const oauthError = requestUrl.searchParams.get("error");
+  if (oauthError) {
+    authError = oauthError;
+  } else if (code && supabase) {
+    const exchanged = await supabase.auth.exchangeCodeForSession(code);
+    if (exchanged.error) authError = exchanged.error.message;
+  } else if (code && !supabase) {
+    authError = "auth is not configured.";
+  }
+
+  if (authError) {
+    const fail = new URL("/come", requestUrl.origin);
+    fail.searchParams.set("error", "link");
+    fail.searchParams.set("next", next);
+    return NextResponse.redirect(fail);
   }
 
   const { data } = supabase

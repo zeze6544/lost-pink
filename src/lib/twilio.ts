@@ -20,8 +20,10 @@ function serviceUrl(path: string): string {
 }
 
 // Short-circuit flag to skip phone verification when set in the environment.
-function skipPhoneVerification(): boolean {
-  const v = process.env.SKIP_PHONE_VERIFICATION;
+export function skipPhoneVerification(): boolean {
+  const v =
+    process.env.SKIP_PHONE_VERIFICATION ??
+    process.env.NEXT_PUBLIC_SKIP_PHONE_VERIFICATION;
   return v === "1" || v === "true";
 }
 

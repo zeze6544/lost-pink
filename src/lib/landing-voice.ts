@@ -9,5 +9,9 @@ export const NAME_INBOX_WHISPER = "victim mindsets self-destruct";
 /** Login backdrop whisper. */
 export const LOGIN_WHISPER = "the cage learns your shape";
 
+/** Come card supporting line — matches approved login chrome. */
+export const LOGIN_CARD_NOTE =
+  "sign in to your inbox with you@lost.pink and your password.";
+
 /** Terms sidebar whisper. */
 export const TERMS_WHISPER_LINES = ["resentment", "keeps", "receipts"] as const;

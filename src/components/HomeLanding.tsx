@@ -98,9 +98,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         ? `${check.local}@lost.pink is available`
         : check.status === "held" || check.status === "invalid"
           ? check.error
-          : check.status === "taken"
-            ? null
-            : null;
+          : null;
 
   return (
     <div className="lp-shell relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
@@ -109,33 +107,35 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
       </div>
 
       <header className="absolute left-0 top-0 z-20 p-5 sm:p-8">
-        <BrandMark className="text-[13px] tracking-[0.04em] text-[var(--ink)]/90" />
+        <BrandMark className="lp-rise text-[13px] tracking-[0.04em] text-[var(--ink)]/90" />
       </header>
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col">
-        {/* Hero sits in the upper stage above the floor / tray */}
-        <div className="flex flex-[0.92] flex-col items-center justify-center px-6 pb-0 pt-12 sm:pt-10">
-          <h1 className="lp-hero font-display text-center text-[clamp(3.8rem,12vw,7.9rem)] font-medium leading-[0.88] tracking-[-0.04em] text-[var(--ink)]">
-            {LANDING_HERO_LINES.map((line) => (
-              <span key={line} className="block">
+        <div className="flex flex-[1.05] flex-col items-center justify-center px-6 pb-2 pt-14 sm:pt-12">
+          <h1 className="lp-hero lp-rise font-display text-center text-[clamp(3.9rem,12.5vw,8.1rem)] font-medium leading-[0.86] tracking-[-0.045em] text-[var(--ink)]">
+            {LANDING_HERO_LINES.map((line, i) => (
+              <span
+                key={line}
+                className="lp-rise-line block"
+                style={{ animationDelay: `${120 + i * 90}ms` }}
+              >
                 {line}
               </span>
             ))}
           </h1>
         </div>
 
-        <div className="relative z-10 w-full shrink-0">
+        <div className="lp-rise-slow relative z-10 w-full shrink-0">
           <div className="site-rule" aria-hidden />
 
           <div className="mx-auto flex flex-col items-center px-6 py-5">
             <label
               htmlFor="name"
-              className="mark text-[11px] tracking-[0.16em] text-[var(--ink-muted)]"
+              className="mark text-[11px] tracking-[0.18em] text-[var(--ink-muted)]"
             >
               ENTER YOUR USERNAME
             </label>
-            {/* Continuous centered you@lost.pink underline — wider rule like refs */}
-            <div className="lp-underline-field mt-3 flex w-[min(34rem,78vw)] items-baseline justify-center border-b border-[var(--rule)] pb-1.5">
+            <div className="lp-underline-field mt-3 flex w-[min(36rem,82vw)] items-baseline justify-center border-b border-[var(--rule)] pb-1.5">
               <input
                 id="name"
                 value={raw}
@@ -184,16 +184,16 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
                 type="button"
                 disabled={pending || check.status !== "free"}
                 onClick={() => buy(offer.kind)}
-                className={`flex min-h-[7rem] flex-col items-center justify-center gap-2 px-3 py-5 text-center transition enabled:hover:bg-white/[0.03] disabled:cursor-not-allowed ${
+                className={`lp-price-cell flex min-h-[7.5rem] flex-col items-center justify-center gap-2.5 px-3 py-5 text-center transition enabled:hover:bg-white/[0.035] disabled:cursor-not-allowed ${
                   i > 0 ? "border-l border-[var(--rule)]" : ""
                 } ${i === 2 ? "max-sm:border-l-0" : ""} ${
                   i >= 2 ? "max-sm:border-t max-sm:border-[var(--rule)]" : ""
                 }`}
               >
-                <span className="font-display text-[2.65rem] leading-none tracking-[-0.03em] text-[var(--ink)]">
+                <span className="font-display text-[clamp(2.4rem,5vw,3rem)] leading-none tracking-[-0.03em] text-[var(--ink)]">
                   {pending ? "…" : offer.label}
                 </span>
-                <span className="mark text-[11px] tracking-[0.05em] text-[var(--ink-muted)]">
+                <span className="mark text-[11px] tracking-[0.06em] text-[var(--ink-muted)]">
                   {offer.explanation}
                 </span>
               </button>

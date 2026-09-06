@@ -98,22 +98,22 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
       <div className="relative z-10 flex min-h-[100dvh] flex-col">
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-16 pt-24">
           <p
-            className="pointer-events-none mb-8 max-w-md text-center font-display text-[clamp(1.15rem,3.4vw,1.85rem)] leading-snug tracking-[-0.02em] text-[var(--ink)]/[0.22] blur-[1.2px]"
+            className="lp-rise pointer-events-none mb-8 max-w-md text-center font-display text-[clamp(1.2rem,3.5vw,1.95rem)] leading-snug tracking-[-0.02em] text-[var(--ink)]/[0.28]"
             aria-hidden
           >
             {NAME_INBOX_WHISPER}
           </p>
 
-          <h1 className="font-display text-center text-[clamp(2.4rem,7vw,4.25rem)] font-medium leading-none tracking-[-0.035em] text-[var(--ink)]">
+          <h1 className="lp-rise font-display text-center text-[clamp(2.5rem,7.2vw,4.4rem)] font-medium leading-none tracking-[-0.035em] text-[var(--ink)]">
             name the inbox
           </h1>
 
-          <p className="mark mt-6 text-center text-[11px] tracking-[0.14em] text-[var(--ink-muted)]">
+          <p className="lp-rise-slow mark mt-6 text-center text-[11px] tracking-[0.16em] text-[var(--ink-muted)]">
             CHOOSE A USERNAME.
           </p>
 
           <form
-            className="mt-8 flex w-full max-w-xs flex-col items-center"
+            className="lp-rise-slow mt-8 flex w-full max-w-xs flex-col items-center"
             onSubmit={(e) => {
               e.preventDefault();
               continueName();

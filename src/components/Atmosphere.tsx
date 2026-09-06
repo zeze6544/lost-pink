@@ -102,8 +102,8 @@ export function Atmosphere({
         >
           <g
             filter={`url(#${bloom})`}
-            strokeWidth={variant === "landing" ? "3.2" : "6"}
-            opacity={variant === "landing" ? "0.55" : "0.45"}
+            strokeWidth={variant === "landing" ? "3.8" : "6"}
+            opacity={variant === "landing" ? "0.72" : "0.45"}
           >
             {FLOOR.verts.map((d) => (
               <path key={`b-${d}`} d={d} />
@@ -114,8 +114,8 @@ export function Atmosphere({
           </g>
           <g
             filter={`url(#${soft})`}
-            strokeWidth={variant === "landing" ? "1.55" : "2.6"}
-            opacity={variant === "landing" ? "0.95" : "1"}
+            strokeWidth={variant === "landing" ? "1.7" : "2.6"}
+            opacity={variant === "landing" ? "1" : "1"}
           >
             {FLOOR.verts.map((d) => (
               <path key={d} d={d} />

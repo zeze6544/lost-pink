@@ -4,45 +4,48 @@ export default function PrivacyPage() {
   return (
     <DocPage title="privacy">
       <div className="space-y-2 font-mono text-[13px] leading-relaxed text-[var(--ink)]">
-        <p>Your privacy is simple.</p>
+        <p>your privacy is simple.</p>
         <p className="text-[var(--ink-muted)]">
-          We collect the minimum to run lost.pink.
+          we collect the minimum to run lost.pink.
         </p>
       </div>
 
-      <DocSection title="Information we collect">
+      <DocSection title="information we collect">
         <p>
-          We collect your username and email address when you create an account.
+          we collect your username and email address when you create an account.
         </p>
         <p>
-          We collect payment information only to process your subscription.
+          we collect payment information only to process your subscription.
         </p>
       </DocSection>
 
-      <DocSection title="How we use it">
-        <p>We use your information to provide and improve lost.pink.</p>
-        <p>We do not sell your information.</p>
+      <DocSection title="how we use it">
+        <p>we use your information to provide and improve lost.pink.</p>
+        <p>we do not sell your information.</p>
       </DocSection>
 
-      <DocSection title="Data retention">
-        <p>We keep your data for as long as your account is active.</p>
-        <p>You can request deletion at any time.</p>
+      <DocSection title="data retention">
+        <p>we keep your data for as long as your account is active.</p>
+        <p>you can request deletion at any time.</p>
       </DocSection>
 
-      <DocSection title="Your rights">
-        <p>You can access, update, or delete your data anytime.</p>
-        <p>Email support@lost.pink and we&apos;ll take care of it.</p>
+      <DocSection title="your rights">
+        <p>you can access, update, or delete your data anytime.</p>
+        <p>email support@lost.pink and we&apos;ll take care of it.</p>
       </DocSection>
 
-      <DocSection title="Cookies">
-        <p>We use essential cookies to keep you signed in.</p>
-        <p>That&apos;s it.</p>
+      <DocSection title="cookies">
+        <p>we use essential cookies to keep you signed in.</p>
+        <p>that&apos;s it.</p>
       </DocSection>
 
-      <DocSection title="Contact">
+      <DocSection title="contact">
         <p>
-          Questions? Email{" "}
-          <a href="mailto:support@lost.pink" className="underline underline-offset-2">
+          questions? email{" "}
+          <a
+            href="mailto:support@lost.pink"
+            className="underline underline-offset-2"
+          >
             support@lost.pink
           </a>
           .

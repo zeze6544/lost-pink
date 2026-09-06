@@ -42,7 +42,6 @@ export function ComeClient({
           setError(data.error ?? "that didn't open.");
           return;
         }
-        // Full navigation so the new auth cookie is always applied.
         window.location.assign(next);
       } catch {
         setError("couldn't reach lost.pink.");
@@ -51,13 +50,13 @@ export function ComeClient({
   }
 
   return (
-    <div className="mt-5">
+    <div className="mt-6">
       <form onSubmit={onPassword} className="space-y-3">
-        <p className="field-label">INBOX AND PASSWORD</p>
+        <p className="field-label tracking-[0.14em]">INBOX AND PASSWORD</p>
         <label htmlFor="inbox-email" className="sr-only">
           lost.pink inbox
         </label>
-        <div className="lp-boxed-field flex items-center gap-2 border border-[var(--rule)] px-3 py-2.5">
+        <div className="lp-auth-field flex items-center gap-2.5 px-3.5 py-3">
           <span className="text-[13px] text-[var(--ink-muted)]" aria-hidden>
             @
           </span>
@@ -79,7 +78,7 @@ export function ComeClient({
         <label htmlFor="password" className="sr-only">
           password
         </label>
-        <div className="lp-boxed-field flex items-center gap-2 border border-[var(--rule)] px-3 py-2.5">
+        <div className="lp-auth-field flex items-center gap-2.5 px-3.5 py-3">
           <span className="text-[var(--ink-muted)]" aria-hidden>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <rect
@@ -116,12 +115,12 @@ export function ComeClient({
         <button
           type="submit"
           disabled={pending || !inbox.trim() || !password}
-          className="lp-boxed-field w-full cursor-pointer border border-[var(--rule)] bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] py-2.5 font-mono text-[13px] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
+          className="lp-auth-submit w-full cursor-pointer py-3 font-mono text-[13px] tracking-[0.04em] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
         >
           {pending ? "opening…" : "open"}
         </button>
       </form>
-      <p className="mt-3 text-center font-mono text-[11px] text-[var(--ink-muted)]">
+      <p className="mt-4 text-center font-mono text-[11px] text-[var(--ink-muted)]">
         <a
           href={`/come/forgot${inbox.trim() ? `?email=${encodeURIComponent(inbox.trim())}` : ""}`}
           className="underline underline-offset-2"

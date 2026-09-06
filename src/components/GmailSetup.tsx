@@ -92,7 +92,7 @@ export function GmailSetup({ pageId }: { pageId: string | null }) {
                 </button>
               </>
             ) : (
-              "Use your Gmail app password."
+              "Use your lost.pink inbox password — the one you set at join. Not a Google app password."
             )}
           </p>
           {error ? <p className="mt-2 text-[var(--ink-muted)]">{error}</p> : null}

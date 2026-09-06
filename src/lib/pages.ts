@@ -30,6 +30,7 @@ import {
   parsePublicMailboxLabel,
   type PublicMailboxLabel,
 } from "./mailbox-status";
+import { FREE_PAGE_HOURS } from "./product-rules";
 import { isBlobConfigured, isSupabaseConfigured, supabaseUrl } from "./site";
 
 export type { PublicMailboxLabel };
@@ -82,7 +83,8 @@ export type UpdateOwnedFields = {
   email_local: string | null;
 };
 
-const FREE_HOURS = 48;
+
+const FREE_HOURS = FREE_PAGE_HOURS;
 const DATA_DIR = path.join(process.cwd(), ".data");
 const DATA_FILE = path.join(DATA_DIR, "pages.json");
 

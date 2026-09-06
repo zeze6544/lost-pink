@@ -11,6 +11,7 @@ import {
   keepLabel,
   shareOrCopy,
 } from "@/lib/voice";
+import { FREE_PAGE_HOURS } from "@/lib/product-rules";
 
 type Props = {
   pageId: string;
@@ -171,7 +172,7 @@ export function PageActions({
           <p className="text-[11px] text-[var(--ink-faint)]">
             {owned
               ? "you own this page."
-              : "here for 48 hours unless someone keeps it."}
+              : `here for ${FREE_PAGE_HOURS} hours unless someone keeps it.`}
           </p>
           <InboxPanel
             pageId={pageId}

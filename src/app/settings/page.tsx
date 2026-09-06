@@ -36,25 +36,46 @@ export default async function SettingsPage() {
                 : `${handle}@lost.pink`;
               return (
                 <li key={page.id}>
-                  <a
-                    href={`/${handle}`}
-                    className="flex items-center justify-between gap-4 py-5 transition hover:bg-white/[0.02]"
-                  >
-                    <span className="min-w-0">
-                      <span className="block font-display text-[1.35rem] leading-none tracking-[-0.02em] text-[var(--ink)]">
-                        {page.word || handle}
-                      </span>
-                      <span className="mt-1.5 block font-mono text-[11px] text-[var(--ink-muted)]">
-                        {inbox}
-                      </span>
-                    </span>
-                    <span
-                      className="font-mono text-[16px] text-[var(--ink-muted)]"
-                      aria-hidden
+                  <div className="flex flex-col gap-3 py-5 transition hover:bg-white/[0.02]">
+                    <a
+                      href={`/${handle}`}
+                      className="flex items-center justify-between gap-4"
                     >
-                      {">"}
-                    </span>
-                  </a>
+                      <span className="min-w-0">
+                        <span className="block font-display text-[1.35rem] leading-none tracking-[-0.02em] text-[var(--ink)]">
+                          {page.word || handle}
+                        </span>
+                        <span className="mt-1.5 block font-mono text-[11px] text-[var(--ink-muted)]">
+                          lost.pink/{handle}
+                        </span>
+                      </span>
+                      <span
+                        className="font-mono text-[16px] text-[var(--ink-muted)] transition group-hover:translate-x-1"
+                        aria-hidden
+                      >
+                        {">"}
+                      </span>
+                    </a>
+                    <div className="flex items-baseline justify-between gap-4 font-mono text-[11px] text-[var(--ink-muted)]">
+                      <a
+                        href={`/${handle}`}
+                        className="underline-offset-2 hover:underline"
+                      >
+                        page
+                      </a>
+                      <a
+                        href={
+                          page.email_local
+                            ? `/${handle}/mail`
+                            : `/${handle}`
+                        }
+                        className="underline-offset-2 hover:underline"
+                      >
+                        inbox
+                      </a>
+                      <span className="truncate">{inbox}</span>
+                    </div>
+                  </div>
                 </li>
               );
             })}
@@ -68,6 +89,18 @@ export default async function SettingsPage() {
             leave
           </button>
         </form>
+
+        <div className="mx-auto mt-16 w-full max-w-xs border-t border-[var(--rule)] pt-8 text-center">
+          <p className="font-mono text-[11px] text-[var(--ink-muted)]">
+            delete removes the page, the inbox, and recovery access.
+          </p>
+          <a
+            href="mailto:support@lost.pink?subject=delete%20my%20name"
+            className="mt-3 inline-block font-mono text-[12px] text-[var(--ink-muted)] underline underline-offset-2"
+          >
+            delete
+          </a>
+        </div>
       </div>
     </AccountShell>
   );

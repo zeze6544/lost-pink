@@ -14,16 +14,25 @@ export type MailboxOffer = {
 };
 
 /**
- * Display copy matches the approved landing screenshot (order L→R).
+ * Catalog of Polar checkout kinds (includes legacy once-year).
  * Polar product IDs remain in env — checkout flow unchanged.
+ * Home UI uses HOME_MAILBOX_OFFERS (three prices only).
  */
 export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
+  {
+    kind: "mailbox_day",
+    plan: "day",
+    env: "POLAR_PRODUCT_MAILBOX_DAY",
+    label: "$1",
+    explanation: "/ day",
+    cents: 100,
+  },
   {
     kind: "mailbox_month",
     plan: "month",
     env: "POLAR_PRODUCT_MAILBOX_MONTH",
     label: "$5",
-    explanation: "once for 1 month",
+    explanation: "/ month",
     cents: 500,
   },
   {
@@ -31,8 +40,8 @@ export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
     plan: "subscription",
     env: "POLAR_PRODUCT_MAILBOX_SUB",
     label: "$20",
-    explanation: "annually",
-    cents: 2500,
+    explanation: "/ year · cancel anytime",
+    cents: 2000,
   },
   {
     kind: "mailbox_once",
@@ -40,17 +49,16 @@ export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
     env: "POLAR_PRODUCT_MAILBOX",
     label: "$20",
     explanation: "once for 12 months",
-    cents: 2500,
-  },
-  {
-    kind: "mailbox_day",
-    plan: "day",
-    env: "POLAR_PRODUCT_MAILBOX_DAY",
-    label: "$1",
-    explanation: "once for 1 day",
-    cents: 100,
+    cents: 2000,
   },
 ] as const;
+
+/** Home tray: day / month / year only — no duplicate $20 cell. */
+export const HOME_MAILBOX_OFFERS: readonly MailboxOffer[] = [
+  MAILBOX_OFFERS[0],
+  MAILBOX_OFFERS[1],
+  MAILBOX_OFFERS[2],
+];
 
 /** Replaced products. Existing purchases and subscriptions keep working. */
 const LEGACY_PRODUCT_IDS: Record<string, MailboxPlan> = {
@@ -79,7 +87,11 @@ export function offerForKind(kind: CheckoutKind): MailboxOffer | null {
 }
 
 export function offerForPlan(plan: MailboxPlan): MailboxOffer {
-  return MAILBOX_OFFERS.find((offer) => offer.plan === plan) ?? MAILBOX_OFFERS[2];
+  return (
+    MAILBOX_OFFERS.find((offer) => offer.plan === plan) ??
+    MAILBOX_OFFERS.find((offer) => offer.plan === "subscription") ??
+    MAILBOX_OFFERS[0]
+  );
 }
 
 export function mailboxProductId(plan: MailboxPlan): string | null {

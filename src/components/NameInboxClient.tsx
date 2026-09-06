@@ -5,6 +5,7 @@ import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
 import { SiteFooter } from "@/components/SiteFrame";
 import { NAME_INBOX_WHISPER } from "@/lib/landing-voice";
+import { nameIsPageAndAddress } from "@/lib/product-rules";
 import { normalizeWord } from "@/lib/slug";
 
 type Check =
@@ -103,6 +104,10 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
             name the inbox
           </h1>
 
+          <p className="mark mt-4 max-w-xs text-center text-[12px] tracking-[0.04em] text-[var(--ink-muted)]">
+            {nameIsPageAndAddress()}
+          </p>
+
           <p className="mark mt-6 text-center text-[11px] tracking-[0.14em] text-[var(--ink-muted)]">
             CHOOSE A USERNAME.
           </p>
@@ -136,7 +141,7 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
             <div className="mt-3 min-h-[1rem] text-center" aria-live="polite">
               {check.status === "taken" ? (
                 <p className="mark text-[11px] text-[var(--ink-muted)]">
-                  that name is taken.{" "}
+                  {check.slug}@lost.pink already belongs to someone.{" "}
                   <a
                     href={`/${check.slug}`}
                     className="underline underline-offset-2"
@@ -146,7 +151,7 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
                 </p>
               ) : check.status === "free" ? (
                 <p className="mark text-[11px] text-[var(--ink-muted)]">
-                  {check.local}@lost.pink is available
+                  {check.local}@lost.pink — yours.
                 </p>
               ) : check.status === "looking" ? (
                 <p className="mark text-[11px] text-[var(--ink-muted)]">
@@ -169,8 +174,8 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
 
             <button
               type="submit"
-              disabled={pending}
-              className="mark mt-8 cursor-pointer border-0 border-b border-[var(--ink)]/55 bg-transparent pb-0.5 text-[11px] tracking-[0.16em] text-[var(--ink)] disabled:opacity-30"
+              disabled={pending || check.status !== "free"}
+              className="mark mt-8 cursor-pointer border-0 border-b border-[var(--ink)]/55 bg-transparent pb-0.5 text-[11px] tracking-[0.16em] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
             >
               {pending ? "…" : "continue"}
             </button>

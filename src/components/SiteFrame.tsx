@@ -83,7 +83,7 @@ export function AuthTray({
       <div className="flex min-h-[100dvh] flex-col">
         <HomeMark className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8" />
         <p
-          className="pointer-events-none absolute inset-x-0 top-[18%] z-0 text-center font-display text-[clamp(2.4rem,8vw,5.5rem)] leading-none tracking-[-0.04em] text-[var(--ink)]/[0.07]"
+          className="pointer-events-none absolute inset-x-0 top-[18%] z-0 text-center font-display text-[clamp(2.4rem,8vw,5.5rem)] leading-none tracking-[-0.04em] text-[var(--ink)]/[0.12]"
           aria-hidden
         >
           {LOGIN_WHISPER}
@@ -93,7 +93,7 @@ export function AuthTray({
             <h1 className="font-display text-[2.4rem] leading-none tracking-tight">
               {title}
             </h1>
-            <p className="mt-3 font-mono text-[12px] leading-relaxed text-[var(--ink-muted)]">
+            <p className="mt-3 font-mono text-[13px] leading-relaxed text-[var(--ink)]/70">
               {note}
             </p>
             {children}

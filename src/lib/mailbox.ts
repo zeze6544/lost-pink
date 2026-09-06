@@ -170,7 +170,7 @@ function reminderCopy(
       text: [
         `${address} is still open.`,
         `the yearly charge is automatic around ${when}.`,
-        `if the renewal payment doesn't go through, the inbox closes immediately.`,
+        `if the renewal payment doesn't go through, the inbox suspends. mail is kept for 7 days, then removed.`,
         `write ${supportFromAddress()} if you need us.`,
       ].join("\n"),
     };
@@ -182,7 +182,7 @@ function reminderCopy(
     text: [
       `${address} stays open until ${when}.`,
       `renew another year from ${renewUrl}.`,
-      `a cancel or refund closes the inbox immediately.`,
+      `a cancel or refund suspends the inbox. mail is kept for 7 days, then removed.`,
       `write ${supportFromAddress()} if you need us.`,
     ].join("\n"),
   };

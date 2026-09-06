@@ -1,34 +1,37 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MAILBOX_OFFERS, planFromProductId } from "./mailbox-pricing";
+import {
+  HOME_MAILBOX_OFFERS,
+  MAILBOX_OFFERS,
+  planFromProductId,
+} from "./mailbox-pricing";
 
-test("mailbox offers follow the approved landing order and copy", () => {
+test("home offers are day / month / year only", () => {
   assert.deepEqual(
-    MAILBOX_OFFERS.map(({ plan, explanation }) => ({ plan, explanation })),
+    HOME_MAILBOX_OFFERS.map(({ plan, explanation }) => ({ plan, explanation })),
     [
-      { plan: "month", explanation: "once for 1 month" },
-      { plan: "subscription", explanation: "annually" },
-      { plan: "once", explanation: "once for 12 months" },
-      { plan: "day", explanation: "once for 1 day" },
+      { plan: "day", explanation: "/ day" },
+      { plan: "month", explanation: "/ month" },
+      { plan: "subscription", explanation: "/ year · cancel anytime" },
     ],
   );
 });
 
-test("mailbox offer labels match the approved screenshot amounts", () => {
+test("home offer labels match the locked $1 / $5 / $20 tray", () => {
   assert.deepEqual(
-    MAILBOX_OFFERS.map((offer) => offer.label),
-    ["$5", "$20", "$20", "$1"],
+    HOME_MAILBOX_OFFERS.map((offer) => offer.label),
+    ["$1", "$5", "$20"],
   );
 });
 
-test("mailbox offers keep the backed Polar price points", () => {
+test("catalog keeps day, month, year, and legacy once", () => {
   assert.deepEqual(
     MAILBOX_OFFERS.map(({ plan, cents }) => ({ plan, cents })),
     [
-      { plan: "month", cents: 500 },
-      { plan: "subscription", cents: 2500 },
-      { plan: "once", cents: 2500 },
       { plan: "day", cents: 100 },
+      { plan: "month", cents: 500 },
+      { plan: "subscription", cents: 2000 },
+      { plan: "once", cents: 2000 },
     ],
   );
 });

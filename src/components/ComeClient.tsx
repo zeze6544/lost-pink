@@ -81,7 +81,7 @@ export function ComeClient({ next }: { next: string }) {
           {pending ? "opening…" : "open"}
         </button>
       </form>
-      <p className="mt-3 text-center font-mono text-[11px] text-[var(--ink-muted)]">
+      <p className="mt-3 text-center font-mono text-[12px] text-[var(--ink)]/75">
         <a
           href={`/come/forgot${inbox.trim() ? `?email=${encodeURIComponent(inbox.trim())}` : ""}`}
           className="underline underline-offset-2"

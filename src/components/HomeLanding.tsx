@@ -5,7 +5,8 @@ import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
 import { SiteFooter } from "@/components/SiteFrame";
 import { LANDING_HERO_LINES } from "@/lib/landing-voice";
-import { MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
+import { HOME_MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
+import { productOneLiner } from "@/lib/product-rules";
 import { normalizeWord } from "@/lib/slug";
 import type { CheckoutKind } from "@/lib/mailbox-status";
 
@@ -117,6 +118,9 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
               </span>
             ))}
           </h1>
+          <p className="mark mt-6 max-w-sm text-center text-[12px] tracking-[0.04em] text-[var(--ink-muted)]">
+            {productOneLiner()}
+          </p>
         </div>
 
         <div className="relative z-10 w-full shrink-0">
@@ -172,17 +176,15 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
 
           <div className="site-rule" aria-hidden />
 
-          <div className="lp-price-row grid grid-cols-2 border-b border-[var(--rule)] sm:grid-cols-4">
-            {MAILBOX_OFFERS.map((offer, i) => (
+          <div className="lp-price-row grid grid-cols-1 border-b border-[var(--rule)] sm:grid-cols-3">
+            {HOME_MAILBOX_OFFERS.map((offer, i) => (
               <button
                 key={offer.kind}
                 type="button"
                 disabled={pending || check.status !== "free"}
                 onClick={() => buy(offer.kind)}
                 className={`flex min-h-[7rem] flex-col items-center justify-center gap-2 px-3 py-5 text-center transition enabled:hover:bg-white/[0.03] disabled:cursor-not-allowed ${
-                  i > 0 ? "border-l border-[var(--rule)]" : ""
-                } ${i === 2 ? "max-sm:border-l-0" : ""} ${
-                  i >= 2 ? "max-sm:border-t max-sm:border-[var(--rule)]" : ""
+                  i > 0 ? "border-t border-[var(--rule)] sm:border-l sm:border-t-0" : ""
                 }`}
               >
                 <span className="font-display text-[2.65rem] leading-none tracking-[-0.03em] text-[var(--ink)]">

@@ -47,11 +47,11 @@ export function inboxMonthLabel(): string {
 }
 
 export function inboxYearlyLabel(): string {
-  return "A$25 annually";
+  return "A$20 annually";
 }
 
 export function inboxOnceLabel(): string {
-  return "A$25 one-year";
+  return "A$20 one-year";
 }
 
 export function inboxDayLabel(): string {
@@ -59,7 +59,7 @@ export function inboxDayLabel(): string {
 }
 
 export function inboxLabel(): string {
-  return "an inbox. A$1 a day, A$5 a month, or A$25 a year";
+  return "an inbox. A$1 a day, A$5 a month, or A$20 a year";
 }
 
 export function inboxNeedKeep(): string {
@@ -107,11 +107,11 @@ export function inboxFailedCopy(): string {
 }
 
 export function inboxTerminationNotice(): string {
-  return "cancel, refund, or a failed renewal closes the inbox immediately.";
+  return "cancel, refund, or a failed renewal suspends the inbox. mail is kept for 7 days, then removed.";
 }
 
 export function expiredInboxCopy(): string {
-  return "when paid time ends, the inbox closes but the name stays reserved.";
+  return "when paid time ends, the inbox suspends. mail is kept for 7 days; the name stays reserved while mail is retained.";
 }
 
 export function formatPaidDate(iso: string): string {

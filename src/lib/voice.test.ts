@@ -29,8 +29,8 @@ test("formatMailWhen is relative today and dated otherwise", () => {
   assert.equal(formatMailWhen("2025-03-02T12:00:00", now), "march 2, 2025");
 });
 
-test("annual inbox copy states the backed A$25 price", () => {
-  assert.equal(inboxOnceLabel(), "A$25 one-year");
-  assert.equal(inboxYearlyLabel(), "A$25 annually");
-  assert.match(inboxLabel(), /A\$25 a year/);
+test("annual inbox copy states the A$20 year price", () => {
+  assert.equal(inboxOnceLabel(), "A$20 one-year");
+  assert.equal(inboxYearlyLabel(), "A$20 annually");
+  assert.match(inboxLabel(), /A\$20 a year/);
 });

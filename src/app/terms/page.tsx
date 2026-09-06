@@ -1,45 +1,67 @@
 import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
 import { TERMS_WHISPER_LINES } from "@/lib/landing-voice";
+import {
+  FREE_PAGE_HOURS,
+  graceCopy,
+  MAIL_GRACE_DAYS,
+  NAMES_ARE_FIXED,
+  PAYMENTS_VIA,
+  REFUND_DAYS,
+} from "@/lib/product-rules";
 
 const SECTIONS: { title: string; body: string[] }[] = [
   {
-    title: "1. THE INBOX IS THE PRODUCT",
+    title: "1. THE NAME IS THE PRODUCT",
     body: [
-      "lost.pink provides you with a private, anonymous inbox.",
-      "we do not read, review, or moderate your messages.",
-      "you are responsible for what you receive and how you respond.",
+      "lost.pink gives you one name: a public page and a private inbox.",
+      "private, not anonymous — we know your recovery email and payment references.",
+      "the inbox is part of the name. we do not offer a page without an inbox, or an inbox without a page.",
+      "you are responsible for what you send and receive.",
     ],
   },
   {
-    title: "2. PAYMENTS & REFUNDS",
+    title: "2. PAYMENTS, RENEWAL & REFUNDS",
     body: [
-      "all payments are processed securely via Polar.",
-      "you can request a refund within 7 days of purchase.",
-      "after that window, all sales are final.",
-      "refunds, when approved, will be issued back to your original payment method via Polar.",
+      `payments are processed via ${PAYMENTS_VIA}.`,
+      "day and month plans are one-time. the year plan renews until you cancel.",
+      `you can request a refund within ${REFUND_DAYS} days of purchase; after that, sales are final.`,
+      "cancel anytime in the Polar customer portal. cancel stops the next renewal; it does not instantly wipe mail.",
     ],
   },
   {
-    title: "3. ALIASES & USERNAMES",
+    title: "3. WHEN PAYMENT ENDS",
     body: [
-      "usernames and aliases must not impersonate others or violate applicable laws.",
-      "we reserve the right to suspend or remove accounts that abuse anonymity.",
+      "when paid time ends or renewal fails, the inbox is suspended.",
+      `mail is kept for ${graceCopy()} (${MAIL_GRACE_DAYS} days) — not wiped at once.`,
+      "after that window, the mailbox and its contents are removed.",
+      "the name stays reserved while mail is retained; it may return to the pool only after deletion.",
     ],
   },
   {
-    title: "4. YOUR CONDUCT",
+    title: "4. NAMES",
     body: [
+      NAMES_ARE_FIXED
+        ? "names do not change. the page path and the address stay the same."
+        : "names may change under published policy.",
+      "reserved words (admin, support, abuse, postmaster, www, and others) cannot be claimed.",
+      "impersonation, squatting for abuse, or illegal use can get the name suspended.",
+      `a free page without purchase stays up to ${FREE_PAGE_HOURS} hours unless someone keeps it.`,
+    ],
+  },
+  {
+    title: "5. CONDUCT",
+    body: [
+      "abuse, spam, or phishing will get you suspended.",
       "do not use lost.pink to threaten, harass, or harm others.",
-      "do not attempt to deanonymize or reveal the identity of another user.",
-      "we cooperate with legal requests for user data in cases of credible threats or abuse.",
+      "we cooperate with legal requests when required.",
     ],
   },
   {
-    title: "5. CHANGES",
+    title: "6. CHANGES",
     body: [
-      "we may update these terms at any time.",
-      "continued use of lost.pink means you accept the changes.",
+      "we may update these terms. continued use means you accept the changes.",
+      "this page is the human-readable summary. concrete billing and deletion rules above are binding for how lost.pink runs.",
     ],
   },
 ];
@@ -68,7 +90,7 @@ export default function TermsPage() {
             terms
           </h1>
           <p className="mt-4 font-mono text-[11px] tracking-[0.06em] text-[var(--ink-muted)]">
-            effective date: may 20, 2025
+            human-readable summary · effective may 20, 2025
           </p>
           <div className="mt-10 max-w-2xl divide-y divide-[var(--rule)]">
             {SECTIONS.map((section) => (

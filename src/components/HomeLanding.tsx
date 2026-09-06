@@ -90,14 +90,14 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
 
   const note =
     check.status === "looking"
-      ? "looking…"
+      ? "checking…"
       : check.status === "free"
         ? "that name is free."
         : check.status === "taken" || check.status === "held" || check.status === "invalid"
           ? check.error
           : slug
-            ? "keep typing."
-            : "username, then an @lost.pink inbox";
+            ? "a little longer."
+            : "type a name for your @lost.pink inbox";
 
   return (
     <div
@@ -118,7 +118,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         animate
       />
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
-        <p className="mark text-sm text-[var(--stage-ink)] sm:text-[15px]">
+        <p className="mark text-[15px] tracking-[0.04em] text-[var(--stage-ink)] sm:text-[17px]">
           lost.pink
         </p>
       </header>
@@ -127,7 +127,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         <div ref={trayRef} className="mx-auto w-full max-w-md">
           {slug ? (
             <p className="mark mb-2 px-0.5 text-[10px] leading-relaxed text-[var(--stage-ink)]/45">
-              the inbox stays. the page can wait.
+              the inbox is yours. the page can wait.
             </p>
           ) : null}
           <form
@@ -169,9 +169,9 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
                       ? undefined
                       : () => buy(offer.kind)
                   }
-                  className="min-h-9 text-left text-[12px] text-[var(--ink)]/80 disabled:opacity-25 sm:text-[13px]"
+                  className="min-h-9 text-left text-[12px] text-[var(--ink)]/90 disabled:opacity-30 sm:text-[13px]"
                 >
-                  {pending ? "holding…" : offer.label}
+                  {pending ? "one moment…" : offer.label}
                 </button>
               ))}
             </div>

@@ -121,6 +121,12 @@ async function runKeepCheckout(
   }
 
   if (!isPolarConfigured() || !process.env.POLAR_PRODUCT_KEEP) {
+    if (process.env.VERCEL_ENV === "production") {
+      return NextResponse.json(
+        { error: "that till isn’t open." },
+        { status: 503 },
+      );
+    }
     await markKept(page.id, "dev-local");
     return finishLocal(mode, keptUrl, { dev: true });
   }

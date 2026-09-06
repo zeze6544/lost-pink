@@ -62,7 +62,7 @@ async function paintShrine(
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
 
-  if (!bg && look.motif === "grain") {
+  if (!bg) {
     drawGrain(ctx);
   }
 
@@ -301,12 +301,12 @@ function drawGrain(ctx: CanvasRenderingContext2D) {
     data.data[i] = v;
     data.data[i + 1] = v;
     data.data[i + 2] = v;
-    data.data[i + 3] = 36;
+    data.data[i + 3] = 48;
   }
   nctx.putImageData(data, 0, 0);
   ctx.save();
   ctx.globalCompositeOperation = "soft-light";
-  ctx.globalAlpha = 0.22;
+  ctx.globalAlpha = 0.3;
   const pattern = ctx.createPattern(noise, "repeat");
   if (pattern) {
     ctx.fillStyle = pattern;

@@ -115,8 +115,18 @@ async function handleMailboxDisable(input: {
   await disableMailbox(mailbox.id, input.reason);
 }
 
+
+function polarWebhookSecret(): string {
+  const secret = process.env.POLAR_WEBHOOK_SECRET;
+  if (secret) return secret;
+  if (process.env.VERCEL_ENV === "production") {
+    throw new Error("POLAR_WEBHOOK_SECRET is required in production.");
+  }
+  return "dev-secret";
+}
+
 export const POST = Webhooks({
-  webhookSecret: process.env.POLAR_WEBHOOK_SECRET ?? "dev-secret",
+  webhookSecret: polarWebhookSecret(),
   onOrderPaid: async (payload) => {
     const data = payload.data as Record<string, unknown>;
     const metadata = asRecord(data.metadata);

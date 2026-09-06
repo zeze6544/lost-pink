@@ -65,10 +65,32 @@ export function isAuthConfigured(): boolean {
 /** In-app path only. Blocks open redirects. */
 export function safeNextPath(raw: unknown, fallback = "/you"): string {
   if (typeof raw !== "string") return fallback;
-  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("://")) {
+  const path = raw.trim();
+  if (!path.startsWith("/") || path.startsWith("//") || path.includes("://")) {
     return fallback;
   }
-  return raw;
+  let decoded = path;
+  try {
+    decoded = decodeURIComponent(path);
+  } catch {
+    return fallback;
+  }
+  // Block /\evil.com and encoded backslash host tricks.
+  if (
+    decoded.startsWith("//") ||
+    decoded.includes("\\") ||
+    decoded.includes("://")
+  ) {
+    return fallback;
+  }
+  try {
+    const origin = new URL(siteUrl()).origin;
+    const resolved = new URL(path, origin);
+    if (resolved.origin !== origin) return fallback;
+    return `${resolved.pathname}${resolved.search}${resolved.hash}`;
+  } catch {
+    return fallback;
+  }
 }
 
 export function polarJoinSuccessUrl(): string {

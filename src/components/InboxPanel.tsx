@@ -266,12 +266,20 @@ export function InboxPanel({
             </p>
           </>
         ) : null}
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
-          <a href={mailbox.webmailUrl} target="_blank" rel="noreferrer">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <a
+            href={mailbox.webmailUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-11 items-center sm:min-h-0"
+          >
             webmail
           </a>
           {mailbox.hasPortal ? (
-            <a href={`/api/mailbox/portal?pageId=${encodeURIComponent(pageId)}`}>
+            <a
+              href={`/api/mailbox/portal?pageId=${encodeURIComponent(pageId)}`}
+              className="inline-flex min-h-11 items-center sm:min-h-0"
+            >
               receipts
             </a>
           ) : null}
@@ -279,6 +287,7 @@ export function InboxPanel({
             <button
               type="button"
               disabled={pending}
+              className="min-h-11 sm:min-h-0"
               onClick={() => run(() => startCheckout("mailbox_once"))}
             >
               renew one year
@@ -289,14 +298,25 @@ export function InboxPanel({
           <button
             type="button"
             disabled={pending}
+            className="min-h-11 sm:min-h-0"
             onClick={() => run(setupHelp)}
           >
             setup help
           </button>
-          <a href={mailbox.recoveryUrl} target="_blank" rel="noreferrer">
+          <a
+            href={mailbox.recoveryUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-11 items-center sm:min-h-0"
+          >
             forgot password
           </a>
-          <a href="/support">support</a>
+          <a
+            href="/support"
+            className="inline-flex min-h-11 items-center sm:min-h-0"
+          >
+            support
+          </a>
         </div>
         <Status error={error} note={note} />
       </div>

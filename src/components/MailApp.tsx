@@ -309,20 +309,25 @@ export function MailApp({
 
   return (
     <main
-      className="relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]"
+      className="site-frame relative min-h-[100dvh] overflow-hidden text-[var(--ink)]"
       style={stageVars}
     >
+      <div className="site-wash pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-depth pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-horizon pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-glow pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-grain pointer-events-none absolute inset-0" aria-hidden />
       <Shell
         slug={page.slug}
         address={displayLostEmail(page.emailLocal || page.slug)}
       />
 
-      <div className="absolute inset-x-0 top-16 bottom-16 z-10 mx-auto flex w-full max-w-5xl flex-col px-4 sm:flex-row sm:px-8">
+      <div className="absolute inset-x-0 top-16 bottom-[4.75rem] z-10 mx-auto flex w-full max-w-5xl flex-col px-4 sm:bottom-16 sm:flex-row sm:px-8">
           {pane !== "compose" ? (
             <aside
               className={`${pane === "letter" ? "hidden sm:flex" : "flex"} min-h-0 w-full flex-col sm:w-72 sm:shrink-0`}
             >
-              <div className="mb-3 flex gap-3 text-[12px] tracking-wide">
+              <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] tracking-wide">
                 {(["inbox", "sent", "trash"] as const).map((name) => (
                   <button
                     key={name}
@@ -332,9 +337,9 @@ export function MailApp({
                       setPane("list");
                       setLetter(null);
                     }}
-                    className={
+                    className={`min-h-11 sm:min-h-0 ${
                       folder === name ? "text-[var(--ink)]" : "text-[var(--ink-muted)]"
-                    }
+                    }`}
                   >
                     {name}
                   </button>
@@ -342,7 +347,7 @@ export function MailApp({
                 <button
                   type="button"
                   onClick={load}
-                  className="ml-auto text-[var(--ink-muted)]"
+                  className="ml-auto min-h-11 text-[var(--ink-muted)] sm:min-h-0"
                 >
                   {pending ? "looking" : "look"}
                 </button>

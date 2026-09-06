@@ -304,11 +304,53 @@ export function MailApp({
       <main className="relative min-h-[100dvh] overflow-hidden" style={stageVars}>
         <Stage word={page.word} look={look} alias={page.emailLocal} animate />
         <Chrome page={page} address={address} onWash />
-        <p className="absolute inset-x-0 bottom-24 z-20 text-center text-[13px] text-[var(--stage-ink)]/70">
-          {status === "dark"
-            ? "this inbox went dark."
-            : "the inbox is still being set up."}
-        </p>
+        <div className="absolute inset-x-0 bottom-24 z-20 mx-auto flex max-w-sm flex-col items-center gap-3 px-4 text-center">
+          <p className="text-[13px] text-[var(--stage-ink)]/70">
+            {status === "dark"
+              ? "this inbox went dark."
+              : "the inbox is still being set up."}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3 font-mono text-[12px] text-[var(--stage-ink)]/80">
+            {status !== "dark" ? (
+              <button
+                type="button"
+                className="cursor-pointer underline underline-offset-2"
+                disabled={pending}
+                onClick={() => {
+                  startTransition(async () => {
+                    setError(null);
+                    const res = await fetch("/api/mailbox/retry", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ pageId: page.id }),
+                    });
+                    const data = (await res.json().catch(() => ({}))) as {
+                      error?: string;
+                    };
+                    if (!res.ok) {
+                      setError(data.error ?? "couldn't retry yet.");
+                      return;
+                    }
+                    window.location.reload();
+                  });
+                }}
+              >
+                {pending ? "trying…" : "try again"}
+              </button>
+            ) : null}
+            <a href="/subscription" className="underline underline-offset-2">
+              {status === "dark" ? "renew" : "subscription"}
+            </a>
+            <a href="/settings" className="underline underline-offset-2">
+              settings
+            </a>
+          </div>
+          {error ? (
+            <p className="text-[12px] text-[var(--stage-ink)]/60" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
         <BottomNav
           onCompose={() => undefined}
           onPage={() => undefined}

@@ -21,7 +21,7 @@ export function authCookieOptions(): CookieOptions {
     path: "/",
     sameSite: "lax",
     secure,
-    // Readable by the SSR browser client if used; middleware/server still own refresh.
-    httpOnly: false,
+    // Session cookies stay HttpOnly; auth flows go through route handlers + middleware.
+    httpOnly: true,
   };
 }

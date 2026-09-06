@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { ThanksClient } from "@/components/ThanksClient";
 import { DEFAULT_LOOK } from "@/lib/looks";
-import { getMailboxByPageId, toOwnerMailboxView } from "@/lib/mailbox-store";
+import { getMailboxByPageId, toPublicMailboxView } from "@/lib/mailbox-store";
 import { getPolar } from "@/lib/polar";
 import { getPageByHandle, getPageById, pageLook } from "@/lib/pages";
 import { formatLeftHere } from "@/lib/voice";
@@ -88,7 +88,7 @@ export default async function ThanksPage({ searchParams }: Props) {
         caption={page ? formatLeftHere(page.created_at) : null}
         inbox={inbox}
         pageId={pageId}
-        initialMailbox={mailbox ? toOwnerMailboxView(mailbox) : null}
+        initialMailbox={mailbox ? toPublicMailboxView(mailbox) : null}
       />
     </Suspense>
   );

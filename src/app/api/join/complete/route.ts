@@ -33,11 +33,55 @@ export async function POST(request: Request) {
   if (!paid) {
     return NextResponse.json({ error: "that payment isn’t here." }, { status: 402 });
   }
-  if (paid.owner_id && paid.status === "live") {
+  const password = body.password ?? "";
+  if (password.length < 8) {
     return NextResponse.json(
-      { error: "that inbox already has a sign-in. log in.", slug: paid.email_local },
-      { status: 409 },
+      { error: "make the password at least 8 characters." },
+      { status: 400 },
     );
+  }
+
+  const route = await createRouteSupabase();
+  if (!route) {
+    return NextResponse.json({ error: "not yet." }, { status: 503 });
+  }
+  const { supabase, applyCookies } = route;
+  const inboxEmail = displayLostEmail(paid.email_local);
+
+  // Already attached but not live: sign in and retry provision instead of
+  // creating a second auth user (which loops join → 409 → /come).
+  if (paid.owner_id) {
+    if (paid.status === "live") {
+      return NextResponse.json(
+        {
+          error: "that inbox already has a sign-in. log in.",
+          slug: paid.email_local,
+        },
+        { status: 409 },
+      );
+    }
+    const signed = await supabase.auth.signInWithPassword({
+      email: inboxEmail,
+      password,
+    });
+    if (signed.error) {
+      return NextResponse.json(
+        { error: "that inbox already has a sign-in. log in.", slug: paid.email_local },
+        { status: 409 },
+      );
+    }
+    const provisioned = await provisionMailbox(paid.id);
+    if (!provisioned || provisioned.status !== "live") {
+      return applyCookies(
+        NextResponse.json({
+          slug: paid.email_local,
+          pending: true,
+          error:
+            "signed in. the inbox is still catching up — open it and try again.",
+        }),
+      );
+    }
+    return applyCookies(NextResponse.json({ slug: paid.email_local }));
   }
 
   const name = (body.name ?? "").trim().slice(0, 80);
@@ -51,22 +95,12 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const password = body.password ?? "";
-  if (password.length < 8) {
-    return NextResponse.json(
-      { error: "make the password at least 8 characters." },
-      { status: 400 },
-    );
-  }
 
   const admin = supabaseAdminAuth();
-  const route = await createRouteSupabase();
-  if (!admin || !route) {
+  if (!admin) {
     return NextResponse.json({ error: "not yet." }, { status: 503 });
   }
-  const { supabase, applyCookies } = route;
 
-  const inboxEmail = displayLostEmail(paid.email_local);
   const created = await admin.auth.admin.createUser({
     email: inboxEmail,
     password,
@@ -94,12 +128,6 @@ export async function POST(request: Request) {
     passwordSecret: encryptSecret(password),
   });
   const provisioned = await provisionMailbox(paid.id);
-  if (!provisioned || provisioned.status !== "live") {
-    return NextResponse.json(
-      { error: "couldn't open the inbox. try again in a moment." },
-      { status: 502 },
-    );
-  }
 
   const signed = await supabase.auth.signInWithPassword({
     email: inboxEmail,
@@ -110,6 +138,19 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "that inbox already exists. sign in with that password." },
       { status: 409 },
+    );
+  }
+
+  // Always establish the session after account creation. If Migadu provision
+  // is still catching up, send them to the inbox where they can retry.
+  if (!provisioned || provisioned.status !== "live") {
+    return applyCookies(
+      NextResponse.json({
+        slug: paid.email_local,
+        pending: true,
+        error:
+          "account opened. the inbox is still catching up — open it and try again.",
+      }),
     );
   }
 

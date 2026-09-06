@@ -196,6 +196,18 @@ export function toOwnerMailboxView(
   };
 }
 
+
+/** Progress/status for public surfaces — never include recovery email. */
+export function toPublicMailboxView(
+  row: Parameters<typeof toOwnerMailboxView>[0],
+  now = new Date(),
+): Omit<ReturnType<typeof toOwnerMailboxView>, never> {
+  return {
+    ...toOwnerMailboxView(row, now),
+    recoveryEmail: null,
+  };
+}
+
 export async function getMailboxByPageId(
   pageId: string,
 ): Promise<MailboxRow | null> {

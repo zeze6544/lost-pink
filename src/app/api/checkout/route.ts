@@ -18,7 +18,9 @@ import {
 } from "@/lib/mailbox-store";
 import { getPageById, markKept, reserveKeptAlias } from "@/lib/pages";
 import { startPolarCheckout } from "@/lib/polar";
+import { mailboxCheckoutCustomer } from "@/lib/polar-customer";
 import { isPolarConfigured, polarJoinSuccessUrl, siteUrl } from "@/lib/site";
+import { validRecoveryEmail } from "@/lib/slug";
 import { getAuthUser } from "@/lib/supabase/server";
 import type { CheckoutKind, MailboxPlan } from "@/lib/mailbox-status";
 
@@ -37,7 +39,7 @@ function asClient(
   const url = polar.headers.get("location");
   if (!url) {
     return NextResponse.json(
-      { error: "Could not start checkout." },
+      { error: "could not start checkout." },
       { status: 500 },
     );
   }
@@ -76,7 +78,7 @@ export async function GET(request: NextRequest) {
     });
   }
   if (!pageId) {
-    return NextResponse.json({ error: "Missing page." }, { status: 400 });
+    return NextResponse.json({ error: "missing page." }, { status: 400 });
   }
   return runKeepCheckout(request, pageId, "redirect");
 }
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON." }, { status: 400 });
   }
   const kind = parseKind(body.kind);
   if (isMailboxCheckoutKind(kind)) {
@@ -100,7 +102,7 @@ export async function POST(request: NextRequest) {
   }
   const pageId = body.pageId?.trim();
   if (!pageId) {
-    return NextResponse.json({ error: "Missing page." }, { status: 400 });
+    return NextResponse.json({ error: "missing page." }, { status: 400 });
   }
   return runKeepCheckout(request, pageId, "json");
 }
@@ -161,15 +163,22 @@ async function mailboxCheckout(
     : null;
   const user = await getAuthUser();
 
-  if (page && input.action === "clear") {
-    if (user && page.owner_id && user.id === page.owner_id) {
-      const existing = await getMailboxByPageId(page.id);
-      if (!existing || existing.status !== "checkout_started") {
-        return NextResponse.json({ error: "nothing to clear." }, { status: 409 });
-      }
-      await clearMailboxCheckout(page.id);
-      return NextResponse.json({ cleared: true });
+  if (input.action === "clear") {
+    if (!page) {
+      return NextResponse.json({ error: "nothing to clear." }, { status: 404 });
     }
+    if (!user) {
+      return NextResponse.json({ error: "sign in first." }, { status: 401 });
+    }
+    if (!page.owner_id || user.id !== page.owner_id) {
+      return NextResponse.json({ error: "not yours." }, { status: 403 });
+    }
+    const existing = await getMailboxByPageId(page.id);
+    if (!existing || existing.status !== "checkout_started") {
+      return NextResponse.json({ error: "nothing to clear." }, { status: 409 });
+    }
+    await clearMailboxCheckout(page.id);
+    return NextResponse.json({ cleared: true });
   }
 
   if (!page) {
@@ -220,7 +229,8 @@ async function mailboxCheckout(
   const mailbox = await startMailboxCheckout({
     pageId: page.id,
     emailLocal,
-    recoveryEmail: user?.email ?? null,
+    recoveryEmail:
+      user?.email && validRecoveryEmail(user.email) ? user.email : null,
     plan: requestedPlan,
   });
 
@@ -246,7 +256,7 @@ async function mailboxCheckout(
       slug: page.slug,
       email_local: emailLocal,
     },
-    customerEmail: user?.email ?? undefined,
+    ...mailboxCheckoutCustomer({ mailboxId: mailbox.id }),
     returnUrl: `${siteUrl()}${joinPath}`,
     successUrl: polarJoinSuccessUrl(),
   });

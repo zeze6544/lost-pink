@@ -22,6 +22,7 @@ import {
   type PublicMailboxLabel,
 } from "./mailbox-status";
 import { MAILBOX_LINKS, type OwnerMailboxView } from "./mailbox-view";
+import { mergeRecoveryEmail } from "./recovery-email";
 import { displayLostEmail } from "./slug";
 import { isSupabaseConfigured, supabaseUrl } from "./site";
 
@@ -195,6 +196,18 @@ export function toOwnerMailboxView(
   };
 }
 
+
+/** Progress/status for public surfaces — never include recovery email. */
+export function toPublicMailboxView(
+  row: Parameters<typeof toOwnerMailboxView>[0],
+  now = new Date(),
+): Omit<ReturnType<typeof toOwnerMailboxView>, never> {
+  return {
+    ...toOwnerMailboxView(row, now),
+    recoveryEmail: null,
+  };
+}
+
 export async function getMailboxByPageId(
   pageId: string,
 ): Promise<MailboxRow | null> {
@@ -284,6 +297,33 @@ export async function getMailboxByOwnerId(
     .maybeSingle();
   if (error) throw error;
   return data ? mapMailbox(data) : null;
+}
+
+export type MailboxPaymentRow = {
+  id: string;
+  kind: string;
+  polar_order_id: string | null;
+  processed_at: string;
+};
+
+export async function listMailboxPayments(
+  mailboxId: string,
+): Promise<MailboxPaymentRow[]> {
+  if (!mailboxStoreReady()) return [];
+  const { data, error } = await requireAdmin()
+    .from("mailbox_payments")
+    .select("id, kind, polar_order_id, processed_at")
+    .eq("mailbox_id", mailboxId)
+    .order("processed_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    kind: String(row.kind),
+    polar_order_id:
+      typeof row.polar_order_id === "string" ? row.polar_order_id : null,
+    processed_at: String(row.processed_at),
+  }));
 }
 
 export async function listMailboxesByPageIds(
@@ -398,7 +438,10 @@ export async function startMailboxCheckout(input: {
     const keepLive = existing.status === "live";
     const row = await writeMailbox(existing.id, {
       email_local: input.emailLocal,
-      recovery_email: input.recoveryEmail ?? existing.recovery_email,
+      recovery_email: mergeRecoveryEmail(
+        existing.recovery_email,
+        input.recoveryEmail,
+      ),
       plan_type: keepLive ? existing.plan_type : input.plan,
       status: keepLive ? "live" : "checkout_started",
       polar_checkout_id: keepLive ? existing.polar_checkout_id : null,
@@ -459,15 +502,12 @@ export async function attachMailboxAccount(input: {
   ownerId: string;
   displayName: string;
   recoveryEmail: string;
-  phone: string;
   passwordSecret: string;
 }): Promise<MailboxRow> {
   return writeMailbox(input.mailboxId, {
     owner_id: input.ownerId,
     display_name: input.displayName,
     recovery_email: input.recoveryEmail,
-    phone: input.phone,
-    phone_verified_at: new Date().toISOString(),
     password_secret: input.passwordSecret,
     status: "provisioning",
     provision_step: "payment_received",
@@ -482,6 +522,13 @@ export async function updateMailboxPasswordSecret(
   passwordSecret: string,
 ): Promise<MailboxRow> {
   return writeMailbox(mailboxId, { password_secret: passwordSecret });
+}
+
+export async function updateMailboxRecoveryEmail(
+  mailboxId: string,
+  recoveryEmail: string,
+): Promise<MailboxRow> {
+  return writeMailbox(mailboxId, { recovery_email: recoveryEmail });
 }
 
 export async function listAbandonedCheckouts(
@@ -574,9 +621,6 @@ export async function recordMailboxPayment(input: {
       : null) ??
     (input.polarCheckoutId
       ? await getMailboxByCheckoutId(input.polarCheckoutId)
-      : null) ??
-    (input.polarCustomerId
-      ? await getMailboxByCustomerId(input.polarCustomerId)
       : null);
   if (!mailbox) return null;
 
@@ -623,11 +667,26 @@ export async function recordMailboxPayment(input: {
         : "awaiting_account"
     : mailbox.status;
 
+  const conflictingCustomer =
+    input.polarCustomerId &&
+    (await getMailboxByCustomerId(input.polarCustomerId));
+  const safeCustomerId =
+    conflictingCustomer && conflictingCustomer.id !== mailbox.id
+      ? mailbox.polar_customer_id
+      : input.polarCustomerId ?? mailbox.polar_customer_id;
+  if (conflictingCustomer && conflictingCustomer.id !== mailbox.id) {
+    console.error("polar customer belongs to another mailbox", {
+      customerId: input.polarCustomerId,
+      mailboxId: mailbox.id,
+      conflictingMailboxId: conflictingCustomer.id,
+    });
+  }
+
   mailbox = await writeMailbox(mailbox.id, {
     status: nextStatus,
     plan_type: input.plan ?? mailbox.plan_type,
     paid_through: paidThrough,
-    polar_customer_id: input.polarCustomerId ?? mailbox.polar_customer_id,
+    polar_customer_id: safeCustomerId,
     polar_subscription_id:
       input.polarSubscriptionId ?? mailbox.polar_subscription_id,
     polar_checkout_id: input.polarCheckoutId ?? mailbox.polar_checkout_id,

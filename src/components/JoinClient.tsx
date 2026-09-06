@@ -1,21 +1,18 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { validRecoveryEmail } from "@/lib/slug";
 
-type Step = "name" | "recovery" | "phone" | "code" | "password" | "done";
+type Step = "name" | "recovery" | "password" | "done";
 
 const STEP_COPY: Record<Exclude<Step, "done">, { title: string; note: string }> = {
-  name: { title: "yours now", note: "what should we call you." },
+  name: { title: "your name", note: "how you sign letters." },
   recovery: { title: "if you lose the key", note: "an email that isn’t @lost.pink." },
-  phone: { title: "a phone, for the door", note: "we’ll send a short code." },
-  code: { title: "check your phone", note: "six digits, then the password." },
-  password: { title: "a password for the inbox", note: "same key for mail, the site, and gmail." },
+  password: {
+    title: "a password for the inbox",
+    note: "one password for lost.pink, your inbox, and mail apps like Apple Mail or Gmail.",
+  },
 };
-
-// Build-time flag to let deployments skip phone verification and UI.
-const SKIP_PHONE =
-  process.env.NEXT_PUBLIC_SKIP_PHONE_VERIFICATION === "1" ||
-  process.env.NEXT_PUBLIC_SKIP_PHONE_VERIFICATION === "true";
 
 export function JoinClient({
   mailboxId,
@@ -30,8 +27,6 @@ export function JoinClient({
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [recovery, setRecovery] = useState("");
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -71,8 +66,6 @@ export function JoinClient({
       name,
       recovery,
       password,
-      phone,
-      code,
     };
   }
 
@@ -87,51 +80,12 @@ export function JoinClient({
 
   function nextRecovery() {
     const value = recovery.trim().toLowerCase();
-    if (!value.includes("@") || value.endsWith("@lost.pink")) {
+    if (!validRecoveryEmail(value)) {
       setError("use a recovery email that isn’t @lost.pink.");
       return;
     }
     setError(null);
-    // If the build-time flag indicates skipping phone verification, jump straight to password.
-    if (SKIP_PHONE) {
-      setStep("password");
-    } else {
-      setStep("phone");
-    }
-  }
-
-  function sendCode() {
-    setError(null);
-    startTransition(async () => {
-      const res = await fetch("/api/join/sms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body()),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "couldn't send that.");
-        return;
-      }
-      setStep("code");
-    });
-  }
-
-  function checkCode() {
-    setError(null);
-    startTransition(async () => {
-      const res = await fetch("/api/join/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body()),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "that code isn’t right.");
-        return;
-      }
-      setStep("password");
-    });
+    setStep("password");
   }
 
   function finish() {
@@ -149,6 +103,9 @@ export function JoinClient({
       const data = (await res.json()) as { slug?: string; error?: string };
       if (!res.ok || !data.slug) {
         setError(data.error ?? "couldn't open the inbox.");
+        if (res.status === 409) {
+          window.setTimeout(() => window.location.assign("/come"), 1200);
+        }
         return;
       }
       setStep("done");
@@ -159,17 +116,13 @@ export function JoinClient({
   function continueStep() {
     if (step === "name") nextName();
     else if (step === "recovery") nextRecovery();
-    else if (step === "phone") sendCode();
-    else if (step === "code") checkCode();
     else if (step === "password") finish();
   }
 
   function back() {
     setError(null);
     if (step === "recovery") setStep("name");
-    else if (step === "phone") setStep("recovery");
-    else if (step === "code") setStep("phone");
-    else if (step === "password") setStep("code");
+    else if (step === "password") setStep("recovery");
   }
 
   if (paid === null) {
@@ -242,26 +195,6 @@ export function JoinClient({
             type="email"
           />
         ) : null}
-        {step === "phone" ? (
-          <Field
-            id="phone"
-            label="phone"
-            value={phone}
-            onChange={setPhone}
-            placeholder="+61…"
-            type="tel"
-          />
-        ) : null}
-        {step === "code" ? (
-          <Field
-            id="code"
-            label="the code we sent"
-            value={code}
-            onChange={setCode}
-            placeholder="six digits"
-            inputMode="numeric"
-          />
-        ) : null}
         {step === "password" ? (
           <Field
             id="password"
@@ -299,13 +232,9 @@ export function JoinClient({
         >
           {pending
             ? "working…"
-            : step === "phone"
-              ? "send a code"
-              : step === "code"
-                ? "that’s the code"
-                : step === "password"
-                  ? "it’s yours"
-                  : "continue"}
+            : step === "password"
+              ? "open the inbox"
+              : "continue"}
         </button>
       </div>
     </form>
@@ -319,7 +248,6 @@ function Field({
   onChange,
   placeholder,
   type = "text",
-  inputMode,
   autoComplete = "off",
 }: {
   id: string;
@@ -328,7 +256,6 @@ function Field({
   onChange: (value: string) => void;
   placeholder: string;
   type?: string;
-  inputMode?: "numeric" | "tel" | "email" | "text";
   autoComplete?: string;
 }) {
   return (
@@ -339,7 +266,6 @@ function Field({
       <input
         id={id}
         type={type}
-        inputMode={inputMode}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

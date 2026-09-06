@@ -1,19 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BrandMark } from "@/components/BrandMark";
 import { Stage } from "@/components/Stage";
-import { downloadLockScreen } from "@/lib/export-png";
 import type { Look } from "@/lib/looks";
 import { stageStyle } from "@/lib/looks";
 import { provisionProgress } from "@/lib/mailbox-lifecycle";
 import type { OwnerMailboxView } from "@/lib/mailbox-view";
-import {
-  inboxDisplayOnly,
-  inboxLabel,
-  inboxOpenLabel,
-  inboxWaiting,
-  shareOrCopy,
-} from "@/lib/voice";
+import { inboxLabel, inboxWaiting, shareOrCopy } from "@/lib/voice";
 
 type Progress = ReturnType<typeof provisionProgress>;
 
@@ -106,12 +100,8 @@ export function ThanksClient({
         look={look}
         line={line}
         alias={alias}
-        aliasNote={
-          mailbox?.status === "live"
-            ? inboxOpenLabel()
-            : alias
-              ? inboxDisplayOnly()
-              : null
+        writeHref={
+          mailbox?.status === "live" && slug ? `/${slug}/write` : null
         }
         bgUrl={bgUrl}
         tokenUrl={tokenUrl}
@@ -119,12 +109,7 @@ export function ThanksClient({
         animate
       />
       <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
-        <a
-          href="/"
-          className="mark text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]"
-        >
-          lost.pink
-        </a>
+        <BrandMark className="text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]" />
       </div>
       <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-6">
         <div className="quiet-tray mx-auto w-full max-w-md px-3.5 py-3">
@@ -149,28 +134,16 @@ export function ThanksClient({
                 <p className="mt-1 text-[12px] text-[var(--ink)]">
                   <a href="/support">write support</a>
                   <span className="mx-2 text-[var(--ink-faint)]">·</span>
-                  <a href={`/${slug}`}>try again from the shrine</a>
+                  <a href={`/${slug}`}>try again from the page</a>
                 </p>
               ) : null}
               <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[var(--ink)]">
-                <button type="button" onClick={() => void share()}>
-                  {copied ? "copied" : "share"}
-                </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    void downloadLockScreen({
-                      word: shown,
-                      look,
-                      line,
-                      alias,
-                      bgUrl,
-                      tokenUrl,
-                      watermark: false,
-                    })
-                  }
+                  aria-live="polite"
+                  onClick={() => void share()}
                 >
-                  save 9:16
+                  {copied ? "copied" : "share"}
                 </button>
                 {!inbox ? (
                   <a href={`/${slug}`} className="text-[var(--ink)]">

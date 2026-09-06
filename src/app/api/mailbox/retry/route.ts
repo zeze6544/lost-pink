@@ -8,12 +8,12 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON." }, { status: 400 });
   }
 
   const pageId = body.pageId?.trim();
   if (!pageId) {
-    return NextResponse.json({ error: "Missing page." }, { status: 400 });
+    return NextResponse.json({ error: "missing page." }, { status: 400 });
   }
 
   const owned = await requireOwnedPage(pageId);

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   CLAIM_COOKIE,
-  CLAIM_MAX_AGE,
+  claimCookieOptions,
   claimCookieValue,
   newClaimToken,
   hashClaimToken,
 } from "@/lib/claim";
 import { deleteImages, isAllowedImageUrl } from "@/lib/images";
 import { parseLook, sanitizeLine, defaultLookForSlug } from "@/lib/looks";
+import { pageStoreProblem } from "@/lib/page-store-error";
 import { isEmailLocalTaken, publishPage } from "@/lib/pages";
 import {
   normalizeEmailLocal,
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON." }, { status: 400 });
   }
 
   const slug = normalizeWord(body.word ?? "");
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
   const bg_url = typeof body.bg_url === "string" ? body.bg_url : null;
   const token_url = typeof body.token_url === "string" ? body.token_url : null;
   if (!isAllowedImageUrl(bg_url) || !isAllowedImageUrl(token_url)) {
-    return NextResponse.json({ error: "Invalid photo URL." }, { status: 400 });
+    return NextResponse.json({ error: "invalid photo URL." }, { status: 400 });
   }
 
   let email_local: string | null = null;
@@ -91,8 +92,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     await deleteImages([bg_url, token_url]);
+    const problem = pageStoreProblem(err);
+    if (problem) {
+      return NextResponse.json(
+        { error: problem.error },
+        { status: problem.status },
+      );
+    }
     const message =
-      err instanceof Error ? err.message : "Could not leave it here.";
+      err instanceof Error ? err.message : "could not leave it here.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
   if ("conflict" in result) {
@@ -101,7 +109,7 @@ export async function POST(request: NextRequest) {
       {
         error: result.kept
           ? "that word is already kept."
-          : "Someone just claimed that. Try again in a moment or pick another.",
+          : "someone just claimed that. try again in a moment or pick another.",
       },
       { status: 409 },
     );
@@ -117,13 +125,7 @@ export async function POST(request: NextRequest) {
     res.cookies.set(
       CLAIM_COOKIE,
       claimCookieValue(result.page.id, claimToken),
-      {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: CLAIM_MAX_AGE,
-      },
+      claimCookieOptions(),
     );
   }
   return res;

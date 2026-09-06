@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { InboxPanel } from "@/components/InboxPanel";
 import type { Look } from "@/lib/looks";
 import type { PublicMailboxLabel } from "@/lib/mailbox-status";
@@ -29,15 +29,13 @@ type Props = {
   mailboxStatus?: PublicMailboxLabel;
   mailbox?: OwnerMailboxView | null;
   onDismissJustLeft?: () => void;
+  onTrayHeight?: (px: number) => void;
 };
 
 export function PageActions({
   pageId,
   slug,
   word,
-  look,
-  bgUrl,
-  tokenUrl,
   kept,
   expiresAt,
   foundCount,
@@ -47,7 +45,9 @@ export function PageActions({
   mailboxStatus = "none",
   mailbox = null,
   onDismissJustLeft,
+  onTrayHeight,
 }: Props) {
+  const trayRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -73,6 +73,16 @@ export function PageActions({
     const id = setInterval(() => setNow(Date.now()), 60_000);
     return () => clearInterval(id);
   }, [kept, expiresAt]);
+
+  useEffect(() => {
+    const node = trayRef.current;
+    if (!node || !onTrayHeight) return;
+    const measure = () => onTrayHeight(node.getBoundingClientRect().height);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(node);
+    return () => ro.disconnect();
+  }, [justLeft, onTrayHeight]);
 
   function openPage() {
     sessionStorage.removeItem(JUST_LEFT_KEY);
@@ -134,86 +144,94 @@ export function PageActions({
 
   if (justLeft) {
     return (
-      <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-6">
-        <div className="quiet-tray mx-auto w-full max-w-md px-3.5 py-3">
+      <div
+        ref={trayRef}
+        className="absolute bottom-0 left-0 right-0 z-20 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-6"
+      >
+        <div className="quiet-tray mx-auto flex w-full max-w-md flex-col gap-1.5 px-3.5 py-2.5">
           <p className="text-sm text-[var(--ink)]">{word} is somewhere now.</p>
-          <p className="mt-0.5 text-[12px] text-[var(--ink-faint)]">
+          <p className="text-[12px] text-[var(--ink-faint)]">
             lost.pink/{slug}
           </p>
-          <div className="mt-2.5 flex items-center justify-between gap-3 text-[13px] text-[var(--ink)]">
-            <button type="button" onClick={() => void share()}>
-              {copied ? "copied" : "share"}
-            </button>
-            <button
-              type="button"
-              onClick={openPage}
-              className="text-[var(--ink-muted)]"
-            >
-              open {word} →
-            </button>
-          </div>
-          <p className="mt-2 text-[11px] text-[var(--ink-faint)]">
+          <button
+            type="button"
+            onClick={() => void share()}
+            aria-live="polite"
+          className="cursor-pointer text-left text-[13px] text-[var(--ink)]"
+          >
+            {copied ? "copied" : "share"}
+          </button>
+          <button
+            type="button"
+            onClick={openPage}
+            className="cursor-pointer text-left text-[13px] text-[var(--ink-muted)]"
+          >
+            open {word} →
+          </button>
+          <p className="text-[11px] text-[var(--ink-faint)]">
             {owned
-              ? "yours to tend."
+              ? "you own this page."
               : "here for 48 hours unless someone keeps it."}
           </p>
-          <div className="mt-1.5">
-            <InboxPanel
-              pageId={pageId}
-              kept={kept}
-              signedIn={owned}
-              alias={alias}
-              publicLabel={mailboxStatus}
-              mailbox={mailbox}
-              compact
-              inviteComeBack={canComeBack}
-              nextPath={`/${slug}`}
-              writePath={writePath}
-              onNeedAlias={openPage}
-            />
-          </div>
+          <InboxPanel
+            pageId={pageId}
+            kept={kept}
+            signedIn={owned}
+            alias={alias}
+            publicLabel={mailboxStatus}
+            mailbox={mailbox}
+            compact
+            inviteComeBack={canComeBack}
+            nextPath={`/${slug}`}
+            writePath={writePath}
+            onNeedAlias={openPage}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-6">
-      <div className="quiet-tray mx-auto w-full max-w-md space-y-2 px-3.5 py-2.5">
+    <div
+      ref={trayRef}
+      className="absolute bottom-0 left-0 right-0 z-20 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-6"
+    >
+      <div className="quiet-tray mx-auto flex w-full max-w-md flex-col gap-1.5 px-3.5 py-2.5">
         <div className="flex items-baseline justify-between gap-3 text-[12px] text-[var(--ink-muted)]">
           <span>lost.pink/{slug}</span>
           {hereLabel ? <span>{hereLabel}</span> : null}
         </div>
-        <div className="flex items-center justify-between gap-3 text-[13px]">
+        <button
+          type="button"
+          onClick={foundThis}
+          className="cursor-pointer text-left text-[13px] text-[var(--ink)] transition-opacity duration-200"
+        >
+          {tapped ? "♥ found this" : "♡ found this"}
+          {found >= 10 ? (
+            <span className="text-[var(--ink-faint)]"> · {found}</span>
+          ) : null}
+        </button>
+        <a href="/" className="text-left text-[13px] text-[var(--ink-faint)]">
+          make one for someone else
+        </a>
+        <button
+          type="button"
+          onClick={() => void share()}
+          aria-live="polite"
+          className="cursor-pointer text-left text-[13px] text-[var(--ink)]"
+        >
+          {copied ? "copied" : "share"}
+        </button>
+        {!kept ? (
           <button
             type="button"
-            onClick={foundThis}
-            className="text-[var(--ink)] transition-opacity duration-200"
+            onClick={keepIt}
+            disabled={pending}
+            className="cursor-pointer text-left text-[13px] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {tapped ? "♥ found this" : "♡ found this"}
-            {found >= 10 ? (
-              <span className="text-[var(--ink-faint)]"> · {found}</span>
-            ) : null}
+            {pending ? "keeping…" : keepLabel(word)}
           </button>
-          <a href="/" className="shrink-0 text-right text-[var(--ink-faint)]">
-            make one for someone else
-          </a>
-        </div>
-        <div className="flex items-center justify-between gap-3 text-[13px] text-[var(--ink)]">
-          <button type="button" onClick={() => void share()}>
-            {copied ? "copied" : "share"}
-          </button>
-          {!kept ? (
-            <button
-              type="button"
-              onClick={keepIt}
-              disabled={pending}
-              className="disabled:opacity-50"
-            >
-              {pending ? "keeping…" : keepLabel(word)}
-            </button>
-          ) : null}
-        </div>
+        ) : null}
         <InboxPanel
           pageId={pageId}
           kept={kept}

@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { ThanksClient } from "@/components/ThanksClient";
 import { DEFAULT_LOOK } from "@/lib/looks";
-import { getMailboxByPageId, toOwnerMailboxView } from "@/lib/mailbox-store";
+import { getMailboxByPageId, toPublicMailboxView } from "@/lib/mailbox-store";
 import { getPolar } from "@/lib/polar";
-import { getPageById, getPageBySlug, pageLook } from "@/lib/pages";
+import { getPageByHandle, getPageById, pageLook } from "@/lib/pages";
 import { formatLeftHere } from "@/lib/voice";
 import { redirect } from "next/navigation";
 
@@ -57,7 +57,7 @@ export default async function ThanksPage({ searchParams }: Props) {
     }
   }
 
-  const page = slug ? await getPageBySlug(slug) : null;
+  const page = slug ? await getPageByHandle(slug) : null;
   pageId = page?.id ?? pageId;
   const mailbox = pageId ? await getMailboxByPageId(pageId) : null;
   if (mailbox?.status === "awaiting_account") {
@@ -88,7 +88,7 @@ export default async function ThanksPage({ searchParams }: Props) {
         caption={page ? formatLeftHere(page.created_at) : null}
         inbox={inbox}
         pageId={pageId}
-        initialMailbox={mailbox ? toOwnerMailboxView(mailbox) : null}
+        initialMailbox={mailbox ? toPublicMailboxView(mailbox) : null}
       />
     </Suspense>
   );

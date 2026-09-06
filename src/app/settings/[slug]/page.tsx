@@ -1,5 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { AccountShell } from "@/components/SiteFrame";
+import { SettingsClient } from "@/components/SettingsClient";
+import { getMailboxByPageId } from "@/lib/mailbox-store";
 import { listOwnedPages, pageHandle } from "@/lib/pages";
 import { displayLostEmail } from "@/lib/slug";
 import { getAuthUserId } from "@/lib/supabase/server";
@@ -18,6 +20,7 @@ export default async function NameSettingsPage({ params }: Props) {
   if (!page) notFound();
 
   const handle = pageHandle(page);
+  const mailbox = await getMailboxByPageId(page.id);
   const inbox = page.email_local
     ? displayLostEmail(page.email_local)
     : `${handle}@lost.pink`;
@@ -28,8 +31,6 @@ export default async function NameSettingsPage({ params }: Props) {
       href: page.email_local ? `/${handle}/mail` : `/${handle}`,
       label: "inbox",
     },
-    { href: "/come/forgot", label: "password" },
-    { href: "/come/forgot", label: "recovery" },
     { href: "/setup", label: "devices" },
     { href: "/billing", label: "billing" },
   ] as const;
@@ -56,6 +57,17 @@ export default async function NameSettingsPage({ params }: Props) {
             </li>
           ))}
         </ul>
+
+        <div className="mt-12 border-t border-[var(--rule)] pt-8">
+          <p className="mb-6 font-mono text-[11px] tracking-[0.08em] text-[var(--ink-muted)]">
+            password · recovery
+          </p>
+          <SettingsClient
+            inbox={inbox}
+            mailboxId={mailbox?.id ?? null}
+            recoveryEmail={mailbox?.recovery_email ?? null}
+          />
+        </div>
 
         <div className="mt-12 border-t border-[var(--rule)] pt-8">
           <a

@@ -24,7 +24,7 @@ import {
   type MailboxRow,
 } from "./mailbox-store";
 import { ensureMailbox, setMailboxDark } from "./migadu";
-import { deleteUnownedPage, getPageById } from "./pages";
+import { deleteUnownedPage, getPageById, teardownOwnedPage } from "./pages";
 import { displayLostEmail } from "./slug";
 import { siteUrl } from "./site";
 import { mailboxCheckoutKind } from "./mailbox-pricing";
@@ -106,6 +106,36 @@ export async function disableMailbox(
     }
   }
   return markMailboxDisabled(mailbox.id, reason);
+}
+
+/**
+ * Owner-initiated name deletion.
+ * Darkens the inbox (mail kept for MAIL_GRACE_DAYS), then tears down the page.
+ * The name stays reserved while the dark mailbox row remains.
+ */
+export async function deleteOwnedName(
+  pageId: string,
+  ownerId: string,
+): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  const page = await getPageById(pageId);
+  if (!page) return { ok: false, error: "gone.", status: 404 };
+  if (page.owner_id !== ownerId) {
+    return { ok: false, error: "not yours.", status: 403 };
+  }
+
+  const mailbox = await getMailboxByPageId(pageId);
+  if (mailbox && mailbox.status !== "dark") {
+    const darkened = await disableMailbox(mailbox.id, "cancelled");
+    if (!darkened || darkened.status !== "dark") {
+      return {
+        ok: false,
+        error: "couldn't close the inbox. try again.",
+        status: 502,
+      };
+    }
+  }
+
+  return teardownOwnedPage(pageId, ownerId);
 }
 
 export async function darkenExpiredMailboxes(): Promise<number> {

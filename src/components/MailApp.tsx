@@ -50,7 +50,7 @@ export function MailApp({
   const [images, setImages] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [gmailHint, setGmailHint] = useState(true);
+  const [setupHint, setSetupHint] = useState(true);
   const [leaveAsk, setLeaveAsk] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -133,8 +133,8 @@ export function MailApp({
   }, [load, pane, status]);
 
   useEffect(() => {
-    if (sessionStorage.getItem(`lost.pink:gmail:${page.slug}`) === "1") {
-      setGmailHint(false);
+    if (sessionStorage.getItem(`lost.pink:setup:${page.slug}`) === "1") {
+      setSetupHint(false);
     }
   }, [page.slug]);
 
@@ -376,7 +376,7 @@ export function MailApp({
                         ? "nothing in here yet."
                         : "loading…"}
                   </p>
-                  {gmailHint && empty && folder === "inbox" ? (
+                  {setupHint && empty && folder === "inbox" ? (
                     <p className="flex flex-wrap gap-2">
                       <a
                         href="/setup"
@@ -389,10 +389,10 @@ export function MailApp({
                         className="tray-btn"
                         onClick={() => {
                           sessionStorage.setItem(
-                            `lost.pink:gmail:${page.slug}`,
+                            `lost.pink:setup:${page.slug}`,
                             "1",
                           );
-                          setGmailHint(false);
+                          setSetupHint(false);
                         }}
                       >
                         not now
@@ -746,7 +746,7 @@ function BottomNav({
           page
         </button>
         <a href="/setup" className="tray-btn inline-flex items-center">
-          gmail
+          setup
         </a>
         <a href="/settings" className="tray-btn inline-flex items-center">
           settings

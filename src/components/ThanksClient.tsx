@@ -32,6 +32,7 @@ export function ThanksClient({
 }: Props) {
   const [mailbox, setMailbox] = useState(initialMailbox);
   const shown = word || slug || "kept";
+  const live = mailbox?.status === "live";
   const progress = mailbox
     ? provisionProgress(mailbox.status, mailbox.provisionStep)
     : null;
@@ -107,7 +108,9 @@ export function ThanksClient({
             {KEPT_WHISPER}
           </h1>
           <p className="mark mt-5 max-w-sm text-center text-[13px] tracking-[0.03em] text-[var(--ink-muted)]">
-            {shown} is yours. the inbox is opening.
+            {live
+              ? `${shown} is yours. the inbox is open.`
+              : `${shown} is yours. the inbox is opening.`}
           </p>
 
           {inbox ? (
@@ -165,11 +168,25 @@ export function ThanksClient({
             <>
               {slug ? <a href={`/${slug}`}>open the page</a> : null}
               {slug ? <span aria-hidden> · </span> : null}
-              <a href={mailbox?.id ? `/join?mailbox=${mailbox.id}` : "/join"}>
-                finish join
-              </a>
-              <span aria-hidden> · </span>
-              <a href="/setup">setup mail</a>
+              {live ? (
+                <>
+                  {slug ? (
+                    <a href={`/${slug}/mail`}>open inbox</a>
+                  ) : (
+                    <a href="/settings">yours</a>
+                  )}
+                  <span aria-hidden> · </span>
+                  <a href="/setup">setup mail</a>
+                </>
+              ) : (
+                <>
+                  <a href={mailbox?.id ? `/join?mailbox=${mailbox.id}` : "/join"}>
+                    finish join
+                  </a>
+                  <span aria-hidden> · </span>
+                  <a href="/setup">setup mail</a>
+                </>
+              )}
             </>
           }
           right={null}

@@ -19,11 +19,11 @@ export default async function MailSetupClientPage({ params }: Props) {
   const userId = await getAuthUserId();
   if (!userId) redirect(`/come?next=/setup/${raw}`);
 
+  const pages = await listOwnedPages(userId);
+
   const cookieStore = await cookies();
   const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
-  if (parsed) redirect("/settings");
-
-  const pages = await listOwnedPages(userId);
+  if (parsed && pages.length === 0) redirect("/settings");
   const mailbox = await getMailboxByOwnerId(userId);
   const page = pages.find((p) => p.id === mailbox?.page_id) ?? pages[0] ?? null;
 

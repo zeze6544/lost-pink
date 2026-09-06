@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { MailSetupChooser } from "@/components/MailSetup";
 import { HomeMark, SiteFooter, SiteFrame } from "@/components/SiteFrame";
 import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
+import { listOwnedPages } from "@/lib/pages";
 import { getAuthUserId } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,10 @@ export default async function MailSetupPage() {
 
   const cookieStore = await cookies();
   const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
-  if (parsed) redirect("/settings");
+  if (parsed) {
+    const owned = await listOwnedPages(userId);
+    if (owned.length === 0) redirect("/settings");
+  }
 
   return (
     <SiteFrame atmosphere="landing">

@@ -30,7 +30,7 @@ import {
   parsePublicMailboxLabel,
   type PublicMailboxLabel,
 } from "./mailbox-status";
-import { FREE_PAGE_HOURS } from "./product-rules";
+import { FREE_PAGE_HOURS, MAIL_GRACE_DAYS } from "./product-rules";
 import { isBlobConfigured, isSupabaseConfigured, supabaseUrl } from "./site";
 
 export type { PublicMailboxLabel };
@@ -701,6 +701,83 @@ export async function deleteUnownedPage(pageId: string): Promise<void> {
   }
   const pages = await readLocal();
   await writeLocal(pages.filter((p) => p.id !== pageId));
+}
+
+/**
+ * Tear down an owned name after deletion starts.
+ * Public URL + address vanish immediately; the page row stays as a grace tombstone
+ * so expireFreePages can cascade-remove the mailbox after MAIL_GRACE_DAYS.
+ */
+export async function teardownOwnedPage(
+  pageId: string,
+  ownerId: string,
+): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  const page = await getPageById(pageId);
+  if (!page) return { ok: false, error: "gone.", status: 404 };
+  if (page.owner_id !== ownerId) {
+    return { ok: false, error: "not yours.", status: 403 };
+  }
+
+  await deleteImages([page.bg_url, page.token_url]);
+  if (pageStore() === "supabase") {
+    await supabaseAdmin().from("page_claims").delete().eq("page_id", pageId);
+  }
+
+  const graceEnds = new Date(
+    Date.now() + MAIL_GRACE_DAYS * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  // Compact tombstone slug: keeps the row, frees the public name.
+  const tombstone = `x${page.id.replace(/-/g, "").slice(0, 15)}`;
+  const next: LostPage = {
+    ...page,
+    slug: tombstone,
+    word: tombstone,
+    line: null,
+    bg_url: null,
+    token_url: null,
+    status: "free",
+    expires_at: graceEnds,
+    owner_id: null,
+    email_local: null,
+    claim_token_hash: null,
+    mailbox_status: "none",
+    mailbox_expires_at: null,
+  };
+
+  if (pageStore() === "supabase") {
+    const { error } = await supabaseAdmin()
+      .from("pages")
+      .update({
+        slug: next.slug,
+        word: next.word,
+        line: null,
+        bg_url: null,
+        token_url: null,
+        status: "free",
+        expires_at: graceEnds,
+        owner_id: null,
+        email_local: null,
+        mailbox_status: "none",
+        mailbox_expires_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", pageId)
+      .eq("owner_id", ownerId);
+    if (error) throw error;
+    return { ok: true };
+  }
+
+  if (pageStore() === "blob") {
+    await blobUpdatePage(next, page.slug);
+    return { ok: true };
+  }
+
+  const pages = await readLocal();
+  const idx = pages.findIndex((p) => p.id === pageId);
+  if (idx < 0) return { ok: false, error: "gone.", status: 404 };
+  pages[idx] = next;
+  await writeLocal(pages);
+  return { ok: true };
 }
 
 export async function reserveKeptAlias(local: string): Promise<LostPage> {

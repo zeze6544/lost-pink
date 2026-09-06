@@ -1,3 +1,8 @@
+import {
+  NAME_MAX_CHARS,
+  NAME_MIN_CHARS,
+} from "./product-rules";
+
 const RESERVED = new Set([
   "api",
   "thanks",
@@ -56,17 +61,17 @@ export function normalizeWord(input: string): string {
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "")
-    .slice(0, 16);
+    .slice(0, NAME_MAX_CHARS);
 }
 
 export function validateSlug(
   slug: string,
 ): { ok: true } | { ok: false; error: string } {
-  if (slug.length < 2) {
-    return { ok: false, error: "Needs at least 2 characters." };
+  if (slug.length < NAME_MIN_CHARS) {
+    return { ok: false, error: `needs at least ${NAME_MIN_CHARS} characters.` };
   }
-  if (slug.length > 16) {
-    return { ok: false, error: "Keep it under 16 characters." };
+  if (slug.length > NAME_MAX_CHARS) {
+    return { ok: false, error: `keep it under ${NAME_MAX_CHARS} characters.` };
   }
   if (!/^[a-z0-9]+$/.test(slug)) {
     return { ok: false, error: "Letters and numbers only." };

@@ -4,7 +4,13 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
 import { NAME_INBOX_WHISPER } from "@/lib/landing-voice";
-import { nameIsPageAndAddress } from "@/lib/product-rules";
+import {
+  NAME_MIN_CHARS,
+  PUBLIC_IMPLIES_ADDRESS,
+  claimLengthCopy,
+  impliedPageAndAddress,
+  nameIsPageAndAddress,
+} from "@/lib/product-rules";
 import { normalizeWord } from "@/lib/slug";
 
 type Check =
@@ -24,7 +30,7 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
   const slug = useMemo(() => normalizeWord(raw), [raw]);
 
   useEffect(() => {
-    if (slug.length < 2) {
+    if (slug.length < NAME_MIN_CHARS) {
       setCheck({ status: "idle" });
       return;
     }
@@ -88,8 +94,16 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
     });
   }
 
+  const implication =
+    PUBLIC_IMPLIES_ADDRESS && slug.length > 0
+      ? impliedPageAndAddress(slug)
+      : null;
   const statusLine =
-    check.status === "taken" ? (
+    slug.length > 0 && slug.length < NAME_MIN_CHARS ? (
+      <p className="mark text-[12px] text-[var(--ink-muted)]">
+        {claimLengthCopy()}
+      </p>
+    ) : check.status === "taken" ? (
       <p className="mark text-[12px] text-[var(--ink)]">
         {check.slug}@lost.pink already belongs to someone.
       </p>
@@ -118,7 +132,7 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
       <div className="relative z-10 flex min-h-[100dvh] flex-col">
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-16 pt-24">
           <p
-            className="pointer-events-none mb-8 max-w-md text-center font-display text-[clamp(1.15rem,3.4vw,1.85rem)] leading-snug tracking-[-0.02em] text-[var(--ink)]/[0.22] blur-[1.2px]"
+            className="claim-whisper pointer-events-none mb-8 max-w-md text-center font-display text-[clamp(1.15rem,3.4vw,1.85rem)] leading-snug tracking-[-0.02em] text-[var(--ink)]/[0.22]"
             aria-hidden
           >
             {NAME_INBOX_WHISPER}
@@ -165,6 +179,11 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
             </div>
 
             <div className="mt-3 min-h-[1.25rem] text-center" aria-live="polite">
+              {implication ? (
+                <p className="mark text-[12px] text-[var(--ink-muted)]">
+                  {implication}
+                </p>
+              ) : null}
               {statusLine}
               {error ? (
                 <p className="mark text-[12px] text-[var(--ink-muted)]" role="alert">

@@ -131,3 +131,12 @@ export function productOneLiner(): string {
 export function nameIsPageAndAddress(): string {
   return "this name is the page and the address.";
 }
+
+/** Live claim whisper: the page path is the inbox address. */
+export function impliedPageAndAddress(local: string): string {
+  return `lost.pink/${local} → ${local}@lost.pink`;
+}
+
+export function claimLengthCopy(): string {
+  return `at least ${NAME_MIN_CHARS} letters or numbers.`;
+}

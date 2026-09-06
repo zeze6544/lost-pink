@@ -6,7 +6,13 @@ import { BrandMark } from "@/components/BrandMark";
 import { SiteFooter } from "@/components/SiteFrame";
 import { LANDING_HERO_LINES } from "@/lib/landing-voice";
 import { HOME_MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
-import { productOneLiner } from "@/lib/product-rules";
+import {
+  NAME_MIN_CHARS,
+  PUBLIC_IMPLIES_ADDRESS,
+  claimLengthCopy,
+  impliedPageAndAddress,
+  productOneLiner,
+} from "@/lib/product-rules";
 import { normalizeWord } from "@/lib/slug";
 import type { CheckoutKind } from "@/lib/mailbox-status";
 
@@ -32,7 +38,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
   }, []);
 
   useEffect(() => {
-    if (slug.length < 2) {
+    if (slug.length < NAME_MIN_CHARS) {
       setCheck({ status: "idle" });
       return;
     }
@@ -95,16 +101,25 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
     });
   }
 
+  const implication =
+    PUBLIC_IMPLIES_ADDRESS && slug.length > 0
+      ? impliedPageAndAddress(slug)
+      : null;
+  const tooShort = slug.length > 0 && slug.length < NAME_MIN_CHARS;
   const hint =
-    check.status === "looking"
-      ? "checking…"
-      : check.status === "free"
-        ? `${check.local}@lost.pink is available`
-        : check.status === "held" || check.status === "invalid" || check.status === "reserved"
-          ? check.error
-          : check.status === "taken"
-            ? null
-            : null;
+    tooShort
+      ? claimLengthCopy()
+      : check.status === "looking"
+        ? "checking…"
+        : check.status === "free"
+          ? `${check.local}@lost.pink is available`
+          : check.status === "held" ||
+              check.status === "invalid" ||
+              check.status === "reserved"
+            ? check.error
+            : check.status === "taken"
+              ? null
+              : null;
 
   return (
     <div className="lp-shell relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
@@ -156,6 +171,11 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
               </span>
             </div>
             <div className="mt-2 min-h-[1rem] text-center" aria-live="polite">
+              {implication ? (
+                <p className="mark text-[11px] tracking-[0.04em] text-[var(--ink-muted)]">
+                  {implication}
+                </p>
+              ) : null}
               {check.status === "taken" ? (
                 <p className="mark text-[11px] text-[var(--ink-muted)]">
                   that name is taken.{" "}

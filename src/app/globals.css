@@ -641,6 +641,10 @@ a[aria-disabled="true"] {
   text-underline-offset: 2px;
 }
 
+.claim-whisper {
+  filter: blur(1.2px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .word-rise,
   .stage-word {
@@ -648,8 +652,9 @@ a[aria-disabled="true"] {
     transition: none;
   }
 
-  .stage-idle-hero {
-    filter: blur(3px);
+  .stage-idle-hero,
+  .claim-whisper {
+    filter: none;
   }
 }
 

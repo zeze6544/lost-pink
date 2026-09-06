@@ -1,5 +1,6 @@
 export const MIGADU_WEBMAIL_URL = "https://webmail.migadu.com/";
-export const MIGADU_RECOVERY_URL = "https://webmail.migadu.com/";
+export const SITE_FORGOT_PATH = "/come/forgot";
+export const SITE_RESET_PATH = "/come/reset";
 
 export const MIGADU_IMAP = {
   host: "imap.migadu.com",

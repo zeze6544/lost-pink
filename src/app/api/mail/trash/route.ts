@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireLiveMailbox } from "@/lib/mail-access";
+import { classifyMailError } from "@/lib/mail-errors";
 import { trashMail, type MailFolder } from "@/lib/mail-imap";
 
 export const runtime = "nodejs";
@@ -15,10 +16,10 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON." }, { status: 400 });
   }
   if (!body.pageId || !body.uid) {
-    return NextResponse.json({ error: "Missing letter." }, { status: 400 });
+    return NextResponse.json({ error: "missing letter." }, { status: 400 });
   }
   const owned = await requireLiveMailbox(body.pageId);
   if ("error" in owned) {
@@ -33,6 +34,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("mail trash", err);
-    return NextResponse.json({ error: "couldn't move that." }, { status: 502 });
+    const mapped = classifyMailError(err);
+    return NextResponse.json(
+      { error: mapped.error, retryable: mapped.retryable },
+      { status: mapped.status },
+    );
   }
 }

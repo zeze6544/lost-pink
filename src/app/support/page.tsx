@@ -1,31 +1,60 @@
+import { DocPage, DocQuestion } from "@/components/SiteFrame";
+import { graceCopy, MAIL_GRACE_DAYS, PAYMENTS_VIA } from "@/lib/product-rules";
+
 export default function SupportPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16 text-[var(--ink)]">
-      <a href="/" className="mark text-sm">
-        lost.pink
-      </a>
-      <h1 className="mt-10 font-display text-4xl">support</h1>
-      <div className="mt-6 space-y-4 text-sm leading-relaxed text-[var(--ink-muted)]">
+    <DocPage title="support">
+      <DocQuestion q="how do i reach you?">
         <p>
-          write <a href="mailto:support@lost.pink">support@lost.pink</a>. include
-          the name (lost.pink/yourword) and, if you have it, the Polar order.
+          email <a href="mailto:support@lost.pink">support@lost.pink</a>.
+          include the page name (lost.pink/yourword) and the {PAYMENTS_VIA.toLowerCase()}{" "}
+          order if you have it. a person will reply.
         </p>
+      </DocQuestion>
+      <DocQuestion q="how do i sign in?">
         <p>
-          sign in with you@lost.pink and the password you set. forgot it? we
-          write the recovery email, not the inbox you’re locked out of.
+          use you@lost.pink and the password you set at join. forgot it? reset
+          through your recovery email — not the lost.pink address. left a page
+          without opening the inbox yet? we can send a sign-in link to recovery.
         </p>
+      </DocQuestion>
+      <DocQuestion q="mail app setup">
         <p>
-          to read the same mail in Gmail, use IMAP: imap.migadu.com · 993 · SSL.
-          SMTP: smtp.migadu.com · 465 · SSL. username is you@lost.pink. password
-          is the same one. there is a walkthrough at /setup/gmail when you are
-          signed in.
+          start at <a href="/setup">connect a mail app</a>. choose gmail
+          app, apple mail on iphone, outlook, android (gmail app), or manual.
+          the next screen names the exact client and the migadu hosts. password
+          is the one you set on lost.pink — not a google app password.
         </p>
+      </DocQuestion>
+      <DocQuestion q="mail not arriving / sending">
         <p>
-          refunds go through Polar. a refund, a cancelled yearly inbox, or a
-          failed yearly charge closes the inbox immediately. a dark mailbox
-          keeps the alias reserved so you can open it again.
+          confirm the inbox is still paid and not suspended. check spam in the
+          client. for sending, smtp must use smtp.migadu.com with your
+          you@lost.pink login. still stuck? write support with the exact error.
         </p>
-      </div>
-    </main>
+      </DocQuestion>
+      <DocQuestion q="billing, refunds, renewals">
+        <p>
+          {PAYMENTS_VIA.toLowerCase()} handles the money. refunds within 7 days
+          of purchase when approved. the year plan renews until you cancel in
+          the portal. day and month are one-time.
+        </p>
+      </DocQuestion>
+      <DocQuestion q="when payment ends">
+        <p>
+          the inbox suspends when paid time ends or renewal fails. mail is kept
+          for {graceCopy()} ({MAIL_GRACE_DAYS} days) — not wiped at once. after
+          that, the mailbox is removed. the name stays reserved while mail is
+          retained.
+        </p>
+      </DocQuestion>
+      <DocQuestion q="abuse / contact">
+        <p>
+          report abuse to <a href="mailto:abuse@lost.pink">abuse@lost.pink</a>.
+          privacy questions:{" "}
+          <a href="mailto:privacy@lost.pink">privacy@lost.pink</a>.
+        </p>
+      </DocQuestion>
+    </DocPage>
   );
 }

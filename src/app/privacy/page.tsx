@@ -1,37 +1,85 @@
+import { DocPage, DocSection } from "@/components/SiteFrame";
+import {
+  graceCopy,
+  MAIL_HOST,
+  MAIL_GRACE_DAYS,
+  PAYMENTS_VIA,
+} from "@/lib/product-rules";
+
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16 text-[var(--ink)]">
-      <a href="/" className="mark text-sm">
-        lost.pink
-      </a>
-      <h1 className="mt-10 font-display text-4xl">privacy</h1>
-      <div className="mt-6 space-y-4 text-sm leading-relaxed text-[var(--ink-muted)]">
-        <p>
-          We store the name you buy, the look of the public page, optional
-          photos and a line, Polar payment references, your sign-in as
-          you@lost.pink, a recovery email, and a phone number used to verify the
-          account.
-        </p>
-        <p>
-          Mail passes through our servers so we can show it in the browser. We
-          store an encrypted copy of the mailbox password to open IMAP on your
-          behalf. We do not sell mail, and we do not train models on it. HTML
-          is sanitized; remote images are off until you ask.
-        </p>
-        <p>
-          Public pages show the alias and whether the inbox is open. Recovery
-          email, phone, Polar IDs, and mailbox secrets stay private.
-        </p>
-        <p>
-          Photos are jpeg, png, or webp only. A dark mailbox keeps the alias
-          until you open it again or ask us to remove it.
-        </p>
-        <p>
-          Payment details are handled by Polar. SMS codes are sent by Twilio.
-          Contact: <a href="mailto:privacy@lost.pink">privacy@lost.pink</a> or{" "}
-          <a href="mailto:support@lost.pink">support@lost.pink</a>
+    <DocPage title="privacy">
+      <div className="space-y-2 font-mono text-[13px] leading-relaxed text-[var(--ink)]">
+        <p>private, not anonymous.</p>
+        <p className="text-[var(--ink-muted)]">
+          one name is a public page and an inbox. that has consequences for what
+          can stay private.
         </p>
       </div>
-    </main>
+
+      <DocSection title="what we keep">
+        <p>
+          the name you claim, the look of the public page, optional photos and a
+          line, {PAYMENTS_VIA} payment references, your sign-in as you@lost.pink,
+          and a recovery email.
+        </p>
+      </DocSection>
+
+      <DocSection title="mail contents">
+        <p>
+          mail is stored with our email infrastructure ({MAIL_HOST}) so your
+          inbox can receive and sync on phone and computer. we do not use message
+          contents for advertising or model training.
+        </p>
+        <p>
+          when paid time ends, the inbox is suspended. mail is retained for{" "}
+          {graceCopy()} ({MAIL_GRACE_DAYS} days), then removed with the mailbox.
+          deleting the account removes the page, the inbox, and the recovery
+          link.
+        </p>
+      </DocSection>
+
+      <DocSection title="what is public">
+        <p>
+          your handle is public as the page path. because the address always
+          follows the handle, anyone who sees lost.pink/mercy can infer
+          mercy@lost.pink — whether or not the page prints the address.
+        </p>
+        <p>
+          recovery email, {PAYMENTS_VIA} ids, and mailbox secrets stay private.
+        </p>
+      </DocSection>
+
+      <DocSection title="payments">
+        <p>
+          payment details are handled by {PAYMENTS_VIA}. we do not store your
+          full card number.
+        </p>
+      </DocSection>
+
+      <DocSection title="cookies">
+        <p>essential cookies keep you signed in. that&apos;s it.</p>
+      </DocSection>
+
+      <DocSection title="contact">
+        <p>
+          questions?{" "}
+          <a
+            href="mailto:privacy@lost.pink"
+            className="underline underline-offset-2"
+          >
+            privacy@lost.pink
+          </a>{" "}
+          or{" "}
+          <a
+            href="mailto:support@lost.pink"
+            className="underline underline-offset-2"
+          >
+            support@lost.pink
+          </a>
+          .
+        </p>
+      </DocSection>
+    </DocPage>
   );
 }

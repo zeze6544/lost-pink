@@ -118,7 +118,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         animate
       />
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
-        <p className="mark text-sm text-[var(--stage-ink)] sm:text-[15px]">
+        <p className="mark text-[15px] tracking-[0.04em] text-[var(--stage-ink)] sm:text-[17px]">
           lost.pink
         </p>
       </header>
@@ -169,7 +169,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
                       ? undefined
                       : () => buy(offer.kind)
                   }
-                  className="min-h-9 text-left text-[12px] text-[var(--ink)]/80 disabled:opacity-25 sm:text-[13px]"
+                  className="min-h-9 text-left text-[12px] text-[var(--ink)]/90 disabled:opacity-30 sm:text-[13px]"
                 >
                   {pending ? "one moment…" : offer.label}
                 </button>

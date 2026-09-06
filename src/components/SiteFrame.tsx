@@ -80,17 +80,17 @@ export function AuthTray({
 }) {
   return (
     <SiteFrame atmosphere="landing">
-      <div className="flex min-h-[100dvh] flex-col">
-        <HomeMark className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8" />
+      <div className="flex min-h-[100dvh] flex-col px-0 pb-[max(0px,env(safe-area-inset-bottom))] pt-[max(0px,env(safe-area-inset-top))]">
+        <HomeMark className="relative z-20 ml-5 mt-5 shrink-0 self-start sm:absolute sm:left-8 sm:top-8 sm:ml-0 sm:mt-0" />
         <p
-          className="pointer-events-none absolute inset-x-0 top-[18%] z-0 text-center font-display text-[clamp(2.4rem,8vw,5.5rem)] leading-none tracking-[-0.04em] text-[var(--ink)]/[0.12]"
+          className="pointer-events-none absolute inset-x-0 top-[16%] z-0 hidden text-center font-display text-[clamp(2.4rem,8vw,5.5rem)] leading-none tracking-[-0.04em] text-[var(--ink)]/[0.12] sm:block"
           aria-hidden
         >
           {LOGIN_WHISPER}
         </p>
-        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-20">
-          <div className="w-full max-w-sm border border-[color-mix(in_srgb,var(--ink)_42%,transparent)] bg-[color-mix(in_srgb,#080808_78%,transparent)] px-5 py-6 backdrop-blur-[8px]">
-            <h1 className="font-display text-[2.4rem] leading-none tracking-tight">
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 py-10 sm:px-6 sm:py-20">
+          <div className="w-full max-w-sm border border-[color-mix(in_srgb,var(--ink)_42%,transparent)] bg-[color-mix(in_srgb,#080808_78%,transparent)] px-5 py-5 sm:px-5 sm:py-6 backdrop-blur-[8px]">
+            <h1 className="font-display text-[2.15rem] leading-none tracking-tight sm:text-[2.4rem]">
               {title}
             </h1>
             <p className="mt-3 font-mono text-[13px] leading-relaxed text-[var(--ink)]/82">

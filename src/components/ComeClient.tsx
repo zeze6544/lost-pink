@@ -115,7 +115,7 @@ function ForgotLink({ email }: { email: string }) {
   return (
     <button
       type="button"
-      className="min-h-11 underline-offset-2 hover:underline"
+      className="underline-offset-2 hover:underline"
       onClick={async () => {
         await fetch("/api/auth/forgot", {
           method: "POST",

@@ -1,37 +1,65 @@
+import { DocPage, DocSection } from "@/components/SiteFrame";
+import { MAIL_HOST, MAIL_GRACE_DAYS, PAYMENTS_VIA } from "@/lib/product-rules";
+
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16 text-[var(--ink)]">
-      <a href="/" className="mark text-sm">
-        lost.pink
-      </a>
-      <h1 className="mt-10 font-display text-4xl">privacy</h1>
-      <div className="mt-6 space-y-4 text-sm leading-relaxed text-[var(--ink-muted)]">
-        <p>
-          We store the name you buy, the look of the public page, optional
-          photos and a line, Polar payment references, your sign-in as
-          you@lost.pink, a recovery email, and a phone number used to verify the
-          account.
-        </p>
-        <p>
-          Mail passes through our servers so we can show it in the browser. We
-          store an encrypted copy of the mailbox password to open IMAP on your
-          behalf. We do not sell mail, and we do not train models on it. HTML
-          is sanitized; remote images are off until you ask.
-        </p>
-        <p>
-          Public pages show the alias and whether the inbox is open. Recovery
-          email, phone, Polar IDs, and mailbox secrets stay private.
-        </p>
-        <p>
-          Photos are jpeg, png, or webp only. A dark mailbox keeps the alias
-          until you open it again or ask us to remove it.
-        </p>
-        <p>
-          Payment details are handled by Polar. SMS codes are sent by Twilio.
-          Contact: <a href="mailto:privacy@lost.pink">privacy@lost.pink</a> or{" "}
-          <a href="mailto:support@lost.pink">support@lost.pink</a>
-        </p>
+    <DocPage title="privacy" tagline="private, not anonymous.">
+      <div className="divide-y divide-[var(--rule)]">
+        <div className="pb-8">
+          <DocSection title="WHAT IS PUBLIC">
+            <p>
+              your handle is the page path. because the address follows the
+              handle, lost.pink/mercy implies mercy@lost.pink — whether or not
+              the page prints it.
+            </p>
+          </DocSection>
+        </div>
+
+        <div className="py-8">
+          <DocSection title="RECOVERY EMAIL">
+            <p>used to get back in. never shown publicly. never sold.</p>
+          </DocSection>
+        </div>
+
+        <div className="py-8">
+          <DocSection title={PAYMENTS_VIA.toUpperCase()}>
+            <p>
+              payments are processed by {PAYMENTS_VIA}. not analytics.
+            </p>
+          </DocSection>
+        </div>
+
+        <div className="py-8">
+          <DocSection title="MAIL CONTENTS">
+            <p>
+              mail is stored with our email host ({MAIL_HOST}) so the inbox can
+              receive and sync. we do not use contents for ads or model training.
+              after suspend, mail is kept {MAIL_GRACE_DAYS} days, then removed.
+            </p>
+          </DocSection>
+        </div>
+
+        <div className="py-8">
+          <DocSection title="WE DO NOT TRAIN MODELS">
+            <p>
+              we do not use your messages or account data to train or improve
+              models.
+            </p>
+          </DocSection>
+        </div>
+
+        <div className="pt-8">
+          <p className="font-mono text-[12px] leading-relaxed text-[var(--ink-muted)]">
+            questions?{" "}
+            <a
+              href="mailto:privacy@lost.pink"
+              className="underline underline-offset-2"
+            >
+              privacy@lost.pink
+            </a>
+          </p>
+        </div>
       </div>
-    </main>
+    </DocPage>
   );
 }

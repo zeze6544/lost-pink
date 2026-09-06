@@ -33,6 +33,12 @@ const RESERVED = new Set([
   "callback",
   "enter",
   "support",
+  "receipts",
+  "subscription",
+  "settings",
+  "name",
+  "delete",
+  "billing",
 ]);
 
 const BLOCKLIST = new Set([
@@ -87,7 +93,7 @@ const EMAIL_RESERVED = new Set([
   "privacy",
 ]);
 
-/** Optional shrine alias, shown as {local}@lost.pink. Display only. */
+/** Optional public alias, shown as {local}@lost.pink. Display only. */
 export function normalizeEmailLocal(input: string): string {
   const cut = input.trim().toLowerCase().split("@")[0] ?? "";
   return normalizeWord(cut);
@@ -106,4 +112,14 @@ export function validateEmailLocal(
 
 export function displayLostEmail(local: string): string {
   return `${local}@lost.pink`;
+}
+
+export function validRecoveryEmail(email: string): boolean {
+  const value = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return false;
+  return !value.endsWith("@lost.pink");
+}
+
+export function isReservedName(local: string): boolean {
+  return RESERVED.has(local) || EMAIL_RESERVED.has(local);
 }

@@ -163,14 +163,14 @@ function reminderCopy(
   const when = mailbox.paid_through
     ? new Date(mailbox.paid_through).toDateString()
     : "soon";
-  const renewUrl = `${siteUrl()}/you`;
+  const renewUrl = `${siteUrl()}/billing`;
   if (mailbox.plan_type === "subscription") {
     return {
       subject: `${address} renews on its own`,
       text: [
         `${address} is still open.`,
         `the yearly charge is automatic around ${when}.`,
-        `if a charge fails, the inbox closes immediately.`,
+        `if the renewal payment doesn't go through, the inbox suspends. mail is kept for 7 days, then removed.`,
         `write ${supportFromAddress()} if you need us.`,
       ].join("\n"),
     };
@@ -178,11 +178,11 @@ function reminderCopy(
   const day =
     kind === "reminder_1" ? "tomorrow" : kind === "reminder_7" ? "in a week" : "in a month";
   return {
-    subject: `${address} goes dark ${day}`,
+    subject: `${address} closes ${day}`,
     text: [
       `${address} stays open until ${when}.`,
       `renew another year from ${renewUrl}.`,
-      `a cancel or refund closes the inbox immediately.`,
+      `a cancel or refund suspends the inbox. mail is kept for 7 days, then removed.`,
       `write ${supportFromAddress()} if you need us.`,
     ].join("\n"),
   };
@@ -224,14 +224,13 @@ export async function sendSetupHelp(pageId: string): Promise<
     to: mailbox.recovery_email,
     subject: `setup help for ${displayLostEmail(mailbox.email_local)}`,
     text: [
-      `${displayLostEmail(mailbox.email_local)} is yours.`,
+      `${displayLostEmail(mailbox.email_local)} is ready.`,
       mailbox.provision_step === "invitation_sent"
-        ? "if the first invitation is gone, use Migadu webmail’s forgot-password with this recovery address. we can’t resend their invitation from here."
-        : "open Migadu webmail and use forgot-password with this recovery address.",
-      `webmail: https://webmail.migadu.com/`,
+        ? "if you still need a password, open lost.pink/come/forgot. we send a link to the recovery address. the new password is set on lost.pink."
+        : "forgot the password? open lost.pink/come/forgot. we send a link to the recovery address. the form is on lost.pink.",
       `IMAP: imap.migadu.com · 993 · SSL`,
       `SMTP: smtp.migadu.com · 465 · SSL`,
-      `write ${supportFromAddress()} if you’re still stuck.`,
+      `write ${supportFromAddress()} if you are still stuck.`,
     ].join("\n"),
   });
   if (!sent.ok) {

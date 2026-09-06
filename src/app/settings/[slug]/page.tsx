@@ -56,7 +56,7 @@ export default async function NameSettingsPage({ params }: Props) {
         ))}
       </ul>
 
-      <div className="mt-12 border-t border-[var(--rule)] pt-8">
+      <div className="mt-12 max-w-[14rem] border-t border-[var(--rule)] pt-8">
         <a
           href={`/settings/${handle}/delete`}
           className="font-display text-[1.45rem] leading-none tracking-[-0.02em] text-[var(--ink)]"

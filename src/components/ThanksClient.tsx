@@ -113,10 +113,16 @@ export function ThanksClient({
           {inbox ? (
             <ol className="mt-12 space-y-0">
               {steps.map((step, i) => (
-                <li key={step.key} className="flex gap-3">
-                  <div className="flex w-4 flex-col items-center">
+                <li key={step.key} className="relative flex gap-3">
+                  <div className="relative flex w-4 flex-col items-center">
+                    {i < steps.length - 1 ? (
+                      <span
+                        className="absolute left-1/2 top-[1.15rem] h-[calc(100%-0.35rem)] w-px -translate-x-1/2 bg-[var(--rule)]"
+                        aria-hidden
+                      />
+                    ) : null}
                     <span
-                      className={`mt-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border ${
+                      className={`relative z-[1] mt-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border bg-[var(--paper)] ${
                         step.done
                           ? "border-[var(--ink)]"
                           : "border-[var(--ink-muted)]"
@@ -127,12 +133,6 @@ export function ThanksClient({
                         <span className="h-1.5 w-1.5 rounded-full bg-[var(--ink)]" />
                       ) : null}
                     </span>
-                    {i < steps.length - 1 ? (
-                      <span
-                        className="my-1 w-px flex-1 bg-[var(--rule)]"
-                        aria-hidden
-                      />
-                    ) : null}
                   </div>
                   <p
                     className={`pb-5 font-mono text-[13px] ${

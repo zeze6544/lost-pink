@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { HomeMark, SiteFooter, SiteFrame } from "@/components/SiteFrame";
+import { HomeMark, SiteFrame } from "@/components/SiteFrame";
 import { displayLostEmail } from "@/lib/slug";
 
 export function WriteLetter({
@@ -41,26 +41,31 @@ export function WriteLetter({
 
   return (
     <SiteFrame>
-      <div className="flex min-h-[100dvh] flex-col">
+      <div className="relative flex min-h-[100dvh] flex-col">
         <HomeMark className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8" />
         <div className="flex flex-1 items-center justify-center px-6 py-24">
-          <form
-            onSubmit={submit}
-            className="quiet-tray w-full max-w-md px-5 py-5"
-          >
-            <p className="mark text-[11px] tracking-[0.12em] text-[var(--ink-muted)]">
-              to {displayLostEmail(alias)}
-            </p>
-            <h1 className="mt-2 font-display text-3xl tracking-tight">
+          <form onSubmit={submit} className="w-full max-w-md">
+            <h1 className="text-center font-display text-[clamp(2.6rem,8vw,4.25rem)] font-medium leading-none tracking-[-0.04em] text-[var(--ink)]">
               write {word}
             </h1>
+            <p className="mark mt-3 text-center text-[12px] tracking-[0.04em] text-[var(--ink-muted)]">
+              to {displayLostEmail(alias)}
+            </p>
             {sent ? (
-              <div className="mt-10 text-center">
+              <div className="mt-14 text-center">
                 <p className="font-display text-[2.75rem] leading-none tracking-tight text-[var(--ink)]">
                   sent.
                 </p>
                 <p className="mark mt-3 text-[12px] tracking-[0.04em] text-[var(--ink-muted)]">
                   message.
+                </p>
+                <p className="mt-8">
+                  <a
+                    href={`/${slug}`}
+                    className="font-mono text-[12px] text-[var(--ink-muted)] underline underline-offset-2"
+                  >
+                    back to page
+                  </a>
                 </p>
               </div>
             ) : (
@@ -69,7 +74,7 @@ export function WriteLetter({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="name"
-                  className="quiet-field mt-4 w-full border border-[var(--rule)] bg-transparent px-3 py-2.5 font-mono text-[14px] outline-none"
+                  className="quiet-field mt-10 w-full border border-[var(--rule)] bg-transparent px-3 py-2.5 font-mono text-[14px] outline-none"
                 />
                 <input
                   type="email"
@@ -107,14 +112,13 @@ export function WriteLetter({
                     {pending ? "sending…" : "send"}
                   </button>
                   <p className="font-mono text-[11px] text-[var(--ink-muted)]">
-                    lands in their inbox — not a chat on your phone.
+                    lands in their inbox - not a chat on your phone.
                   </p>
                 </div>
               </>
             )}
           </form>
         </div>
-        <SiteFooter left="write" right={<a href={`/${slug}`}>back to page</a>} />
       </div>
     </SiteFrame>
   );

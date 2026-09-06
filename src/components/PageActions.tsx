@@ -241,11 +241,6 @@ export function PageActions({
               <span className="text-[var(--ink-muted)]">write</span>
             )}
           </nav>
-          {hereLabel && !kept ? (
-            <p className="font-mono text-[10px] text-[var(--ink-faint)]">
-              {hereLabel}
-            </p>
-          ) : null}
           {error ? (
             <p className="text-xs text-[var(--ink-muted)]" role="alert">
               {error}

@@ -11,9 +11,15 @@ function offerPhrase(plan: MailboxPlan): string {
   return "$20 year";
 }
 
+function kindForPlan(plan: MailboxPlan | null): Exclude<CheckoutKind, "keep"> {
+  if (plan === "day") return "mailbox_day";
+  if (plan === "month") return "mailbox_month";
+  return "mailbox_subscription";
+}
+
 export function BuyMoreTime({
   pageId,
-  plan: _plan,
+  plan,
 }: {
   pageId: string;
   plan: MailboxPlan | null;
@@ -41,9 +47,14 @@ export function BuyMoreTime({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        <span className="border border-[color-mix(in_srgb,var(--ink)_45%,transparent)] px-5 py-2.5 font-mono text-[13px] tracking-[0.02em] text-[var(--ink)]">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => buy(kindForPlan(plan))}
+          className="cursor-pointer border border-[color-mix(in_srgb,var(--ink)_45%,transparent)] px-5 py-2.5 font-mono text-[13px] tracking-[0.02em] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-40"
+        >
           buy more time
-        </span>
+        </button>
         <p className="font-mono text-[12px] text-[var(--ink-muted)]">
           {HOME_MAILBOX_OFFERS.map((offer, i) => (
             <span key={offer.kind}>
@@ -52,7 +63,7 @@ export function BuyMoreTime({
                 type="button"
                 disabled={pending}
                 onClick={() => buy(offer.kind)}
-                className="cursor-pointer text-[var(--ink)] underline underline-offset-2 disabled:cursor-not-allowed disabled:opacity-30"
+                className="cursor-pointer text-[var(--ink-muted)] transition hover:text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
               >
                 {offerPhrase(offer.plan)}
               </button>

@@ -8,7 +8,7 @@ import { Stage } from "@/components/Stage";
 import type { Look } from "@/lib/looks";
 import { stageStyle } from "@/lib/looks";
 import type { OwnerMailboxView } from "@/lib/mailbox-view";
-import { formatLeftHere, JUST_LEFT_KEY } from "@/lib/voice";
+import { JUST_LEFT_KEY } from "@/lib/voice";
 
 type Props = {
   page: GeneratorPage & {
@@ -54,11 +54,13 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
           writeHref={writeHref}
           bgUrl={page.bgUrl}
           tokenUrl={page.tokenUrl}
-          caption={formatLeftHere(page.createdAt)}
           animate
         />
         <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
-          <BrandMark className="text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]" />
+          <BrandMark
+            glyph
+            className="text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]"
+          />
         </div>
         {ready ? (
           <PageActions
@@ -107,11 +109,13 @@ export function ShrineView({ page, look, owned, canComeBack }: Props) {
         writeHref={writeHref}
         bgUrl={page.bgUrl}
         tokenUrl={page.tokenUrl}
-        caption={formatLeftHere(page.createdAt)}
         animate
       />
       <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
-        <BrandMark className="text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]" />
+        <BrandMark
+          glyph
+          className="text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]"
+        />
       </div>
       <PageActions
         pageId={page.id}

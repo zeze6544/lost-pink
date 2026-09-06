@@ -7,6 +7,8 @@ type BrandMarkProps = {
   className?: string;
   /** Compact mark for login chrome. Full NAV_MARK stays the accessible name. */
   short?: boolean;
+  /** Show the star glyph beside the wordmark (public shrine). */
+  glyph?: boolean;
   /** @deprecated Decorative only — never replaces the nav mark. */
   glyphOnly?: boolean;
 };
@@ -15,6 +17,7 @@ export function BrandMark({
   href = "/",
   className = "",
   short = false,
+  glyph = false,
   glyphOnly = false,
 }: BrandMarkProps) {
   return (
@@ -23,8 +26,8 @@ export function BrandMark({
       className={`brand-mark mark inline-flex items-center gap-2 ${className}`}
       aria-label={NAV_MARK}
     >
-      {glyphOnly ? <span className="brand-glyph" aria-hidden /> : null}
-      <span>{short ? SHORT_MARK : NAV_MARK}</span>
+      {glyph || glyphOnly ? <span className="brand-glyph" aria-hidden /> : null}
+      {glyphOnly ? null : <span>{short ? SHORT_MARK : NAV_MARK}</span>}
     </a>
   );
 }

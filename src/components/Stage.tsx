@@ -191,18 +191,12 @@ export function Stage({
             </div>
           ) : null}
         </div>
-        {line ? (
-          <SafeLine
-            text={line}
-            className="stage-line relative z-[1] mt-5 max-w-md text-center text-sm leading-relaxed tracking-[0.04em] text-[var(--stage-ink)]/70 sm:text-base"
-          />
-        ) : null}
         {address ? (
-          <p className="mark relative z-[1] mt-3 text-[10px] text-[var(--stage-ink)]/40">
+          <p className="mark relative z-[1] mt-5 text-[12px] tracking-[0.04em] text-[var(--stage-ink)]/70">
             {writeHref ? (
               <a
                 href={writeHref}
-                className="pointer-events-auto opacity-80 underline-offset-2 hover:underline"
+                className="pointer-events-auto underline-offset-2 hover:underline"
               >
                 {address}
               </a>
@@ -210,6 +204,12 @@ export function Stage({
               address
             )}
           </p>
+        ) : null}
+        {line ? (
+          <SafeLine
+            text={line}
+            className="stage-line relative z-[1] mt-4 max-w-md text-center text-sm leading-relaxed tracking-[0.04em] text-[var(--stage-ink)]/55 sm:text-[15px]"
+          />
         ) : null}
       </div>
       {caption ? (

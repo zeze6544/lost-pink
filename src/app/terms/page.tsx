@@ -1,5 +1,6 @@
 import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
+import { SiteFooter } from "@/components/SiteFrame";
 import { TERMS_WHISPER_LINES } from "@/lib/landing-voice";
 import {
   FREE_PAGE_HOURS,
@@ -108,6 +109,7 @@ export default function TermsPage() {
           </div>
         </div>
       </div>
+      <SiteFooter left={<a href="/come">log in</a>} />
     </main>
   );
 }

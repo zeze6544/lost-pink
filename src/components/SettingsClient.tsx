@@ -37,7 +37,9 @@ export function SettingsClient({
         return;
       }
       setPassword("");
-      setNote("password updated.");
+      setNote(
+        "password updated. update it in your mail apps too — they still hold the old one.",
+      );
     });
   }
 
@@ -62,8 +64,8 @@ export function SettingsClient({
   }
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={changeRecovery} className="space-y-2">
+    <div className="space-y-8">
+      <form id="recovery" onSubmit={changeRecovery} className="scroll-mt-24 space-y-2">
         <label htmlFor="recovery-email" className="field-label">
           recovery email
         </label>
@@ -94,7 +96,7 @@ export function SettingsClient({
           {pending ? "saving…" : "save recovery email"}
         </button>
       </form>
-      <form onSubmit={changePassword} className="space-y-2">
+      <form id="password" onSubmit={changePassword} className="scroll-mt-24 space-y-2">
         <label htmlFor="new-password" className="field-label">
           change password
         </label>

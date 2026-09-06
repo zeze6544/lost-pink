@@ -1,8 +1,6 @@
-import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { MailSetupDetail } from "@/components/MailSetup";
 import { HomeMark, SiteFooter, SiteFrame } from "@/components/SiteFrame";
-import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
 import { isMailSetupClient } from "@/lib/mail-setup";
 import { getMailboxByOwnerId } from "@/lib/mailbox-store";
 import { listOwnedPages } from "@/lib/pages";
@@ -18,10 +16,6 @@ export default async function MailSetupClientPage({ params }: Props) {
 
   const userId = await getAuthUserId();
   if (!userId) redirect(`/come?next=/setup/${raw}`);
-
-  const cookieStore = await cookies();
-  const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
-  if (parsed) redirect("/settings");
 
   const pages = await listOwnedPages(userId);
   const mailbox = await getMailboxByOwnerId(userId);

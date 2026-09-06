@@ -2,8 +2,14 @@
 
 import { useState, useTransition } from "react";
 
-export function ComeClient({ next }: { next: string }) {
-  const [inbox, setInbox] = useState("");
+export function ComeClient({
+  next,
+  initialEmail = "",
+}: {
+  next: string;
+  initialEmail?: string;
+}) {
+  const [inbox, setInbox] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -28,8 +34,8 @@ export function ComeClient({ next }: { next: string }) {
 
   return (
     <div className="mt-5">
-      <form onSubmit={onPassword} className="space-y-3">
-        <p className="field-label">INBOX AND PASSWORD</p>
+      <form onSubmit={onPassword} className="space-y-3" aria-busy={pending}>
+        <p className="field-label">inbox and password</p>
         <label htmlFor="inbox-email" className="sr-only">
           lost.pink inbox
         </label>

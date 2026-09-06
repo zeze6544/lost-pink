@@ -1,6 +1,12 @@
 import { JoinClient } from "@/components/JoinClient";
 import { HomeMark, SiteFooter, SiteFrame } from "@/components/SiteFrame";
 
+export const metadata = {
+  title: "join",
+  robots: { index: false, follow: false },
+};
+
+
 export const dynamic = "force-dynamic";
 
 type Props = {

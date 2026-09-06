@@ -1,3 +1,4 @@
+import { MAIL_GRACE_DAYS } from "@/lib/product-rules";
 export const JUST_LEFT_KEY = "lost.pink:just-left";
 
 const MONTHS = [
@@ -107,11 +108,11 @@ export function inboxFailedCopy(): string {
 }
 
 export function inboxTerminationNotice(): string {
-  return "cancel, refund, or a failed renewal suspends the inbox. mail is kept for 7 days, then removed.";
+  return `cancel, refund, or a failed renewal suspends the inbox. mail is kept for ${MAIL_GRACE_DAYS} days, then removed.`;
 }
 
 export function expiredInboxCopy(): string {
-  return "when paid time ends, the inbox suspends. mail is kept for 7 days; the name stays reserved while mail is retained.";
+  return `when paid time ends, the inbox suspends. mail is kept for ${MAIL_GRACE_DAYS} days; the name stays reserved while mail is retained.`;
 }
 
 export function formatPaidDate(iso: string): string {

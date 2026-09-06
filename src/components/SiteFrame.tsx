@@ -198,6 +198,18 @@ export function AccountShell({
           </h1>
           <div className="mt-10 w-full space-y-0 text-left">{children}</div>
         </div>
+        <SiteFooter
+          left={<a href="/come">log in</a>}
+          center={
+            <>
+              <a href="/support">support</a>
+              <span aria-hidden> · </span>
+              <a href="/privacy">privacy</a>
+              <span aria-hidden> · </span>
+              <a href="/terms">terms</a>
+            </>
+          }
+        />
       </div>
     </SiteFrame>
   );

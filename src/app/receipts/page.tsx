@@ -86,7 +86,7 @@ export default async function ReceiptsPage() {
             no receipts yet.
           </p>
           <a href="/billing" className="tray-btn mt-4 inline-flex items-center">
-            settings
+            billing
           </a>
         </div>
       ) : (
@@ -168,7 +168,7 @@ export default async function ReceiptsPage() {
               </p>
             )}
             <a href="/billing" className="tray-btn inline-flex items-center">
-              settings
+              billing
             </a>
           </div>
         ))

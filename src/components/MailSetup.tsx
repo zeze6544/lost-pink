@@ -65,10 +65,16 @@ export function MailSetupDetail({
   const [creds, setCreds] = useState<Creds | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(Boolean(pageId));
+  const [copied, setCopied] = useState<string | null>(null);
   const copy = mailSetupCopy(client);
 
   useEffect(() => {
-    if (!pageId) return;
+    if (!pageId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     fetch(`/api/mail/credentials?pageId=${encodeURIComponent(pageId)}`)
       .then(async (res) => {
         const data = (await res.json()) as Creds & { error?: string };
@@ -78,8 +84,19 @@ export function MailSetupDetail({
         }
         setCreds(data);
       })
-      .catch(() => setError("couldn't load credentials."));
+      .catch(() => setError("couldn't load credentials."))
+      .finally(() => setLoading(false));
   }, [pageId]);
+
+  async function copyValue(label: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(label);
+      window.setTimeout(() => setCopied(null), 1500);
+    } catch {
+      setCopied(null);
+    }
+  }
 
   const user = creds?.user ?? "you@lost.pink";
   const imapHost = creds?.imap.host ?? MAIL_SETUP_DEFAULTS.imapHost;
@@ -107,6 +124,11 @@ export function MailSetupDetail({
           buy an inbox first. then this page has the keys.
         </p>
       ) : null}
+      {pageId && loading ? (
+        <p className="mt-4 font-mono text-[13px] text-[var(--ink-muted)]">
+          loading your keys…
+        </p>
+      ) : null}
 
       <div className="mt-6 border border-[var(--rule)] bg-[color-mix(in_srgb,#080808_70%,transparent)] px-5 py-5 sm:px-6 sm:py-6">
         <ol className="space-y-5 font-mono text-[12px] leading-relaxed">
@@ -132,7 +154,18 @@ export function MailSetupDetail({
               <dl className="mt-2 space-y-1 text-[var(--ink-muted)]">
                 <div className="grid grid-cols-[5.5rem_1fr] gap-2">
                   <dt>user</dt>
-                  <dd className="text-[var(--ink)]">{user}</dd>
+                  <dd className="text-[var(--ink)]">
+                    {user}{" "}
+                    {creds ? (
+                      <button
+                        type="button"
+                        className="underline underline-offset-2"
+                        onClick={() => copyValue("user", creds.user)}
+                      >
+                        {copied === "user" ? "copied" : "copy"}
+                      </button>
+                    ) : null}
+                  </dd>
                 </div>
                 <div className="grid grid-cols-[5.5rem_1fr] gap-2">
                   <dt>imap</dt>
@@ -158,8 +191,17 @@ export function MailSetupDetail({
                           onClick={() => setShowPass((v) => !v)}
                         >
                           {showPass ? "hide" : "show"}
+                        </button>{" "}
+                        <button
+                          type="button"
+                          className="underline underline-offset-2"
+                          onClick={() => copyValue("password", creds.password)}
+                        >
+                          {copied === "password" ? "copied" : "copy"}
                         </button>
                       </>
+                    ) : loading ? (
+                      "loading…"
                     ) : (
                       copy.passwordNote
                     )}

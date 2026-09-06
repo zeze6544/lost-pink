@@ -1,8 +1,15 @@
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/SiteFrame";
+import { getMailboxByOwnerId } from "@/lib/mailbox-store";
 import { listOwnedPages, pageHandle } from "@/lib/pages";
 import { displayLostEmail } from "@/lib/slug";
 import { getAuthUserId } from "@/lib/supabase/server";
+
+export const metadata = {
+  title: "yours",
+  robots: { index: false, follow: false },
+};
+
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +18,9 @@ export default async function SettingsPage() {
   if (!userId) redirect("/come?next=/settings");
 
   const pages = await listOwnedPages(userId);
+  const mailbox = await getMailboxByOwnerId(userId);
+  const joinIncomplete =
+    pages.length === 0 && mailbox?.status === "awaiting_account";
 
   return (
     <AccountShell title="yours">
@@ -18,13 +28,15 @@ export default async function SettingsPage() {
         {pages.length === 0 ? (
           <div className="border-y border-[var(--rule)] py-6 text-center">
             <p className="font-mono text-[13px] text-[var(--ink-muted)]">
-              nothing here yet.
+              {joinIncomplete
+                ? "payment landed. finish joining to open the inbox."
+                : "nothing here yet."}
             </p>
             <a
-              href="/"
+              href={joinIncomplete ? "/join" : "/"}
               className="mt-4 inline-block font-mono text-[12px] underline underline-offset-2"
             >
-              get an inbox
+              {joinIncomplete ? "finish join" : "get an inbox"}
             </a>
           </div>
         ) : (

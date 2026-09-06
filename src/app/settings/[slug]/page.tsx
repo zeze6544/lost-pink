@@ -1,10 +1,17 @@
 import { notFound, redirect } from "next/navigation";
+import { SettingsClient } from "@/components/SettingsClient";
 import { AccountShell } from "@/components/SiteFrame";
+import { getMailboxByPageId } from "@/lib/mailbox-store";
 import { listOwnedPages, pageHandle } from "@/lib/pages";
 import { displayLostEmail } from "@/lib/slug";
 import { getAuthUserId } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "name settings",
+  robots: { index: false, follow: false },
+};
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -21,15 +28,13 @@ export default async function NameSettingsPage({ params }: Props) {
   const inbox = page.email_local
     ? displayLostEmail(page.email_local)
     : `${handle}@lost.pink`;
+  const mailbox = await getMailboxByPageId(page.id);
 
   const links = [
     { href: `/${handle}`, label: "page" },
-    {
-      href: page.email_local ? `/${handle}/mail` : `/${handle}`,
-      label: "inbox",
-    },
-    { href: "/come/forgot", label: "password" },
-    { href: "/come/forgot", label: "recovery" },
+    { href: `/${handle}`, label: "inbox" },
+    { href: "#password", label: "password" },
+    { href: "#recovery", label: "recovery" },
     { href: "/setup", label: "devices" },
     { href: "/billing", label: "billing" },
   ] as const;
@@ -56,6 +61,14 @@ export default async function NameSettingsPage({ params }: Props) {
             </li>
           ))}
         </ul>
+
+        <div className="mt-12 border-t border-[var(--rule)] pt-8">
+          <SettingsClient
+            inbox={page.email_local ? inbox : null}
+            mailboxId={mailbox?.id ?? null}
+            recoveryEmail={mailbox?.recovery_email ?? null}
+          />
+        </div>
 
         <div className="mt-12 border-t border-[var(--rule)] pt-8">
           <a

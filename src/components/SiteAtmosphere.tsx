@@ -11,7 +11,7 @@ export function SiteAtmosphere() {
   const pathname = usePathname() ?? "/";
   return (
     <div
-      className="pointer-events-none absolute inset-0 overflow-hidden"
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
       style={stageStyle(DEFAULT_LOOK) as CSSProperties}
     >
       <Atmosphere variant="landing" />

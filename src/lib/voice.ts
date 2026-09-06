@@ -63,19 +63,19 @@ export function inboxLabel(): string {
 }
 
 export function inboxNeedKeep(): string {
-  return "keep first, then an inbox.";
+  return "keep the name first, then open an inbox.";
 }
 
 export function inboxNeedAlias(): string {
-  return "choose an alias, then an inbox";
+  return "pick a name, then open an inbox";
 }
 
 export function comeBackLabel(): string {
-  return "you're back";
+  return "welcome back";
 }
 
 export function inboxNeedComeBack(alreadyOpen = false): string {
-  return alreadyOpen ? "you're back to read it" : "you're back to open an inbox";
+  return alreadyOpen ? "welcome back — your mail is here" : "welcome back — you can open an inbox";
 }
 
 export function inboxDisplayOnly(): string {
@@ -87,7 +87,7 @@ export function inboxOpenLabel(): string {
 }
 
 export function inboxUntilKeep(): string {
-  return "display only until you keep it";
+  return "on display until you keep it";
 }
 
 export function inboxWaiting(local: string): string {
@@ -99,15 +99,15 @@ export function inboxDarkCopy(): string {
 }
 
 export function inboxArriving(): string {
-  return "the inbox is still arriving.";
+  return "your inbox is still setting up.";
 }
 
 export function inboxFailedCopy(): string {
-  return "couldn't open it. try again, or write support.";
+  return "we couldn't open it. try again, or write support.";
 }
 
 export function inboxTerminationNotice(): string {
-  return "cancel, refund, or a failed yearly charge closes the inbox immediately.";
+  return "if you cancel, get a refund, or a yearly charge fails, the inbox closes right away.";
 }
 
 export function formatPaidThrough(iso: string): string {

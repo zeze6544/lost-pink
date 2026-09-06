@@ -83,11 +83,11 @@ export function Stage({
         <>
           <div className="stage-wash absolute inset-0" />
           <div className="stage-grid-whisper pointer-events-none absolute inset-0" />
+          <div className="stage-horizon pointer-events-none absolute inset-0" aria-hidden />
+          {/* Generated charcoal atmosphere — always present without a photo. */}
+          <div className="stage-grain absolute inset-0" aria-hidden />
         </>
       )}
-      {!bgUrl && look.motif === "grain" ? (
-        <div className="stage-grain absolute inset-0 opacity-[0.18] mix-blend-soft-light" />
-      ) : null}
       {!bgUrl && look.motif === "grid" ? (
         <div className="stage-grid pointer-events-none absolute inset-0" />
       ) : null}

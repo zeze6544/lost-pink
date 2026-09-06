@@ -21,7 +21,7 @@ export function MailApp({
 }: {
   page: GeneratorPage & { slug: string; createdAt: string };
   look: Look;
-  status: "live" | "arriving" | "dark";
+  status: "live" | "arriving" | "dark" | "failed";
 }) {
   const [folder, setFolder] = useState<Folder>("inbox");
   const [pane, setPane] = useState<Pane>("list");
@@ -34,6 +34,9 @@ export function MailApp({
   const [leaveAsk, setLeaveAsk] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const leaveThen = useRef<(() => void) | null>(null);
+  const letterReq = useRef(0);
+  const [query, setQuery] = useState("");
+  const [draftNote, setDraftNote] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [to, setTo] = useState("");
   const [cc, setCc] = useState("");
@@ -42,6 +45,47 @@ export function MailApp({
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const composeDirty = Boolean(to.trim() || subject.trim() || text.trim());
+
+  const draftKey = `lost.pink:draft:${page.id}`;
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as {
+        to?: string;
+        cc?: string;
+        subject?: string;
+        text?: string;
+        showCc?: boolean;
+      };
+      if (draft.to || draft.subject || draft.text) {
+        setTo(draft.to ?? "");
+        setCc(draft.cc ?? "");
+        setSubject(draft.subject ?? "");
+        setText(draft.text ?? "");
+        setShowCc(Boolean(draft.showCc || draft.cc));
+        setDraftNote("restored a draft.");
+      }
+    } catch {
+      // ignore bad drafts
+    }
+    // only on mount / page change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page.id]);
+
+  useEffect(() => {
+    if (pane !== "compose") return;
+    const t = window.setTimeout(() => {
+      const payload = { to, cc, subject, text, showCc };
+      if (!to.trim() && !subject.trim() && !text.trim()) {
+        localStorage.removeItem(draftKey);
+        return;
+      }
+      localStorage.setItem(draftKey, JSON.stringify(payload));
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [pane, to, cc, subject, text, showCc, draftKey]);
 
   const load = useCallback(() => {
     startTransition(async () => {
@@ -96,13 +140,16 @@ export function MailApp({
     then?.();
   }
 
-  function openLetter(item: MailListItem) {
+  function openLetter(item: MailListItem, withImages = images) {
+    const req = ++letterReq.current;
     startTransition(async () => {
       setError(null);
+      if (withImages) setImages(true);
       const res = await fetch(
-        `/api/mail/get?pageId=${encodeURIComponent(page.id)}&folder=${folder}&uid=${item.uid}${images ? "&images=1" : ""}`,
+        `/api/mail/get?pageId=${encodeURIComponent(page.id)}&folder=${folder}&uid=${item.uid}${withImages ? "&images=1" : ""}`,
       );
       const data = (await res.json()) as Letter & { error?: string };
+      if (req !== letterReq.current) return;
       if (!res.ok) {
         setError(data.error ?? "couldn't look.");
         return;
@@ -111,6 +158,7 @@ export function MailApp({
       setPane("letter");
     });
   }
+
 
   function compose(reply?: Letter) {
     if (reply) {
@@ -157,6 +205,8 @@ export function MailApp({
         return;
       }
       setNote("sent.");
+      localStorage.removeItem(draftKey);
+      setDraftNote(null);
       setTo("");
       setSubject("");
       setText("");
@@ -204,31 +254,80 @@ export function MailApp({
           address={displayLostEmail(page.emailLocal || page.slug)}
           onWash
         />
-        <p className="absolute inset-x-0 bottom-24 text-center text-[13px] text-[var(--stage-ink)]/70">
-          {status === "dark" ? "this inbox went dark." : "the inbox is still arriving."}
-        </p>
+        <div className="absolute inset-x-0 bottom-24 z-20 px-6 text-center">
+          <p className="text-[13px] text-[var(--stage-ink)]/70">
+            {status === "dark"
+              ? "this inbox went dark."
+              : status === "failed"
+                ? "couldn't open the inbox."
+                : "the inbox is still arriving."}
+          </p>
+          {status === "failed" ? (
+            <button
+              type="button"
+              className="mt-3 text-[12px] text-[var(--stage-ink)] underline-offset-2 hover:underline"
+              disabled={pending}
+              onClick={() => {
+                startTransition(async () => {
+                  setError(null);
+                  const res = await fetch("/api/mailbox/retry", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ pageId: page.id }),
+                  });
+                  const data = (await res.json()) as { error?: string };
+                  if (!res.ok) {
+                    setError(data.error ?? "couldn't try again.");
+                    return;
+                  }
+                  window.location.reload();
+                });
+              }}
+            >
+              {pending ? "trying…" : "try again"}
+            </button>
+          ) : null}
+          {error ? (
+            <p className="mt-2 text-[12px] text-[var(--stage-ink)]/55" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
       </main>
     );
   }
 
-  const empty = loaded && items.length === 0 && pane === "list";
+
+  const q = query.trim().toLowerCase();
+  const filteredItems = q
+    ? items.filter((item) => {
+        const hay = `${item.from} ${item.subject}`.toLowerCase();
+        return hay.includes(q);
+      })
+    : items;
+  const empty = loaded && filteredItems.length === 0 && pane === "list";
 
   return (
     <main
-      className="relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]"
+      className="site-frame relative min-h-[100dvh] overflow-hidden text-[var(--ink)]"
       style={stageVars}
     >
+      <div className="site-wash pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-depth pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-horizon pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-glow pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-grain pointer-events-none absolute inset-0" aria-hidden />
       <Shell
         slug={page.slug}
         address={displayLostEmail(page.emailLocal || page.slug)}
       />
 
-      <div className="absolute inset-x-0 top-16 bottom-16 z-10 mx-auto flex w-full max-w-5xl flex-col px-4 sm:flex-row sm:px-8">
+      <div className="absolute inset-x-0 top-16 bottom-[4.75rem] z-10 mx-auto flex w-full max-w-5xl flex-col px-4 sm:bottom-16 sm:flex-row sm:px-8">
           {pane !== "compose" ? (
             <aside
               className={`${pane === "letter" ? "hidden sm:flex" : "flex"} min-h-0 w-full flex-col sm:w-72 sm:shrink-0`}
             >
-              <div className="mb-3 flex gap-3 text-[12px] tracking-wide">
+              <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] tracking-wide">
                 {(["inbox", "sent", "trash"] as const).map((name) => (
                   <button
                     key={name}
@@ -238,9 +337,9 @@ export function MailApp({
                       setPane("list");
                       setLetter(null);
                     }}
-                    className={
+                    className={`min-h-11 sm:min-h-0 ${
                       folder === name ? "text-[var(--ink)]" : "text-[var(--ink-muted)]"
-                    }
+                    }`}
                   >
                     {name}
                   </button>
@@ -248,13 +347,19 @@ export function MailApp({
                 <button
                   type="button"
                   onClick={load}
-                  className="ml-auto text-[var(--ink-muted)]"
+                  className="ml-auto min-h-11 text-[var(--ink-muted)] sm:min-h-0"
                 >
                   {pending ? "looking" : "look"}
                 </button>
               </div>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="find"
+                className="mb-3 w-full border-0 border-b border-[var(--ink)]/15 bg-transparent py-1.5 text-[12px] outline-none placeholder:text-[var(--ink-muted)]"
+              />
               <ul className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-6">
-                {items.map((item) => {
+                {filteredItems.map((item) => {
                   const active = letter?.uid === item.uid && pane === "letter";
                   return (
                     <li key={item.uid}>
@@ -313,8 +418,7 @@ export function MailApp({
                     type="button"
                     className="mt-4 text-[11px] text-[var(--ink-muted)]"
                     onClick={() => {
-                      setImages(true);
-                      openLetter(letter);
+                      openLetter(letter, true);
                     }}
                   >
                     {images ? "images are on." : "show images"}
@@ -344,6 +448,7 @@ export function MailApp({
               >
                 <p className="text-[11px] tracking-[0.12em] text-[var(--ink-muted)]">
                   from {displayLostEmail(page.emailLocal || page.slug)}
+                  {draftNote ? ` · ${draftNote}` : ""}
                 </p>
                 <input
                   value={to}
@@ -376,6 +481,12 @@ export function MailApp({
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                      e.preventDefault();
+                      send();
+                    }
+                  }}
                   placeholder="the letter"
                   rows={12}
                   className="mt-4 w-full resize-none border-0 bg-transparent text-[15px] leading-relaxed outline-none"

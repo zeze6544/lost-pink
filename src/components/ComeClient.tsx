@@ -24,7 +24,7 @@ export function ComeClient({ next }: { next: string }) {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "that didn’t open.");
+        setError(data.error ?? "that password didn’t work.");
         return;
       }
       window.location.href = next;
@@ -42,7 +42,7 @@ export function ComeClient({ next }: { next: string }) {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "couldn’t send that.");
+        setError(data.error ?? "couldn’t send the link.");
         return;
       }
       setSent(true);
@@ -51,8 +51,8 @@ export function ComeClient({ next }: { next: string }) {
 
   if (sent) {
     return (
-      <p className="mt-4 text-[13px] text-[var(--ink)]">
-        check your mail. the link is quiet, and it expires.
+      <p className="mt-4 text-[13px] leading-relaxed text-[var(--ink)]/75">
+        check your email — we sent a sign-in link. it won’t last forever.
       </p>
     );
   }
@@ -71,7 +71,7 @@ export function ComeClient({ next }: { next: string }) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@lost.pink"
           autoComplete="username"
-          className="quiet-field w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
+          className="quiet-field min-h-11 w-full border-0 bg-transparent py-2 text-base text-[var(--ink)] outline-none"
         />
         {inboxLogin ? (
           <>
@@ -85,7 +85,7 @@ export function ComeClient({ next }: { next: string }) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="password"
               autoComplete="current-password"
-              className="quiet-field mt-3 w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
+              className="quiet-field mt-3 min-h-11 w-full border-0 bg-transparent py-2 text-base text-[var(--ink)] outline-none"
             />
           </>
         ) : null}
@@ -97,12 +97,12 @@ export function ComeClient({ next }: { next: string }) {
         <button
           type="submit"
           disabled={pending || !email.trim() || (inboxLogin && !password)}
-          className="mt-3 text-[13px] text-[var(--ink)] disabled:opacity-30"
+          className="mt-4 min-h-11 text-[14px] text-[var(--ink)]/90 disabled:text-[var(--ink)]/35"
         >
           {pending ? "opening…" : inboxLogin ? "open" : "send the link"}
         </button>
       </form>
-      <p className="mt-4 text-[11px] text-[var(--ink-muted)]">
+      <p className="mt-4 text-[13px] leading-relaxed text-[var(--ink)]/70">
         old shrines still use a quiet link. type that other email and we’ll send
         it. <ForgotLink email={email} />
       </p>

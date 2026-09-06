@@ -77,7 +77,9 @@ export default async function SlugPage({ params }: Props) {
         ? "live"
         : mailbox.status === "dark"
           ? "dark"
-          : "arriving";
+          : mailbox.status === "failed"
+            ? "failed"
+            : "arriving";
     return <MailApp page={pageView} look={look} status={status} />;
   }
 

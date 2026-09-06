@@ -6,7 +6,6 @@ export const LANDING_HERO_LINES = [
 ] as const;
 
 export const LANDING_ATMOSPHERE_TEXT = LANDING_HERO_LINES.join("\n");
-");
 
 /** Name-the-inbox whisper above the serif title. */
 export const NAME_INBOX_WHISPER = "victim mindsets self-destruct";

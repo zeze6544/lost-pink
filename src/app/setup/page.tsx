@@ -19,7 +19,7 @@ export default async function MailSetupPage() {
     <SiteFrame atmosphere="landing">
       <div className="flex min-h-[100dvh] flex-col">
         <HomeMark className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8" />
-        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-5 py-24">
+        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-5 py-24 sm:px-8 lg:px-12">
           <MailSetupChooser />
         </div>
         <SiteFooter left="setup" />

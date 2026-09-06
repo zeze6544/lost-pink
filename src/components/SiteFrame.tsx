@@ -209,11 +209,14 @@ export function AccountShell({
   title,
   children,
   align = "center",
+  whisper,
 }: {
   title: string;
   children: ReactNode;
   /** Left-anchored account pages (yours, name settings, billing, delete). */
   align?: "center" | "left";
+  /** Bottom-left ruled whisper (delete / sparse account pages). */
+  whisper?: ReactNode;
 }) {
   const left = align === "left";
   return (
@@ -223,7 +226,7 @@ export function AccountShell({
         <div
           className={
             left
-              ? "flex w-full flex-1 flex-col justify-center px-8 pb-16 pt-28 text-left sm:px-12 sm:pt-32 lg:px-20"
+              ? "flex w-full flex-1 flex-col justify-start px-8 pb-16 pt-28 text-left sm:px-12 sm:pt-32 lg:px-20"
               : "mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center px-4 pb-10 pt-24 text-center sm:px-6"
           }
         >
@@ -240,6 +243,13 @@ export function AccountShell({
             <div className="mt-10 w-full space-y-0 text-left">{children}</div>
           </div>
         </div>
+        {whisper ? (
+          <div className="px-8 pb-8 sm:px-12 lg:px-20">
+            <div className="max-w-lg border-t border-[var(--rule)] pt-4 font-mono text-[11px] text-[var(--ink-muted)]">
+              {whisper}
+            </div>
+          </div>
+        ) : null}
       </div>
     </SiteFrame>
   );

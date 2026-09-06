@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
-import { SiteFooter } from "@/components/SiteFrame";
 import { NAME_INBOX_WHISPER } from "@/lib/landing-voice";
 import { nameIsPageAndAddress } from "@/lib/product-rules";
 import { normalizeWord } from "@/lib/slug";
@@ -17,7 +16,7 @@ type Check =
   | { status: "held"; error: string }
   | { status: "free"; local: string };
 
-export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
+export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) {
   const [raw, setRaw] = useState("");
   const [check, setCheck] = useState<Check>({ status: "idle" });
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +95,7 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
       </p>
     ) : check.status === "free" ? (
       <p className="mark text-[12px] text-[var(--ink-muted)]">
-        {check.local}@lost.pink — yours.
+        {check.local}@lost.pink - yours.
       </p>
     ) : check.status === "looking" ? (
       <p className="mark text-[12px] text-[var(--ink-muted)]">checking…</p>
@@ -143,7 +142,7 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
             <label htmlFor="name-inbox" className="sr-only">
               name
             </label>
-            <div className="lp-boxed-field flex w-full items-center justify-between gap-3 border border-[color-mix(in_srgb,var(--ink)_40%,transparent)] px-4 py-3">
+            <div className="lp-boxed-field flex w-full items-stretch border border-[color-mix(in_srgb,var(--ink)_40%,transparent)]">
               <input
                 id="name-inbox"
                 value={raw}
@@ -154,9 +153,13 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
                 autoCapitalize="off"
                 spellCheck={false}
                 autoFocus
-                className="min-w-0 flex-1 border-0 bg-transparent font-mono text-[16px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/40"
+                className="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 font-display text-[1.55rem] leading-none tracking-[-0.02em] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/35"
               />
-              <span className="shrink-0 font-mono text-[16px] text-[var(--ink)]/55">
+              <span
+                className="w-px self-stretch bg-[color-mix(in_srgb,var(--ink)_40%,transparent)]"
+                aria-hidden
+              />
+              <span className="flex shrink-0 items-center px-4 font-mono text-[14px] text-[var(--ink)]/55">
                 @lost.pink
               </span>
             </div>
@@ -177,28 +180,12 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
             >
               {pending ? "…" : "continue"}
             </button>
-            <p className="mark mt-3 max-w-xs text-center text-[11px] text-[var(--ink-muted)]">
-              continue stays off until the name is free and valid.
-            </p>
           </form>
         </div>
 
-        <SiteFooter
-          left={<span className="sr-only">lost.pink</span>}
-          center={
-            <>
-              <a href={signedIn ? "/settings" : "/come"}>you&apos;re back</a>
-              <span aria-hidden> · </span>
-              <a href="/support">support</a>
-              <span aria-hidden> · </span>
-              <a href="/privacy">privacy</a>
-              <span aria-hidden> · </span>
-              <a href="/terms">terms</a>
-            </>
-          }
-          right={null}
-          className="lp-footer-flat"
-        />
+        <p className="mark px-6 pb-8 text-center text-[11px] text-[var(--ink-muted)]">
+          continue stays off until the name is free and valid.
+        </p>
       </div>
     </div>
   );

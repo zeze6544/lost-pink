@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { graceCopy } from "@/lib/product-rules";
 
 type Phase = "confirm" | "deleting" | "deleted" | "error";
 
@@ -61,8 +62,8 @@ export function DeleteNameClient({
           deleted.
         </p>
         <p className="mt-4 font-mono text-[13px] leading-relaxed text-[var(--ink-muted)]">
-          the page is gone. the inbox is dark. mail is kept 7 days, then gone.
-          the name may return to the pool after that window.
+          the page is gone. the inbox is dark. mail is kept {graceCopy()}, then
+          gone. the name may return to the pool after that window.
         </p>
         <p className="mt-8">
           <a
@@ -80,7 +81,7 @@ export function DeleteNameClient({
     <form onSubmit={onDelete} className="mx-auto w-full max-w-md text-left">
       <div className="space-y-3 font-mono text-[13px] leading-relaxed text-[var(--ink-muted)]">
         <p>this removes the page, the inbox, and recovery access.</p>
-        <p>mail is kept 7 days after deletion starts, then gone.</p>
+        <p>mail is kept {graceCopy()} after deletion starts, then gone.</p>
         <p>the name may return to the pool only after that window.</p>
         <p>this does not refund remaining paid time.</p>
       </div>

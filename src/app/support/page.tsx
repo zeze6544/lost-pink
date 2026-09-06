@@ -1,5 +1,5 @@
 import { DocPage, DocQuestion } from "@/components/SiteFrame";
-import { graceCopy, MAIL_GRACE_DAYS, PAYMENTS_VIA } from "@/lib/product-rules";
+import { graceCopy, MAIL_GRACE_DAYS, PAYMENTS_VIA, REFUND_DAYS } from "@/lib/product-rules";
 
 export default function SupportPage() {
   return (
@@ -35,7 +35,7 @@ export default function SupportPage() {
       </DocQuestion>
       <DocQuestion q="billing, refunds, renewals">
         <p>
-          {PAYMENTS_VIA.toLowerCase()} handles the money. refunds within 7 days
+          {PAYMENTS_VIA.toLowerCase()} handles the money. refunds within {REFUND_DAYS} days
           of purchase when approved. the year plan renews until you cancel in
           the portal. day and month are one-time.
         </p>

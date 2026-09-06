@@ -1,9 +1,8 @@
-import { NameInboxClient } from "@/components/NameInboxClient";
-import { getAuthUserId } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function NamePage() {
-  const userId = await getAuthUserId();
-  return <NameInboxClient signedIn={Boolean(userId)} />;
+/** Claim lives on Home — do not invent a parallel surface. */
+export default function NamePage() {
+  redirect("/");
 }

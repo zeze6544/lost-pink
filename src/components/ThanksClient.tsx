@@ -32,14 +32,17 @@ export function ThanksClient({
 }: Props) {
   const [mailbox, setMailbox] = useState(initialMailbox);
   const shown = word || slug || "kept";
-  const live = mailbox?.status === "live";
+  const status = mailbox?.status ?? null;
+  const live = status === "live";
+  const failed = status === "failed";
+  const awaitingAccount = status === "awaiting_account";
   const progress = mailbox
     ? provisionProgress(mailbox.status, mailbox.provisionStep)
     : null;
 
   useEffect(() => {
     if (!inbox || !pageId) return;
-    if (mailbox?.status === "live" || mailbox?.status === "failed") return;
+    if (status === "live" || status === "failed") return;
     let cancelled = false;
     const tick = async () => {
       try {
@@ -59,13 +62,13 @@ export function ThanksClient({
       cancelled = true;
       clearInterval(id);
     };
-  }, [inbox, pageId, mailbox?.status]);
+  }, [inbox, pageId, status]);
 
   useEffect(() => {
-    if (mailbox?.status === "awaiting_account" && mailbox.id) {
+    if (awaitingAccount && mailbox?.id) {
       window.location.replace(`/join?mailbox=${encodeURIComponent(mailbox.id)}`);
     }
-  }, [mailbox?.id, mailbox?.status]);
+  }, [awaitingAccount, mailbox?.id]);
 
   const steps = [
     {
@@ -92,6 +95,14 @@ export function ThanksClient({
     },
   ];
 
+  const subtitle = !inbox
+    ? `${shown} is yours.`
+    : live
+      ? `${shown} is yours. the inbox is open.`
+      : failed
+        ? `${shown} is yours. the inbox needs help.`
+        : `${shown} is yours. the inbox is opening.`;
+
   return (
     <div className="lp-shell relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
       <div className="pointer-events-none absolute inset-0 z-0">
@@ -108,9 +119,7 @@ export function ThanksClient({
             {KEPT_WHISPER}
           </h1>
           <p className="mark mt-5 max-w-sm text-center text-[13px] tracking-[0.03em] text-[var(--ink-muted)]">
-            {live
-              ? `${shown} is yours. the inbox is open.`
-              : `${shown} is yours. the inbox is opening.`}
+            {subtitle}
           </p>
 
           {inbox ? (
@@ -153,7 +162,7 @@ export function ThanksClient({
             </p>
           )}
 
-          {mailbox?.status === "failed" ? (
+          {failed ? (
             <p className="mark mt-6 text-center text-[12px] text-[var(--ink)]">
               <a href="/support" className="underline underline-offset-2">
                 write support
@@ -167,7 +176,9 @@ export function ThanksClient({
           center={
             <>
               {slug ? <a href={`/${slug}`}>open the page</a> : null}
-              {slug ? <span aria-hidden> · </span> : null}
+              {slug && (live || awaitingAccount || failed || inbox) ? (
+                <span aria-hidden> · </span>
+              ) : null}
               {live ? (
                 <>
                   {slug ? (
@@ -178,7 +189,7 @@ export function ThanksClient({
                   <span aria-hidden> · </span>
                   <a href="/setup">setup mail</a>
                 </>
-              ) : (
+              ) : awaitingAccount ? (
                 <>
                   <a href={mailbox?.id ? `/join?mailbox=${mailbox.id}` : "/join"}>
                     finish join
@@ -186,7 +197,11 @@ export function ThanksClient({
                   <span aria-hidden> · </span>
                   <a href="/setup">setup mail</a>
                 </>
-              )}
+              ) : failed ? (
+                <a href="/support">write support</a>
+              ) : inbox ? (
+                <a href="/setup">setup mail</a>
+              ) : null}
             </>
           }
           right={null}

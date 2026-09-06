@@ -29,6 +29,7 @@ import { displayLostEmail } from "./slug";
 import { siteUrl } from "./site";
 import { mailboxCheckoutKind } from "./mailbox-pricing";
 import type { MailboxDisableReason, MailboxPlan } from "./mailbox-status";
+import { graceCopy } from "./product-rules";
 
 export async function provisionMailbox(mailboxId: string): Promise<MailboxRow | null> {
   const mailbox = await getMailboxById(mailboxId);
@@ -200,7 +201,7 @@ function reminderCopy(
       text: [
         `${address} is still open.`,
         `the yearly charge is automatic around ${when}.`,
-        `if the renewal payment doesn't go through, the inbox suspends. mail is kept for 7 days, then removed.`,
+        `if the renewal payment doesn't go through, the inbox suspends. mail is kept for ${graceCopy()}, then removed.`,
         `write ${supportFromAddress()} if you need us.`,
       ].join("\n"),
     };
@@ -212,7 +213,7 @@ function reminderCopy(
     text: [
       `${address} stays open until ${when}.`,
       `renew another year from ${renewUrl}.`,
-      `a cancel or refund suspends the inbox. mail is kept for 7 days, then removed.`,
+      `a cancel or refund suspends the inbox. mail is kept for ${graceCopy()}, then removed.`,
       `write ${supportFromAddress()} if you need us.`,
     ].join("\n"),
   };

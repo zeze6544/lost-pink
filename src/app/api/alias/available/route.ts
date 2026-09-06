@@ -9,6 +9,13 @@ export async function GET(request: Request) {
   if (result.status === "invalid") {
     return NextResponse.json({ status: "invalid", error: result.error });
   }
+  if (result.status === "reserved") {
+    return NextResponse.json({
+      status: "reserved",
+      error: `${result.local} is reserved.`,
+      local: result.local,
+    });
+  }
   if (result.status === "taken") {
     return NextResponse.json({
       status: "taken",

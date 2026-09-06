@@ -1,6 +1,9 @@
+import { NAV_MARK } from "@/lib/product-rules";
+
 type BrandMarkProps = {
   href?: string;
   className?: string;
+  /** @deprecated Decorative only — never replaces the nav mark. */
   glyphOnly?: boolean;
 };
 
@@ -13,10 +16,10 @@ export function BrandMark({
     <a
       href={href}
       className={`brand-mark mark inline-flex items-center gap-2 ${className}`}
-      aria-label={glyphOnly ? "lost.pink" : undefined}
+      aria-label={NAV_MARK}
     >
       {glyphOnly ? <span className="brand-glyph" aria-hidden /> : null}
-      {glyphOnly ? null : <span>lost.pink</span>}
+      <span>{NAV_MARK}</span>
     </a>
   );
 }

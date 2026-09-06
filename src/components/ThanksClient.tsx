@@ -1,21 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
-import { Stage } from "@/components/Stage";
-import type { Look } from "@/lib/looks";
-import { stageStyle } from "@/lib/looks";
+import { SiteFooter } from "@/components/SiteFrame";
+import { KEPT_WHISPER } from "@/lib/landing-voice";
 import { provisionProgress } from "@/lib/mailbox-lifecycle";
 import type { OwnerMailboxView } from "@/lib/mailbox-view";
-import { inboxLabel, inboxWaiting, shareOrCopy } from "@/lib/voice";
-
-type Progress = ReturnType<typeof provisionProgress>;
 
 type Props = {
   slug: string;
   word: string;
   line: string | null;
-  look: Look;
+  look: unknown;
   bgUrl: string | null;
   tokenUrl: string | null;
   alias?: string | null;
@@ -28,17 +25,11 @@ type Props = {
 export function ThanksClient({
   slug,
   word,
-  line,
-  look,
-  bgUrl,
-  tokenUrl,
   alias = null,
-  caption = null,
   inbox = false,
   pageId = null,
   initialMailbox = null,
 }: Props) {
-  const [copied, setCopied] = useState(false);
   const [mailbox, setMailbox] = useState(initialMailbox);
   const shown = word || slug || "kept";
   const progress = mailbox
@@ -75,124 +66,116 @@ export function ThanksClient({
     }
   }, [mailbox?.id, mailbox?.status]);
 
-  async function share() {
-    if (!slug) return;
-    const url = `${window.location.origin}/${slug}`;
-    const result = await shareOrCopy(url, `lost.pink/${slug}`);
-    if (result === "copied") {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    }
-  }
+  const steps = [
+    {
+      key: "payment",
+      label: "payment received",
+      done: Boolean(
+        progress?.paymentReceived ||
+          progress?.creatingInbox ||
+          progress?.invitationSent ||
+          progress?.live,
+      ),
+    },
+    {
+      key: "inbox",
+      label: "creating inbox",
+      done: Boolean(
+        progress?.creatingInbox || progress?.invitationSent || progress?.live,
+      ),
+    },
+    {
+      key: "invite",
+      label: "invitation sent",
+      done: Boolean(progress?.invitationSent || progress?.live),
+    },
+  ];
 
   return (
-    <main
-      className="relative min-h-[100dvh] overflow-hidden"
-      style={
-        {
-          "--tray-h": "7.5rem",
-          ...stageStyle(look),
-        } as React.CSSProperties
-      }
-    >
-      <Stage
-        word={shown}
-        look={look}
-        line={line}
-        alias={alias}
-        writeHref={
-          mailbox?.status === "live" && slug ? `/${slug}/write` : null
-        }
-        bgUrl={bgUrl}
-        tokenUrl={tokenUrl}
-        caption={caption}
-        animate
-      />
-      <div className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8">
-        <BrandMark className="text-sm text-[var(--stage-ink)]/80 transition hover:text-[var(--stage-ink)]" />
+    <div className="lp-shell relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <Atmosphere wash={1} variant="landing" />
       </div>
-      <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-6">
-        <div className="quiet-tray mx-auto w-full max-w-md px-3.5 py-3">
-          {slug ? (
-            <>
-              <p className="text-sm text-[var(--ink)]">
-                {inbox
-                  ? thanksInboxLine(alias, mailbox, progress)
-                  : "kept."}
-              </p>
-              <p className="mt-0.5 text-[13px] text-[var(--ink-muted)]">
-                {inbox
-                  ? "keep still preserves the name. this is mail."
-                  : `${shown} isn't going anywhere.`}
-              </p>
-              {inbox && progress ? (
-                <p className="mt-1.5 text-[12px] text-[var(--ink-faint)]">
-                  {progressLine(progress)}
-                </p>
-              ) : null}
-              {mailbox?.status === "failed" ? (
-                <p className="mt-1 text-[12px] text-[var(--ink)]">
-                  <a href="/support">write support</a>
-                  <span className="mx-2 text-[var(--ink-faint)]">·</span>
-                  <a href={`/${slug}`}>try again from the page</a>
-                </p>
-              ) : null}
-              <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[var(--ink)]">
-                <button
-                  type="button"
-                  aria-live="polite"
-                  onClick={() => void share()}
-                >
-                  {copied ? "copied" : "share"}
-                </button>
-                {!inbox ? (
-                  <a href={`/${slug}`} className="text-[var(--ink)]">
-                    {inboxLabel()}
-                  </a>
-                ) : null}
-                <a href={`/${slug}`} className="ml-auto text-[var(--ink-muted)]">
-                  open {shown} →
-                </a>
-              </div>
-            </>
+
+      <header className="absolute left-0 top-0 z-20 p-5 sm:p-8">
+        <BrandMark className="text-[13px] tracking-[0.04em] text-[var(--ink)]/90" />
+      </header>
+
+      <div className="relative z-10 flex min-h-[100dvh] flex-col">
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-20 pt-24">
+          <h1 className="text-center font-display text-[clamp(3.2rem,10vw,5.5rem)] font-medium leading-none tracking-[-0.04em]">
+            {KEPT_WHISPER}
+          </h1>
+          <p className="mark mt-5 max-w-sm text-center text-[13px] tracking-[0.03em] text-[var(--ink-muted)]">
+            {shown} is yours. the inbox is opening.
+          </p>
+
+          {inbox ? (
+            <ol className="mt-12 space-y-0">
+              {steps.map((step, i) => (
+                <li key={step.key} className="flex gap-3">
+                  <div className="flex w-4 flex-col items-center">
+                    <span
+                      className={`mt-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border ${
+                        step.done
+                          ? "border-[var(--ink)]"
+                          : "border-[var(--ink-muted)]"
+                      }`}
+                      aria-hidden
+                    >
+                      {step.done ? (
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--ink)]" />
+                      ) : null}
+                    </span>
+                    {i < steps.length - 1 ? (
+                      <span
+                        className="my-1 w-px flex-1 bg-[var(--rule)]"
+                        aria-hidden
+                      />
+                    ) : null}
+                  </div>
+                  <p
+                    className={`pb-5 font-mono text-[13px] ${
+                      step.done ? "text-[var(--ink)]" : "text-[var(--ink-muted)]"
+                    }`}
+                  >
+                    {step.label}
+                  </p>
+                </li>
+              ))}
+            </ol>
           ) : (
-            <>
-              <p className="text-sm text-[var(--ink)]">kept.</p>
-              <p className="mt-1 text-[12px] text-[var(--ink-muted)]">
-                if it isn&apos;t here yet, wait a moment and open the link again.
-              </p>
-              <a
-                href="/"
-                className="mt-2 inline-block text-[13px] text-[var(--ink-muted)]"
-              >
-                back
-              </a>
-            </>
+            <p className="mark mt-10 text-[12px] text-[var(--ink-muted)]">
+              {shown} isn&apos;t going anywhere.
+            </p>
           )}
+
+          {mailbox?.status === "failed" ? (
+            <p className="mark mt-6 text-center text-[12px] text-[var(--ink)]">
+              <a href="/support" className="underline underline-offset-2">
+                write support
+              </a>
+            </p>
+          ) : null}
         </div>
+
+        <SiteFooter
+          left={<span className="sr-only">lost.pink</span>}
+          center={
+            <>
+              {slug ? <a href={`/${slug}`}>open the page</a> : null}
+              {slug ? <span aria-hidden> · </span> : null}
+              <a href={mailbox?.id ? `/join?mailbox=${mailbox.id}` : "/join"}>
+                finish join
+              </a>
+              <span aria-hidden> · </span>
+              <a href="/setup/gmail">setup mail</a>
+            </>
+          }
+          right={null}
+          className="lp-footer-flat"
+        />
       </div>
-    </main>
+    </div>
   );
-}
-
-function thanksInboxLine(
-  alias: string | null,
-  mailbox: OwnerMailboxView | null,
-  progress: Progress | null,
-): string {
-  if (mailbox?.status === "live" && alias) return inboxWaiting(alias);
-  if (mailbox?.status === "failed") return "couldn't open it yet.";
-  if (progress?.invitationSent) return alias ? inboxWaiting(alias) : "invitation sent.";
-  if (progress?.creatingInbox) return "creating inbox.";
-  if (progress?.paymentReceived) return "payment received.";
-  return "the inbox is still arriving.";
-}
-
-function progressLine(progress: Progress): string {
-  if (progress.failed) return "failed · we can try again.";
-  if (progress.live || progress.invitationSent) {
-    return "payment received → creating inbox → invitation sent";
-  }
-  if (progress.creatingInbox) return "payment received → creating inbox";
-  return "payment received";
 }

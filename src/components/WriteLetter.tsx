@@ -55,9 +55,14 @@ export function WriteLetter({
               write {word}
             </h1>
             {sent ? (
-              <p className="mt-4 text-[13px] text-[var(--ink)]">
-                sent. it lands in their inbox, not an app on your phone.
-              </p>
+              <div className="mt-10 text-center">
+                <p className="font-display text-[2.75rem] leading-none tracking-tight text-[var(--ink)]">
+                  sent.
+                </p>
+                <p className="mark mt-3 text-[12px] tracking-[0.04em] text-[var(--ink-muted)]">
+                  message.
+                </p>
+              </div>
             ) : (
               <>
                 <input

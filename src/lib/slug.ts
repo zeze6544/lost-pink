@@ -36,6 +36,9 @@ const RESERVED = new Set([
   "receipts",
   "subscription",
   "settings",
+  "name",
+  "delete",
+  "billing",
 ]);
 
 const BLOCKLIST = new Set([
@@ -115,4 +118,8 @@ export function validRecoveryEmail(email: string): boolean {
   const value = email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return false;
   return !value.endsWith("@lost.pink");
+}
+
+export function isReservedName(local: string): boolean {
+  return RESERVED.has(local) || EMAIL_RESERVED.has(local);
 }

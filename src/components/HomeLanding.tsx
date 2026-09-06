@@ -127,28 +127,23 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
           <div className="site-rule" aria-hidden />
 
           <div className="mx-auto flex flex-col items-center px-6 py-5">
-            <label
-              htmlFor="name"
-              className="mark text-[11px] tracking-[0.16em] text-[var(--ink-muted)]"
-            >
-              ENTER YOUR USERNAME
+            <label htmlFor="name" className="sr-only">
+              name
             </label>
-            {/* Continuous centered you@lost.pink underline — wider rule like refs */}
-            <div className="lp-underline-field mt-3 flex w-[min(34rem,78vw)] items-baseline justify-center border-b border-[var(--rule)] pb-1.5">
+            <div className="lp-boxed-field mt-1 flex w-[min(34rem,88vw)] items-center justify-between gap-3 border border-[var(--rule)] px-4 py-3">
               <input
                 id="name"
                 value={raw}
                 onChange={(e) => setRaw(e.target.value)}
-                placeholder="you"
+                placeholder="mercy"
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
                 autoFocus
-                size={Math.max(3, (raw || "you").length)}
-                className="w-auto min-w-[2.5ch] border-0 bg-transparent text-right font-mono text-[17px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/85"
+                className="min-w-0 flex-1 border-0 bg-transparent font-mono text-[17px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/45"
               />
-              <span className="shrink-0 font-mono text-[17px] text-[var(--ink)]/80">
+              <span className="shrink-0 font-mono text-[17px] text-[var(--ink)]/55">
                 @lost.pink
               </span>
             </div>
@@ -183,11 +178,16 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
                 type="button"
                 disabled={pending || check.status !== "free"}
                 onClick={() => buy(offer.kind)}
-                className={`flex min-h-[7rem] flex-col items-center justify-center gap-2 px-3 py-5 text-center transition enabled:hover:bg-white/[0.03] disabled:cursor-not-allowed ${
+                aria-label={`keep for ${offer.label} ${offer.explanation}`}
+                className={`group flex min-h-[7rem] flex-col items-center justify-center gap-2 px-3 py-5 text-center transition ${
+                  check.status === "free" && !pending
+                    ? "cursor-pointer text-[var(--ink)] enabled:hover:bg-white/[0.04] enabled:focus-visible:bg-white/[0.06]"
+                    : "cursor-not-allowed opacity-40"
+                } ${
                   i > 0 ? "border-t border-[var(--rule)] sm:border-l sm:border-t-0" : ""
                 }`}
               >
-                <span className="font-display text-[2.65rem] leading-none tracking-[-0.03em] text-[var(--ink)]">
+                <span className="font-display text-[2.65rem] leading-none tracking-[-0.03em] transition group-enabled:group-hover:tracking-[-0.04em]">
                   {pending ? "…" : offer.label}
                 </span>
                 <span className="mark text-[11px] tracking-[0.05em] text-[var(--ink-muted)]">

@@ -163,7 +163,7 @@ function reminderCopy(
   const when = mailbox.paid_through
     ? new Date(mailbox.paid_through).toDateString()
     : "soon";
-  const renewUrl = `${siteUrl()}/subscription`;
+  const renewUrl = `${siteUrl()}/billing`;
   if (mailbox.plan_type === "subscription") {
     return {
       subject: `${address} renews on its own`,

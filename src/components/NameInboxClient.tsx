@@ -12,6 +12,7 @@ type Check =
   | { status: "idle" }
   | { status: "looking" }
   | { status: "invalid"; error: string }
+  | { status: "reserved"; error: string }
   | { status: "taken"; error: string; slug: string }
   | { status: "held"; error: string }
   | { status: "free"; local: string };
@@ -40,6 +41,13 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
       };
       if (data.status === "free" && data.local) {
         setCheck({ status: "free", local: data.local });
+        return;
+      }
+      if (data.status === "reserved") {
+        setCheck({
+          status: "reserved",
+          error: data.error ?? `${slug} is reserved.`,
+        });
         return;
       }
       if (data.status === "invalid") {
@@ -81,6 +89,23 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
     });
   }
 
+  const statusLine =
+    check.status === "taken" ? (
+      <p className="mark text-[12px] text-[var(--ink)]">
+        {check.slug}@lost.pink already belongs to someone.
+      </p>
+    ) : check.status === "free" ? (
+      <p className="mark text-[12px] text-[var(--ink-muted)]">
+        {check.local}@lost.pink — yours.
+      </p>
+    ) : check.status === "looking" ? (
+      <p className="mark text-[12px] text-[var(--ink-muted)]">checking…</p>
+    ) : check.status === "reserved" ? (
+      <p className="mark text-[12px] text-[var(--ink)]">{check.error}</p>
+    ) : check.status === "held" || check.status === "invalid" ? (
+      <p className="mark text-[12px] text-[var(--ink)]">{check.error}</p>
+    ) : null;
+
   return (
     <div className="lp-shell relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
       <div className="pointer-events-none absolute inset-0 z-0">
@@ -108,65 +133,38 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
             {nameIsPageAndAddress()}
           </p>
 
-          <p className="mark mt-6 text-center text-[11px] tracking-[0.14em] text-[var(--ink-muted)]">
-            CHOOSE A USERNAME.
-          </p>
-
           <form
-            className="mt-8 flex w-full max-w-xs flex-col items-center"
+            className="mt-10 flex w-full max-w-sm flex-col items-center"
             onSubmit={(e) => {
               e.preventDefault();
               continueName();
             }}
           >
-            <div className="lp-underline-field inline-flex min-w-[16rem] items-baseline justify-center border-b border-[var(--rule)] pb-1.5">
+            <label htmlFor="name-inbox" className="sr-only">
+              name
+            </label>
+            <div className="lp-boxed-field flex w-full items-center justify-between gap-3 border border-[color-mix(in_srgb,var(--ink)_40%,transparent)] px-4 py-3">
               <input
                 id="name-inbox"
                 value={raw}
                 onChange={(e) => setRaw(e.target.value)}
-                placeholder="your"
+                placeholder="mercy"
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
                 autoFocus
-                size={Math.max(4, (raw || "your").length)}
-                className="w-auto min-w-[3ch] border-0 bg-transparent text-right font-mono text-[16px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/75"
+                className="min-w-0 flex-1 border-0 bg-transparent font-mono text-[16px] text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/40"
               />
-              <span className="shrink-0 font-mono text-[16px] text-[var(--ink)]/80">
+              <span className="shrink-0 font-mono text-[16px] text-[var(--ink)]/55">
                 @lost.pink
               </span>
             </div>
 
-            <div className="mt-3 min-h-[1rem] text-center" aria-live="polite">
-              {check.status === "taken" ? (
-                <p className="mark text-[11px] text-[var(--ink-muted)]">
-                  {check.slug}@lost.pink already belongs to someone.{" "}
-                  <a
-                    href={`/${check.slug}`}
-                    className="underline underline-offset-2"
-                  >
-                    view their page
-                  </a>
-                </p>
-              ) : check.status === "free" ? (
-                <p className="mark text-[11px] text-[var(--ink-muted)]">
-                  {check.local}@lost.pink — yours.
-                </p>
-              ) : check.status === "looking" ? (
-                <p className="mark text-[11px] text-[var(--ink-muted)]">
-                  checking…
-                </p>
-              ) : check.status === "held" || check.status === "invalid" ? (
-                <p className="mark text-[11px] text-[var(--ink-muted)]">
-                  {check.error}
-                </p>
-              ) : null}
+            <div className="mt-3 min-h-[1.25rem] text-center" aria-live="polite">
+              {statusLine}
               {error ? (
-                <p
-                  className="mark text-[11px] text-[var(--ink-muted)]"
-                  role="alert"
-                >
+                <p className="mark text-[12px] text-[var(--ink-muted)]" role="alert">
                   {error}
                 </p>
               ) : null}
@@ -175,14 +173,17 @@ export function NameInboxClient({ signedIn }: { signedIn: boolean }) {
             <button
               type="submit"
               disabled={pending || check.status !== "free"}
-              className="mark mt-8 cursor-pointer border-0 border-b border-[var(--ink)]/55 bg-transparent pb-0.5 text-[11px] tracking-[0.16em] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
+              className="mark mt-8 cursor-pointer border border-[color-mix(in_srgb,var(--ink)_45%,transparent)] bg-transparent px-8 py-2.5 text-[12px] tracking-[0.14em] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
             >
               {pending ? "…" : "continue"}
             </button>
+            <p className="mark mt-3 max-w-xs text-center text-[11px] text-[var(--ink-muted)]">
+              continue stays off until the name is free and valid.
+            </p>
           </form>
         </div>
 
-                <SiteFooter
+        <SiteFooter
           left={<span className="sr-only">lost.pink</span>}
           center={
             <>

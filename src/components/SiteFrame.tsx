@@ -89,11 +89,11 @@ export function AuthTray({
           {LOGIN_WHISPER}
         </p>
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-20">
-          <div className="w-full max-w-sm border border-[var(--rule)] bg-[color-mix(in_srgb,#080808_72%,transparent)] px-5 py-6 backdrop-blur-[8px]">
+          <div className="w-full max-w-sm border border-[color-mix(in_srgb,var(--ink)_42%,transparent)] bg-[color-mix(in_srgb,#080808_78%,transparent)] px-5 py-6 backdrop-blur-[8px]">
             <h1 className="font-display text-[2.4rem] leading-none tracking-tight">
               {title}
             </h1>
-            <p className="mt-3 font-mono text-[13px] leading-relaxed text-[var(--ink)]/70">
+            <p className="mt-3 font-mono text-[13px] leading-relaxed text-[var(--ink)]/82">
               {note}
             </p>
             {children}
@@ -163,7 +163,7 @@ export function DocSection({
       <h2 className="font-display text-[1.65rem] leading-tight tracking-tight text-[var(--ink)]">
         {title}
       </h2>
-      <div className="mt-3 space-y-2 font-mono text-[14px] leading-relaxed text-[var(--ink-muted)]">
+      <div className="mt-3 space-y-2 font-mono text-[15px] leading-relaxed text-[color-mix(in_srgb,var(--ink)_82%,transparent)]">
         {children}
       </div>
     </section>

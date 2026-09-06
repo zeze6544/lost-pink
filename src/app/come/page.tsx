@@ -30,7 +30,7 @@ export default async function ComePage({ searchParams }: Props) {
   return (
     <AuthTray
       title="log in"
-      note="sign in to your inbox with you@lost.pink and your password."
+      note="you@lost.pink and your password."
     >
       {isAuthConfigured() ? (
         <ComeClient next={next} />

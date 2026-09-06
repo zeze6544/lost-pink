@@ -1,10 +1,11 @@
 import { aliasIsReserved, isCheckoutAbandoned } from "./mailbox-lifecycle";
 import { getMailboxByEmailLocal } from "./mailbox-store";
 import { getPageByEmailLocal, getPageByHandle, getPageById } from "./pages";
-import { normalizeWord, validateEmailLocal } from "./slug";
+import { isReservedName, normalizeWord, validateEmailLocal } from "./slug";
 
 export type AliasCheck =
   | { status: "invalid"; error: string }
+  | { status: "reserved"; local: string }
   | { status: "taken"; slug: string }
   | { status: "held" }
   | { status: "free"; local: string };
@@ -14,6 +15,9 @@ export async function checkAlias(
   exceptPageId?: string,
 ): Promise<AliasCheck> {
   const local = normalizeWord(raw);
+  if (isReservedName(local)) {
+    return { status: "reserved", local };
+  }
   const valid = validateEmailLocal(local);
   if (!valid.ok) return { status: "invalid", error: valid.error };
 

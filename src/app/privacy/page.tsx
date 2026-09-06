@@ -1,37 +1,44 @@
+import { DocPage, DocQuestion } from "@/components/SiteFrame";
+
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16 text-[var(--ink)]">
-      <a href="/" className="mark text-sm">
-        lost.pink
-      </a>
-      <h1 className="mt-10 font-display text-4xl">privacy</h1>
-      <div className="mt-6 space-y-4 text-sm leading-relaxed text-[var(--ink-muted)]">
+    <DocPage title="privacy">
+      <DocQuestion q="what do you store?">
         <p>
-          We store the name you buy, the look of the public page, optional
-          photos and a line, Polar payment references, your sign-in as
-          you@lost.pink, a recovery email, and a phone number used to verify the
-          account.
+          we keep the name you buy, how the public page looks, optional photos
+          and a line, polar payment references, your sign-in as you@lost.pink,
+          a recovery email, and a phone number used to verify the account.
         </p>
+      </DocQuestion>
+      <DocQuestion q="what about mail?">
         <p>
-          Mail passes through our servers so we can show it in the browser. We
-          store an encrypted copy of the mailbox password to open IMAP on your
-          behalf. We do not sell mail, and we do not train models on it. HTML
-          is sanitized; remote images are off until you ask.
+          mail passes through our servers so we can show it in the browser. we
+          store an encrypted copy of the mailbox password to open it for you.
+          we do not sell mail, and we do not train models on it. html is
+          cleaned; pictures from the internet stay off until you ask.
         </p>
+      </DocQuestion>
+      <DocQuestion q="what is public vs private?">
         <p>
-          Public pages show the alias and whether the inbox is open. Recovery
-          email, phone, Polar IDs, and mailbox secrets stay private.
+          public pages show the alias and the page you dressed. recovery email,
+          phone, polar ids, and mailbox secrets stay private. we do not publish
+          whether someone is signed in.
         </p>
+      </DocQuestion>
+      <DocQuestion q="photos and an expired inbox?">
         <p>
-          Photos are jpeg, png, or webp only. A dark mailbox keeps the alias
-          until you open it again or ask us to remove it.
+          photos are jpeg, png, or webp only. when paid time ends, the inbox
+          closes but the name stays reserved until you open it again or ask us
+          to remove it.
         </p>
+      </DocQuestion>
+      <DocQuestion q="who handles cards?">
         <p>
-          Payment details are handled by Polar. SMS codes are sent by Twilio.
-          Contact: <a href="mailto:privacy@lost.pink">privacy@lost.pink</a> or{" "}
-          <a href="mailto:support@lost.pink">support@lost.pink</a>
+          payment details are handled by polar. sms codes are sent by twilio.
+          write <a href="mailto:privacy@lost.pink">privacy@lost.pink</a> or{" "}
+          <a href="mailto:support@lost.pink">support@lost.pink</a>.
         </p>
-      </div>
-    </main>
+      </DocQuestion>
+    </DocPage>
   );
 }

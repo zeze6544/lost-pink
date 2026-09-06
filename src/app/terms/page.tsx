@@ -1,38 +1,46 @@
+import { DocPage, DocQuestion } from "@/components/SiteFrame";
+
 export default function TermsPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16 text-[var(--ink)]">
-      <a href="/" className="mark text-sm">
-        lost.pink
-      </a>
-      <h1 className="mt-10 font-display text-4xl">terms</h1>
-      <div className="mt-6 space-y-4 text-sm leading-relaxed text-[var(--ink-muted)]">
+    <DocPage title="terms">
+      <DocQuestion q="what am i buying?">
         <p>
-          lost.pink sells an @lost.pink inbox. You choose a name, pay A$50 for
-          one year or A$50/year, create an account, and get you@lost.pink plus a
-          public page at lost.pink/you. Names are first come, first served.
+          lost.pink sells an @lost.pink inbox. you choose a username, pay A$1
+          for a day, A$5 once for a month, A$25 once for a year, or A$25
+          annually, create an account, and get you@lost.pink plus a public page
+          at lost.pink/you. prices are in AUD. names are first come, first
+          served.
         </p>
+      </DocQuestion>
+      <DocQuestion q="when does the inbox close?">
         <p>
-          Cancel, refund, or a failed yearly charge closes the inbox immediately.
-          A dark mailbox keeps the alias reserved so you can open it again.
-          One-year renewals extend from the later of today or the current
-          paid-through date.
+          cancel, refund, or a failed renewal closes the inbox immediately.
+          when paid time ends, the inbox closes but the name stays reserved.
+          paid time extends from the later of today or the date it’s already
+          paid through.
         </p>
+      </DocQuestion>
+      <DocQuestion q="what can i put on the page?">
         <p>
-          You may dress the public page. Do not publish illegal content,
-          harassment, or anyone else’s personal data without permission. We may
+          you may dress the public page. do not publish illegal content,
+          harassment, or anyone else’s personal data without permission. we may
           remove pages or close inboxes that break these rules or the law.
         </p>
+      </DocQuestion>
+      <DocQuestion q="how is mail handled?">
         <p>
-          Mail you send and receive passes through our servers so we can show it
-          to you in the browser. We do not sell it or use it for ads. HTML
+          mail you send and receive passes through our servers so we can show
+          it to you in the browser. we do not sell it or use it for ads. html
           letters are cleaned; remote images stay off until you ask.
         </p>
+      </DocQuestion>
+      <DocQuestion q="refunds?">
         <p>
-          The service is provided as-is. Refunds follow Polar’s and your local
-          consumer rules. Write{" "}
+          the service is provided as-is. refunds follow polar’s and your local
+          consumer rules. write{" "}
           <a href="mailto:support@lost.pink">support@lost.pink</a>.
         </p>
-      </div>
-    </main>
+      </DocQuestion>
+    </DocPage>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { Atmosphere } from "@/components/Atmosphere";
+import { SafeLine } from "@/components/SafeLine";
 import {
   displayWord,
   FONT_META,
@@ -7,7 +9,6 @@ import {
   type Look,
 } from "@/lib/looks";
 import { displayLostEmail } from "@/lib/slug";
-import { SafeLine } from "@/components/SafeLine";
 
 type Props = {
   word: string;
@@ -80,10 +81,7 @@ export function Stage({
           <div className="stage-photo-scrim pointer-events-none absolute inset-0" />
         </>
       ) : (
-        <>
-          <div className="stage-wash absolute inset-0" />
-          <div className="stage-grid-whisper pointer-events-none absolute inset-0" />
-        </>
+        <Atmosphere variant="landing" />
       )}
       {!bgUrl && look.motif === "grain" ? (
         <div className="stage-grain absolute inset-0 opacity-[0.18] mix-blend-soft-light" />

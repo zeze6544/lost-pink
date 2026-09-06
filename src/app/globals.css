@@ -27,6 +27,158 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-outfit), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+a,
+button,
+label,
+summary,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+a[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.atmosphere {
+  isolation: isolate;
+  color: var(--stage-ink);
+}
+
+.atmosphere-wash {
+  background:
+    radial-gradient(
+      ellipse 95% 72% at 50% 30%,
+      color-mix(in oklab, var(--stage-b) 58%, transparent),
+      transparent 64%
+    ),
+    radial-gradient(
+      ellipse 80% 48% at 50% 100%,
+      color-mix(in oklab, var(--stage-a) 88%, var(--stage-c)),
+      transparent 58%
+    ),
+    var(--stage-c);
+}
+
+.atmosphere-bloom {
+  position: absolute;
+  border-radius: 50%;
+  mix-blend-mode: soft-light;
+}
+
+.atmosphere-bloom-a {
+  left: 50%;
+  top: 34%;
+  width: min(92vw, 68rem);
+  height: min(62vh, 38rem);
+  transform: translate(-50%, -50%);
+  background: color-mix(in oklab, var(--stage-ink) 22%, var(--stage-c));
+  filter: blur(180px);
+}
+
+.atmosphere-bloom-b {
+  left: 12%;
+  top: 62%;
+  width: min(54vw, 30rem);
+  height: min(38vh, 22rem);
+  background: color-mix(in oklab, var(--stage-b) 65%, transparent);
+  filter: blur(130px);
+}
+
+.atmosphere-bloom-c {
+  right: 6%;
+  top: 18%;
+  width: min(42vw, 24rem);
+  height: min(32vh, 18rem);
+  background: color-mix(in oklab, var(--stage-ink) 12%, transparent);
+  filter: blur(100px);
+}
+
+.atmosphere-well {
+  position: absolute;
+  inset: auto 8% -22% 8%;
+  height: 58%;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in oklab, var(--stage-c) 82%, black),
+    transparent 72%
+  );
+}
+
+.atmosphere-floor {
+  position: absolute;
+  inset: auto 0 -10%;
+  width: 100%;
+  height: 64%;
+  color: color-mix(in oklab, var(--stage-ink) 30%, transparent);
+  opacity: 0.58;
+}
+
+.atmosphere-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--stage-c) 58%, transparent),
+    transparent 44%
+  );
+}
+
+.atmosphere-dither {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+.brand-glyph {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  flex: none;
+  background: currentColor;
+  -webkit-mask: url("/brand/lost-pink-mark.png") center / contain no-repeat;
+  mask: url("/brand/lost-pink-mark.png") center / contain no-repeat;
+}
+
+.phrase-backdrop {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.phrase-backdrop__text {
+  position: absolute;
+  left: var(--phrase-x);
+  top: var(--phrase-y);
+  max-width: min(var(--phrase-max), 92vw);
+  transform: translate(-50%, -50%) rotate(var(--phrase-rotation))
+    scale(var(--phrase-scale));
+  transform-origin: center;
+  margin: 0;
+  color: var(--stage-ink, var(--ink));
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(2.1rem, 7vw, 4.25rem);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  text-align: var(--phrase-align);
+  opacity: var(--phrase-opacity);
+  text-wrap: balance;
+}
+
+.phrase-backdrop--site .phrase-backdrop__text {
+  font-size: clamp(1.85rem, 6vw, 3.6rem);
+  opacity: calc(var(--phrase-opacity) * 0.55);
 }
 
 .site-wash,
@@ -198,6 +350,133 @@ body {
     inset 0 1px 0 color-mix(in srgb, var(--ink) 11%, transparent),
     inset 0 -1px 0 rgba(0, 0, 0, 0.45),
     0 28px 80px rgba(0, 0, 0, 0.48);
+}
+
+.quiet-tray--landing {
+  border-color: color-mix(in srgb, var(--ink) 14%, transparent);
+  background: color-mix(in srgb, #080808 92%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent),
+    0 24px 70px rgba(0, 0, 0, 0.48);
+}
+
+.field-label {
+  font-family: var(--font-plex), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+  color: color-mix(in srgb, var(--ink) 64%, transparent);
+}
+
+.tray-btn {
+  cursor: pointer;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  background: color-mix(in srgb, var(--paper) 35%, transparent);
+  color: var(--ink);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  font-family: var(--font-plex), ui-monospace, monospace;
+}
+
+.tray-btn[aria-pressed="true"],
+.tray-btn.is-on {
+  border-color: color-mix(in srgb, var(--ink) 42%, transparent);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
+}
+
+.tray-btn:disabled {
+  opacity: 0.3;
+}
+
+.tray-actions a,
+.tray-actions button {
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  min-height: 2.15rem;
+  padding: 0.4rem 0;
+  text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.tray-actions a:last-child,
+.tray-actions button:last-child {
+  border-bottom: 0;
+}
+
+.mailbox-offer-info {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.mailbox-offer-info-trigger {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  cursor: help;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--ink) 28%, transparent);
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--ink) 68%, transparent);
+  font-family: var(--font-plex), ui-monospace, monospace;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.mailbox-offer-info-trigger:focus-visible,
+.mailbox-offer-button:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.mailbox-offer-info-bubble {
+  position: absolute;
+  z-index: 40;
+  bottom: calc(100% + 0.45rem);
+  left: 50%;
+  width: max-content;
+  max-width: min(14rem, 70vw);
+  transform: translate(-50%, 0.2rem);
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  background: color-mix(in srgb, var(--paper) 94%, black 6%);
+  padding: 0.35rem 0.5rem;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.34);
+  color: var(--ink);
+  font-family: var(--font-plex), ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.mailbox-offer-info:hover .mailbox-offer-info-bubble,
+.mailbox-offer-info:focus-within .mailbox-offer-info-bubble {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+.landing-home {
+  --landing-tray-lift: clamp(1rem, 4vh, 2.5rem);
+}
+
+.landing-tray {
+  bottom: var(--landing-tray-lift);
+}
+
+.stage--landing .stage-cluster {
+  padding-bottom: calc(
+    var(--tray-h, 5.5rem) + var(--landing-tray-lift, 0px)
+  );
 }
 
 .quiet-field {

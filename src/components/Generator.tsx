@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { BrandMark } from "@/components/BrandMark";
+import { GoBack } from "@/components/GoBack";
+import { InboxPanel } from "@/components/InboxPanel";
 import { Stage } from "@/components/Stage";
 import {
   DEFAULT_LOOK,
@@ -21,7 +24,6 @@ import {
   type Palette,
   type Treatment,
 } from "@/lib/looks";
-import { InboxPanel } from "@/components/InboxPanel";
 import { displayLostEmail, normalizeEmailLocal, normalizeWord } from "@/lib/slug";
 import { type PublicMailboxLabel } from "@/lib/mailbox-status";
 import type { OwnerMailboxView } from "@/lib/mailbox-view";
@@ -350,12 +352,13 @@ export function Generator({ page }: { page?: GeneratorPage }) {
         tokenUrl={tokenPreview}
         animate
       />
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-baseline justify-between gap-4 p-4 sm:p-8">
-        <p className="mark text-sm text-[var(--stage-ink)] sm:text-[15px]">
-          lost.pink
-        </p>
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-4 p-4 sm:p-8">
+        <div className="pointer-events-auto flex items-center gap-2.5">
+          <BrandMark className="text-sm text-[var(--stage-ink)] sm:text-[15px]" />
+          <GoBack className="text-[var(--stage-ink)]" />
+        </div>
         <p className="mark hidden max-w-[11rem] text-right text-[10px] leading-relaxed text-[var(--stage-ink)]/50 sm:block">
-          {editing ? "yours to tend." : "an inbox you keep. a page you can leave."}
+          {editing ? "yours to tend." : "an @lost.pink inbox"}
         </p>
       </header>
 
@@ -363,48 +366,52 @@ export function Generator({ page }: { page?: GeneratorPage }) {
         <div ref={trayRef} className="mx-auto w-full max-w-md">
           <form onSubmit={onSubmit} className="quiet-tray px-3 py-2.5">
             {panel === "word" ? (
-              <div className="mb-2">
-                <label htmlFor="word" className="sr-only">
-                  a name
-                </label>
-                <input
-                  id="word"
-                  value={raw}
-                  onChange={(e) => setRaw(e.target.value)}
-                  placeholder="a name"
-                  autoComplete="off"
-                  autoFocus
-                  className="quiet-field w-full border-0 bg-transparent pb-1 text-xl text-[var(--ink)] outline-none"
-                />
-                {slug.length >= 2 ? (
-                  <p className="mt-1 text-[11px] text-[var(--ink-faint)]">
-                    lost.pink/{slug}
-                  </p>
-                ) : null}
-                <label htmlFor="alias" className="sr-only">
-                  optional alias
-                </label>
-                <input
-                  id="alias"
-                  ref={aliasRef}
-                  value={emailLocal}
-                  onChange={(e) => {
-                    if (aliasLocked) return;
-                    setEmailLocal(e.target.value.slice(0, 24));
-                  }}
-                  placeholder="optional · you@lost.pink"
-                  autoComplete="off"
-                  readOnly={aliasLocked}
-                  className="mt-2 w-full border-0 bg-transparent text-[12px] text-[var(--ink)]/70 outline-none placeholder:text-[var(--ink-faint)]"
-                />
-                {alias ? (
-                  <p className="mt-0.5 text-[11px] text-[var(--ink-faint)]">
-                    {displayLostEmail(alias)}
-                    {mailboxStatus === "open" ? null : page?.kept ? null : (
-                      <span className="ml-1 opacity-70">{inboxDisplayOnly()}</span>
-                    )}
-                  </p>
-                ) : null}
+              <div className="mb-2 space-y-2">
+                <div>
+                  <label htmlFor="word" className="field-label">
+                    title
+                  </label>
+                  <input
+                    id="word"
+                    value={raw}
+                    onChange={(e) => setRaw(e.target.value)}
+                    placeholder="a name"
+                    autoComplete="off"
+                    autoFocus
+                    className="quiet-field w-full border-0 bg-transparent pb-1 text-xl text-[var(--ink)] outline-none"
+                  />
+                  {slug.length >= 2 ? (
+                    <p className="mt-1 text-[11px] text-[var(--ink-faint)]">
+                      lost.pink/{slug}
+                    </p>
+                  ) : null}
+                </div>
+                <div>
+                  <label htmlFor="alias" className="field-label">
+                    inbox
+                  </label>
+                  <input
+                    id="alias"
+                    ref={aliasRef}
+                    value={emailLocal}
+                    onChange={(e) => {
+                      if (aliasLocked) return;
+                      setEmailLocal(e.target.value.slice(0, 24));
+                    }}
+                    placeholder="@lost.pink"
+                    autoComplete="off"
+                    readOnly={aliasLocked}
+                    className="quiet-field mt-0.5 w-full border-0 bg-transparent text-[12px] text-[var(--ink)]/80 outline-none placeholder:text-[var(--ink-faint)]"
+                  />
+                  {alias ? (
+                    <p className="mt-0.5 text-[11px] text-[var(--ink-faint)]">
+                      {displayLostEmail(alias)}
+                      {mailboxStatus === "open" ? null : page?.kept ? null : (
+                        <span className="ml-1 opacity-70">{inboxDisplayOnly()}</span>
+                      )}
+                    </p>
+                  ) : null}
+                </div>
               </div>
             ) : null}
 
@@ -683,7 +690,7 @@ function TrayTab({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-9 px-2 py-1 text-[12px] tracking-wide ${
+      className={`min-h-9 cursor-pointer px-2 py-1 text-[12px] tracking-wide ${
         active ? "text-[var(--ink)]" : "text-[var(--ink-faint)]"
       }`}
     >

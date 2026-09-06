@@ -43,23 +43,23 @@ export function keepLabel(word: string): string {
 }
 
 export function inboxMonthLabel(): string {
-  return "$5 once for 1 month access";
+  return "A$5";
 }
 
 export function inboxYearlyLabel(): string {
-  return "$20 annually";
+  return "A$25 annually";
 }
 
 export function inboxOnceLabel(): string {
-  return "$20 once for 12 month access";
+  return "A$25 one-year";
 }
 
 export function inboxDayLabel(): string {
-  return "$1 for 1 day access";
+  return "A$1";
 }
 
 export function inboxLabel(): string {
-  return "an inbox — $5 a month, $20 a year, or $1 a day";
+  return "an @lost.pink inbox";
 }
 
 export function inboxNeedKeep(): string {
@@ -71,7 +71,7 @@ export function inboxNeedAlias(): string {
 }
 
 export function comeBackLabel(): string {
-  return "you're back";
+  return "log in";
 }
 
 export function inboxNeedComeBack(alreadyOpen = false): string {

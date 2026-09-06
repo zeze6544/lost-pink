@@ -2,16 +2,17 @@
 
 import { useState, useTransition } from "react";
 
-export function ComeClient({ next }: { next: string }) {
-  const [email, setEmail] = useState("");
+export function ComeClient({
+  next,
+  initialEmail = "",
+}: {
+  next: string;
+  initialEmail?: string;
+}) {
+  const [inbox, setInbox] = useState(initialEmail);
   const [password, setPassword] = useState("");
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-
-  const typed = email.trim().toLowerCase();
-  const inboxLogin =
-    typed.endsWith("@lost.pink") || (typed.length > 0 && !typed.includes("@"));
 
   function onPassword(e: React.FormEvent) {
     e.preventDefault();
@@ -20,112 +21,100 @@ export function ComeClient({ next }: { next: string }) {
       const res = await fetch("/api/auth/password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: inbox, password }),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "that didn’t open.");
+        setError(data.error ?? "that didn't open.");
         return;
       }
       window.location.href = next;
     });
   }
 
-  function onLink(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    startTransition(async () => {
-      const res = await fetch("/api/auth/otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, next }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "couldn’t send that.");
-        return;
-      }
-      setSent(true);
-    });
-  }
-
-  if (sent) {
-    return (
-      <p className="mt-4 text-[13px] text-[var(--ink)]">
-        check your mail. the link is quiet, and it expires.
-      </p>
-    );
-  }
-
   return (
-    <div className="mt-4">
-      <form onSubmit={inboxLogin ? onPassword : onLink}>
-        <label htmlFor="email" className="sr-only">
-          email
+    <div className="mt-5">
+      <form onSubmit={onPassword} className="space-y-3" aria-busy={pending}>
+        <p className="field-label">inbox and password</p>
+        <label htmlFor="inbox-email" className="sr-only">
+          lost.pink inbox
         </label>
-        <input
-          id="email"
-          type="text"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@lost.pink"
-          autoComplete="username"
-          className="quiet-field w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
-        />
-        {inboxLogin ? (
-          <>
-            <label htmlFor="password" className="sr-only">
-              password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="password"
-              autoComplete="current-password"
-              className="quiet-field mt-3 w-full border-0 bg-transparent pb-1 text-base text-[var(--ink)] outline-none"
-            />
-          </>
-        ) : null}
+        <div className="lp-boxed-field flex min-h-11 items-center gap-2 border border-[color-mix(in_srgb,var(--ink)_40%,transparent)] px-3 py-2.5">
+          <span className="text-[13px] text-[var(--ink-muted)]" aria-hidden>
+            @
+          </span>
+          <input
+            id="inbox-email"
+            type="text"
+            required
+            value={inbox}
+            onChange={(e) => setInbox(e.target.value)}
+            placeholder="you@lost.pink"
+            autoComplete="username"
+            enterKeyHint="next"
+            className="w-full border-0 bg-transparent font-mono text-base text-[var(--ink)] outline-none placeholder:text-[var(--ink-muted)] sm:text-[14px]"
+          />
+        </div>
+        <label htmlFor="password" className="sr-only">
+          password
+        </label>
+        <div className="lp-boxed-field flex min-h-11 items-center gap-2 border border-[color-mix(in_srgb,var(--ink)_40%,transparent)] px-3 py-2.5">
+          <span className="text-[var(--ink-muted)]" aria-hidden>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <rect
+                x="2.5"
+                y="5.5"
+                width="7"
+                height="5"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
+              <path
+                d="M4 5.5V4a2 2 0 0 1 4 0v1.5"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
+            </svg>
+          </span>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="password"
+            autoComplete="current-password"
+            enterKeyHint="go"
+            className="w-full border-0 bg-transparent font-mono text-base text-[var(--ink)] outline-none placeholder:text-[var(--ink-muted)] sm:text-[14px]"
+          />
+        </div>
         {error ? (
-          <p className="mt-2 text-xs text-[var(--ink-muted)]" role="alert">
+          <p className="text-xs text-[var(--ink-muted)]" role="alert">
             {error}
           </p>
         ) : null}
         <button
           type="submit"
-          disabled={pending || !email.trim() || (inboxLogin && !password)}
-          className="mt-3 text-[13px] text-[var(--ink)] disabled:opacity-30"
+          disabled={pending || !inbox.trim() || !password}
+          className="lp-boxed-field min-h-11 w-full cursor-pointer border border-[color-mix(in_srgb,var(--ink)_48%,transparent)] bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] py-2.5 font-mono text-[13px] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
         >
-          {pending ? "opening…" : inboxLogin ? "open" : "send the link"}
+          {pending ? "opening…" : "open"}
         </button>
       </form>
-      <p className="mt-4 text-[11px] text-[var(--ink-muted)]">
-        old shrines still use a quiet link. type that other email and we’ll send
-        it. <ForgotLink email={email} />
+      <p className="mt-3 text-center font-mono text-[12px] text-[var(--ink)]/88">
+        <a
+          href={`/come/forgot${inbox.trim() ? `?email=${encodeURIComponent(inbox.trim())}` : ""}`}
+          className="inline-flex min-h-11 items-center underline underline-offset-2"
+        >
+          forgot the password
+        </a>
+      </p>
+      <p className="mt-4 text-center font-mono text-[12px] leading-relaxed text-[var(--ink)]/78">
+        left a page without an inbox?{" "}
+        <a href="/come/forgot" className="underline underline-offset-2">
+          we&apos;ll send a sign-in link
+        </a>
+        .
       </p>
     </div>
-  );
-}
-
-function ForgotLink({ email }: { email: string }) {
-  const [note, setNote] = useState<string | null>(null);
-  return (
-    <button
-      type="button"
-      className="underline-offset-2 hover:underline"
-      onClick={async () => {
-        await fetch("/api/auth/forgot", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-        setNote("if we know that inbox, we wrote the recovery address.");
-      }}
-    >
-      {note ?? "forgot the password"}
-    </button>
   );
 }

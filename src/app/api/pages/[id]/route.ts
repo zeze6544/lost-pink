@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { isAllowedImageUrl } from "@/lib/images";
-import { parseLook, sanitizeLine } from "@/lib/looks";
-import { isEmailLocalTaken, updateOwnedPage } from "@/lib/pages";
+import { parseLook, sanitizeLine, sanitizeTitle } from "@/lib/looks";
+import { pageStoreProblem } from "@/lib/page-store-error";
+import {
+  getPageById,
+  isNameHeldByOtherPage,
+  updateOwnedPage,
+} from "@/lib/pages";
 import {
   normalizeEmailLocal,
-  normalizeWord,
   validateEmailLocal,
-  validateSlug,
 } from "@/lib/slug";
 import { getAuthUserId } from "@/lib/supabase/server";
 
@@ -15,7 +18,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function PATCH(request: Request, { params }: Params) {
   const userId = await getAuthUserId();
   if (!userId) {
-    return NextResponse.json({ error: "come back first." }, { status: 401 });
+    return NextResponse.json({ error: "sign in first." }, { status: 401 });
   }
 
   const { id } = await params;
@@ -25,6 +28,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
   let body: {
     word?: string;
+    title?: string;
     line?: unknown;
     palette?: unknown;
     treatment?: unknown;
@@ -37,14 +41,18 @@ export async function PATCH(request: Request, { params }: Params) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON." }, { status: 400 });
   }
 
-  const slug = normalizeWord(body.word ?? "");
-  const check = validateSlug(slug);
-  if (!check.ok) {
-    return NextResponse.json({ error: check.error }, { status: 400 });
+  const current = await getPageById(id);
+  if (!current) {
+    return NextResponse.json({ error: "gone." }, { status: 404 });
   }
+  const title = sanitizeTitle(body.title ?? body.word, current.word || current.slug);
+  if (!title) {
+    return NextResponse.json({ error: "needs a title." }, { status: 400 });
+  }
+  const slug = current.slug;
 
   const look = parseLook({
     palette: body.palette,
@@ -59,7 +67,7 @@ export async function PATCH(request: Request, { params }: Params) {
   const bg_url = typeof body.bg_url === "string" ? body.bg_url : null;
   const token_url = typeof body.token_url === "string" ? body.token_url : null;
   if (!isAllowedImageUrl(bg_url) || !isAllowedImageUrl(token_url)) {
-    return NextResponse.json({ error: "Invalid photo URL." }, { status: 400 });
+    return NextResponse.json({ error: "invalid photo URL." }, { status: 400 });
   }
 
   let email_local: string | null = null;
@@ -69,9 +77,9 @@ export async function PATCH(request: Request, { params }: Params) {
     if (!emailCheck.ok) {
       return NextResponse.json({ error: emailCheck.error }, { status: 400 });
     }
-    if (await isEmailLocalTaken(email_local, id)) {
+    if (await isNameHeldByOtherPage(email_local, id)) {
       return NextResponse.json(
-        { error: "that alias is already spoken for." },
+        { error: "that inbox name is taken." },
         { status: 409 },
       );
     }
@@ -80,7 +88,7 @@ export async function PATCH(request: Request, { params }: Params) {
   try {
     const result = await updateOwnedPage(id, userId, {
       slug,
-      word: slug,
+      word: title,
       line: sanitizeLine(body.line),
       look,
       bg_url,
@@ -98,8 +106,15 @@ export async function PATCH(request: Request, { params }: Params) {
       slug: result.page.slug,
     });
   } catch (err) {
+    const problem = pageStoreProblem(err);
+    if (problem) {
+      return NextResponse.json(
+        { error: problem.error },
+        { status: problem.status },
+      );
+    }
     const message =
-      err instanceof Error ? err.message : "Could not tend it.";
+      err instanceof Error ? err.message : "couldn't save.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

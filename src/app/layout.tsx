@@ -9,6 +9,8 @@ import {
   Outfit,
   Playfair_Display,
 } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { productOneLiner } from "@/lib/product-rules";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -60,15 +62,29 @@ export const metadata: Metadata = {
     default: "lost.pink",
     template: "%s · lost.pink",
   },
-  description: "An inbox you keep. A page you can leave.",
+  description: productOneLiner(),
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   ),
   openGraph: {
     title: "lost.pink",
-    description: "An inbox you keep. A page you can leave.",
+    description: productOneLiner(),
     siteName: "lost.pink",
     type: "website",
+    images: [
+      {
+        url: "/brand/lost-pink-logo.png",
+        width: 1024,
+        height: 1024,
+        alt: "lost.pink",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "lost.pink",
+    description: productOneLiner(),
+    images: ["/brand/lost-pink-logo.png"],
   },
 };
 
@@ -90,7 +106,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${fontVars} h-full`}>
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased">
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }

@@ -15,7 +15,7 @@ export default async function SettingsPage() {
   return (
     <AccountShell title="yours" align="left">
       {pages.length === 0 ? (
-        <div className="border-y border-[var(--rule)] py-6">
+        <div className="py-6">
           <p className="font-mono text-[13px] text-[var(--ink-muted)]">
             nothing here yet.
           </p>
@@ -27,7 +27,7 @@ export default async function SettingsPage() {
           </a>
         </div>
       ) : (
-        <ul className="w-full max-w-md divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
+        <ul className="w-full max-w-md divide-y divide-[var(--rule)]">
           {pages.map((page) => {
             const handle = pageHandle(page);
             const inbox = page.email_local
@@ -57,7 +57,7 @@ export default async function SettingsPage() {
           })}
         </ul>
       )}
-      <form action="/api/auth/signout" method="post" className="mt-14">
+      <form action="/api/auth/signout" method="post" className="mt-auto pt-24">
         <button
           type="submit"
           className="cursor-pointer font-display text-[1.1rem] leading-none tracking-[-0.02em] text-[var(--ink-muted)] transition hover:text-[var(--ink)]"

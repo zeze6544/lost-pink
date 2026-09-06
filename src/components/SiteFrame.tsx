@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
-import { LOGIN_WHISPER } from "@/lib/landing-voice";
+import { LOGIN_WHISPER_LINES } from "@/lib/landing-voice";
 
 export function SiteFrame({
   children,
@@ -75,53 +75,55 @@ export function SiteFooter({
 export function AuthTray({
   title,
   note,
+  below,
   children,
   shortMark = false,
 }: {
   title: string;
   note?: ReactNode;
+  /** Quiet note under the tray (master login places the sign-in line here). */
+  below?: ReactNode;
   children: ReactNode;
   /** Login uses the compact `lp.` mark. */
   shortMark?: boolean;
 }) {
   return (
     <SiteFrame atmosphere="landing">
-      <div className="flex min-h-[100dvh] flex-col">
+      <div className="relative flex min-h-[100dvh] flex-col">
         <HomeMark
           short={shortMark}
           className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8"
         />
-        <p
-          className="pointer-events-none absolute inset-x-0 top-[18%] z-0 text-center font-display text-[clamp(2.4rem,8vw,5.5rem)] leading-none tracking-[-0.04em] text-[var(--ink)]/[0.12]"
+        <div
+          className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center"
           aria-hidden
         >
-          {LOGIN_WHISPER}
-        </p>
+          <p className="text-center font-display text-[clamp(2.4rem,8vw,5.5rem)] leading-[0.92] tracking-[-0.04em] text-[var(--ink)]/[0.07]">
+            {LOGIN_WHISPER_LINES.map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
+          </p>
+        </div>
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-20">
           <div className="w-full max-w-sm border border-[color-mix(in_srgb,var(--ink)_42%,transparent)] bg-[color-mix(in_srgb,#080808_78%,transparent)] px-5 py-6 backdrop-blur-[8px]">
-            <h1 className="font-display text-[2.4rem] leading-none tracking-tight">
+            <h1 className="text-center font-display text-[2.4rem] leading-none tracking-tight">
               {title}
             </h1>
             {note ? (
-              <p className="mt-3 font-mono text-[13px] leading-relaxed text-[var(--ink)]/82">
+              <p className="mt-3 text-center font-mono text-[13px] leading-relaxed text-[var(--ink)]/82">
                 {note}
               </p>
             ) : null}
             {children}
           </div>
+          {below ? (
+            <div className="mt-8 max-w-sm text-center font-mono text-[12px] leading-relaxed text-[var(--ink-muted)]">
+              {below}
+            </div>
+          ) : null}
         </div>
-        <SiteFooter
-          left="log in"
-          center={
-            <>
-              <a href="/support">support</a>
-              <span aria-hidden> · </span>
-              <a href="/privacy">privacy</a>
-              <span aria-hidden> · </span>
-              <a href="/terms">terms</a>
-            </>
-          }
-        />
       </div>
     </SiteFrame>
   );
@@ -147,7 +149,7 @@ export function DocPage({
             {title}
           </h1>
           {tagline ? (
-            <p className="mt-4 max-w-xl font-mono text-[13px] leading-relaxed text-[var(--ink-muted)]">
+            <p className="mt-4 max-w-xl font-display text-[1.05rem] italic leading-snug tracking-[-0.01em] text-[var(--ink-muted)]">
               {tagline}
             </p>
           ) : null}
@@ -157,19 +159,23 @@ export function DocPage({
             {children}
           </div>
         </div>
-        <SiteFooter
-          left={
-            <a href="/come">you&apos;re back</a>
-          }
-          center={
-            <>
-              <a href="/support">support</a>
-              <span aria-hidden> · </span>
-              <a href="/terms">terms</a>
-            </>
-          }
-          right={<a href="/">back to lost.pink</a>}
-        />
+        <footer className="px-8 pb-8 font-mono text-[12px] text-[var(--ink-muted)] sm:px-12 lg:px-20">
+          <a href="/come" className="hover:text-[var(--ink)]">
+            you&apos;re back
+          </a>
+          <span aria-hidden> · </span>
+          <a href="/support" className="hover:text-[var(--ink)]">
+            support
+          </a>
+          <span aria-hidden> · </span>
+          <a href="/privacy" className="hover:text-[var(--ink)]">
+            privacy
+          </a>
+          <span aria-hidden> · </span>
+          <a href="/terms" className="hover:text-[var(--ink)]">
+            terms
+          </a>
+        </footer>
       </div>
     </SiteFrame>
   );
@@ -230,7 +236,7 @@ export function AccountShell({
               : "mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center px-4 pb-10 pt-24 text-center sm:px-6"
           }
         >
-          <div className={left ? "w-full max-w-lg" : "w-full"}>
+          <div className={left ? "flex w-full max-w-lg flex-1 flex-col" : "w-full"}>
             <h1
               className={`font-display leading-none tracking-tight text-[var(--ink)] ${
                 left
@@ -240,7 +246,9 @@ export function AccountShell({
             >
               {title}
             </h1>
-            <div className="mt-10 w-full space-y-0 text-left">{children}</div>
+            <div className="mt-10 flex w-full flex-1 flex-col space-y-0 text-left">
+              {children}
+            </div>
           </div>
         </div>
         {whisper ? (

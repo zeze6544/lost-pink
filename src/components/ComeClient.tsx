@@ -88,12 +88,6 @@ export function ComeClient({ next }: { next: string }) {
           forgot password
         </a>
       </p>
-      <p className="mt-5 text-center font-mono text-[12px] leading-relaxed text-[var(--ink)]/78">
-        left a page without an inbox?{" "}
-        <a href="/come/forgot" className="underline underline-offset-2">
-          we&apos;ll send a sign-in link.
-        </a>
-      </p>
     </div>
   );
 }

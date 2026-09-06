@@ -10,8 +10,14 @@ export const LANDING_ATMOSPHERE_TEXT = LANDING_HERO_LINES.join("\n");
 /** Name-the-inbox whisper above the serif title. */
 export const NAME_INBOX_WHISPER = "victim mindsets self-destruct";
 
-/** Login backdrop whisper — atmosphere may be faint; controls may not. */
-export const LOGIN_WHISPER = "the cage learns your shape";
+/** Login backdrop whisper — stacked, faint, behind the tray. */
+export const LOGIN_WHISPER_LINES = [
+  "the cage",
+  "learns",
+  "your shape",
+] as const;
+
+export const LOGIN_WHISPER = LOGIN_WHISPER_LINES.join(" ");
 
 /** Terms sidebar whisper. */
 export const TERMS_WHISPER_LINES = ["resentment", "keeps", "receipts"] as const;

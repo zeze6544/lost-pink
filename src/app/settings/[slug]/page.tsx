@@ -27,7 +27,7 @@ export default async function NameSettingsPage({ params }: Props) {
 
   const links = [
     { href: `/${handle}`, label: "page" },
-    { href: `/${handle}`, label: "inbox" },
+    { href: "/setup", label: "inbox" },
     { href: "#password", label: "password" },
     { href: "#recovery", label: "recovery" },
     { href: "/setup", label: "devices" },
@@ -73,15 +73,6 @@ export default async function NameSettingsPage({ params }: Props) {
         mailboxId={mailbox?.id ?? null}
         recoveryEmail={mailbox?.recovery_email ?? null}
       />
-
-      <p className="mt-10">
-        <a
-          href="/settings"
-          className="font-mono text-[12px] text-[var(--ink-muted)] underline-offset-2 hover:underline"
-        >
-          back to yours
-        </a>
-      </p>
     </AccountShell>
   );
 }

@@ -28,7 +28,21 @@ export default async function ComePage({ searchParams }: Props) {
   }
 
   return (
-    <AuthTray title="log in" shortMark>
+    <AuthTray
+      title="log in"
+      shortMark
+      below={
+        isAuthConfigured() ? (
+          <>
+            left a page without an inbox?
+            <br />
+            <a href="/come/forgot" className="underline underline-offset-2">
+              we&apos;ll send a sign-in link.
+            </a>
+          </>
+        ) : null
+      }
+    >
       {isAuthConfigured() ? (
         <ComeClient next={next} />
       ) : (

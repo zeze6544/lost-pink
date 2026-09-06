@@ -69,13 +69,13 @@ export function DeleteNameClient({
         <button
           type="submit"
           disabled={!ready || pending}
-          className="cursor-pointer border border-[color-mix(in_srgb,var(--ink)_45%,transparent)] px-5 py-2.5 font-mono text-[13px] tracking-[0.02em] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
+          className="cursor-pointer border border-[color-mix(in_srgb,var(--ink)_45%,transparent)] px-5 py-2.5 font-display text-[1.15rem] leading-none tracking-[-0.02em] text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-30"
         >
           {pending ? "…" : "delete forever"}
         </button>
         <a
           href={`/settings/${handle}`}
-          className="font-mono text-[13px] text-[var(--ink-muted)]"
+          className="font-display text-[1.15rem] leading-none tracking-[-0.02em] text-[var(--ink-muted)]"
         >
           cancel
         </a>

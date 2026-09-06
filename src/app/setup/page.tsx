@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { MailSetupChooser } from "@/components/MailSetup";
-import { HomeMark, SiteFooter, SiteFrame } from "@/components/SiteFrame";
+import { HomeMark, SiteFrame } from "@/components/SiteFrame";
 import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
 import { getAuthUserId } from "@/lib/supabase/server";
 
@@ -22,7 +22,6 @@ export default async function MailSetupPage() {
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-5 py-24 sm:px-8 lg:px-12">
           <MailSetupChooser />
         </div>
-        <SiteFooter left="setup" />
       </div>
     </SiteFrame>
   );

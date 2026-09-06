@@ -130,6 +130,7 @@ export function formatTimeLeft(iso: string, now = Date.now()): string {
   if (Number.isNaN(new Date(iso).getTime())) return "";
   if (ms <= 0) return "paid time has ended";
   const days = Math.floor(ms / 86_400_000);
+  if (days >= 300) return "about a year";
   if (days >= 60) {
     const months = Math.floor(days / 30);
     return `${months} month${months === 1 ? "" : "s"} left`;

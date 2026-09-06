@@ -597,7 +597,7 @@ export function MailApp({
                 </ul>
               ) : null}
               {leaveAsk ? (
-                <p className="mt-4 text-[12px] text-[var(--ink-muted)]">
+                <div className="quiet-tray mt-4 px-3 py-3 text-[12px] text-[var(--ink-muted)]">
                   leave this letter?
                   <button
                     type="button"
@@ -616,7 +616,7 @@ export function MailApp({
                   >
                     stay
                   </button>
-                </p>
+                </div>
               ) : error ? (
                 <p className="mt-4 text-[12px] text-[var(--ink-muted)]" role="alert">
                   {error}

@@ -1,3 +1,4 @@
+import { MAIL_GRACE_DAYS } from "./product-rules";
 import { sendLifecycleMail, supportFromAddress } from "./mailer";
 import {
   ADMIN_ALERT_KIND,
@@ -182,7 +183,7 @@ function reminderCopy(
     text: [
       `${address} stays open until ${when}.`,
       `renew another year from ${renewUrl}.`,
-      `a cancel or refund suspends the inbox. mail is kept for 7 days, then removed.`,
+      `a cancel or refund suspends the inbox. mail is kept for ${MAIL_GRACE_DAYS} days, then removed.`,
       `write ${supportFromAddress()} if you need us.`,
     ].join("\n"),
   };

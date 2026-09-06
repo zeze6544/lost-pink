@@ -30,6 +30,7 @@ import type { OwnerMailboxView } from "@/lib/mailbox-view";
 import { publicPagePath } from "@/lib/site";
 import {
   JUST_LEFT_KEY,
+  holdCountdownCopy,
   keepLabel,
   shareOrCopy,
 } from "@/lib/voice";
@@ -162,6 +163,7 @@ export function Generator({
       const data = (await res.json()) as {
         status?: string;
         slug?: string;
+        until?: string | null;
       };
       if (data.status === "taken") {
         const viewSlug = data.slug || alias;
@@ -179,7 +181,11 @@ export function Generator({
         return;
       }
       if (data.status === "held") {
-        setNameConflict("someone is holding that name.");
+        setNameConflict(
+          data.until
+            ? holdCountdownCopy(data.until)
+            : "someone is holding that name.",
+        );
         return;
       }
       setNameConflict(null);

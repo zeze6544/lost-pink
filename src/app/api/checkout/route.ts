@@ -250,7 +250,7 @@ async function mailboxCheckout(
       email_local: emailLocal,
     },
     ...mailboxCheckoutCustomer({ mailboxId: mailbox.id }),
-    returnUrl: `${siteUrl()}${joinPath}`,
+    returnUrl: `${siteUrl()}/?u=${encodeURIComponent(emailLocal)}`,
     successUrl: polarJoinSuccessUrl(),
   });
 

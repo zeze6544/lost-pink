@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkAlias } from "@/lib/alias";
+import { holdCountdownCopy } from "@/lib/voice";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,12 +22,17 @@ export async function GET(request: Request) {
       status: "taken",
       error: "that name is taken.",
       slug: result.slug,
+      word: result.word,
+      line: result.line,
     });
   }
   if (result.status === "held") {
     return NextResponse.json({
       status: "held",
-      error: "someone’s holding that name.",
+      error: result.until
+        ? holdCountdownCopy(result.until)
+        : "someone’s holding that name.",
+      until: result.until,
     });
   }
   return NextResponse.json({

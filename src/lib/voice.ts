@@ -128,6 +128,18 @@ export function formatPaidDate(iso: string): string {
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
+export function holdCountdownCopy(untilIso: string, now = Date.now()): string {
+  const until = new Date(untilIso).getTime();
+  if (Number.isNaN(until)) return "someone’s holding that name.";
+  const ms = until - now;
+  if (ms <= 0) return "the hold just ended.";
+  const hours = Math.floor(ms / 3_600_000);
+  const mins = Math.max(1, Math.ceil(ms / 60_000));
+  if (hours >= 2) return `held for ${hours}h.`;
+  if (hours === 1) return "held for about an hour.";
+  return `held for ${mins}m.`;
+}
+
 export function formatPaidThrough(iso: string): string {
   const date = formatPaidDate(iso);
   return date ? `paid through ${date}` : "";

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
+import { TakenNamePreview } from "@/components/TakenNamePreview";
 import { NAME_INBOX_WHISPER } from "@/lib/landing-voice";
 import {
   NAME_MIN_CHARS,
@@ -11,6 +12,7 @@ import {
   impliedPageAndAddress,
   nameIsPageAndAddress,
 } from "@/lib/product-rules";
+import { holdCountdownCopy } from "@/lib/voice";
 import { normalizeWord } from "@/lib/slug";
 
 type Check =
@@ -18,8 +20,14 @@ type Check =
   | { status: "looking" }
   | { status: "invalid"; error: string }
   | { status: "reserved"; error: string }
-  | { status: "taken"; error: string; slug: string }
-  | { status: "held"; error: string }
+  | {
+      status: "taken";
+      error: string;
+      slug: string;
+      word?: string | null;
+      line?: string | null;
+    }
+  | { status: "held"; error: string; until: string | null }
   | { status: "free"; local: string };
 
 export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) {
@@ -48,6 +56,9 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
         error?: string;
         local?: string;
         slug?: string;
+        until?: string | null;
+        word?: string | null;
+        line?: string | null;
       };
       if (data.status === "free" && data.local) {
         setCheck({ status: "free", local: data.local });
@@ -68,6 +79,7 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
         setCheck({
           status: "held",
           error: data.error ?? "someone is holding that name.",
+          until: data.until ?? null,
         });
         return;
       }
@@ -75,6 +87,8 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
         status: "taken",
         error: data.error ?? "that name is taken.",
         slug: data.slug || slug,
+        word: data.word,
+        line: data.line,
       });
     }, 220);
     return () => window.clearTimeout(t);
@@ -109,9 +123,7 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
         {claimLengthCopy()}
       </p>
     ) : check.status === "taken" ? (
-      <p className="mark text-[12px] text-[var(--ink)]">
-        {check.slug}@lost.pink already belongs to someone.
-      </p>
+      <TakenNamePreview slug={check.slug} word={check.word} line={check.line} />
     ) : check.status === "free" ? (
       <p className="mark text-[12px] text-[var(--ink-muted)]">
         {check.local}@lost.pink - yours.
@@ -121,7 +133,11 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
     ) : check.status === "reserved" ? (
       <p className="mark text-[12px] text-[var(--ink)]">{check.error}</p>
     ) : check.status === "held" || check.status === "invalid" ? (
-      <p className="mark text-[12px] text-[var(--ink)]">{check.error}</p>
+      <p className="mark text-[12px] text-[var(--ink)]">
+        {check.status === "held" && check.until
+          ? holdCountdownCopy(check.until)
+          : check.error}
+      </p>
     ) : null;
 
   return (

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
 import { SiteFooter } from "@/components/SiteFrame";
+import { TakenNamePreview } from "@/components/TakenNamePreview";
+import { readLastClaim, writeLastClaim } from "@/lib/claim-session";
 import { LANDING_HERO_LINES } from "@/lib/landing-voice";
 import { HOME_MAILBOX_OFFERS } from "@/lib/mailbox-pricing";
 import {
@@ -15,14 +17,21 @@ import {
 } from "@/lib/product-rules";
 import { normalizeWord } from "@/lib/slug";
 import type { CheckoutKind } from "@/lib/mailbox-status";
+import { holdCountdownCopy } from "@/lib/voice";
 
 type Check =
   | { status: "idle" }
   | { status: "looking" }
   | { status: "invalid"; error: string }
-  | { status: "taken"; error: string; slug: string }
+  | {
+      status: "taken";
+      error: string;
+      slug: string;
+      word?: string | null;
+      line?: string | null;
+    }
   | { status: "reserved"; error: string }
-  | { status: "held"; error: string }
+  | { status: "held"; error: string; until: string | null }
   | { status: "free"; local: string };
 
 export function HomeLanding({ signedIn }: { signedIn: boolean }) {
@@ -30,12 +39,38 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
   const [check, setCheck] = useState<Check>({ status: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [now, setNow] = useState(() => Date.now());
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const slug = useMemo(() => normalizeWord(raw), [raw]);
 
   useEffect(() => {
     const u = new URLSearchParams(window.location.search).get("u");
-    if (u) setRaw(u);
+    if (u) {
+      setRaw(u);
+      return;
+    }
+    const last = readLastClaim();
+    if (last?.alias) setRaw(last.alias);
   }, []);
+
+  useEffect(() => {
+    const last = readLastClaim();
+    if (last?.polarUrl && last.alias === slug) {
+      setResumeUrl(last.polarUrl);
+      return;
+    }
+    setResumeUrl(null);
+  }, [slug]);
+
+  useEffect(() => {
+    if (check.status !== "held" || !check.until) return;
+    const wait = Math.min(
+      30_000,
+      Math.max(1_000, new Date(check.until).getTime() - Date.now()),
+    );
+    const t = window.setTimeout(() => setNow(Date.now()), wait);
+    return () => window.clearTimeout(t);
+  }, [check, now]);
 
   useEffect(() => {
     if (slug.length < NAME_MIN_CHARS) {
@@ -51,6 +86,9 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         error?: string;
         local?: string;
         slug?: string;
+        until?: string | null;
+        word?: string | null;
+        line?: string | null;
       };
       if (data.status === "free" && data.local) {
         setCheck({ status: "free", local: data.local });
@@ -71,6 +109,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         setCheck({
           status: "held",
           error: data.error ?? "someone is holding that name.",
+          until: data.until ?? null,
         });
         return;
       }
@@ -78,6 +117,8 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         status: "taken",
         error: data.error ?? "that name is taken.",
         slug: data.slug || slug,
+        word: data.word,
+        line: data.line,
       });
     }, 220);
     return () => window.clearTimeout(t);
@@ -86,6 +127,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
   function buy(kind: Exclude<CheckoutKind, "keep">) {
     if (check.status !== "free") return;
     setError(null);
+    writeLastClaim({ alias: check.local, kind });
     startTransition(async () => {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -97,8 +139,14 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         setError(data.error ?? "couldn't start checkout.");
         return;
       }
+      writeLastClaim({ alias: check.local, kind, polarUrl: data.url });
       window.location.href = data.url;
     });
+  }
+
+  function resumeHold() {
+    if (!resumeUrl) return;
+    window.location.href = resumeUrl;
   }
 
   const implication =
@@ -106,6 +154,13 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
       ? impliedPageAndAddress(slug)
       : null;
   const tooShort = slug.length > 0 && slug.length < NAME_MIN_CHARS;
+  const heldCopy =
+    check.status === "held"
+      ? check.until
+        ? holdCountdownCopy(check.until, now)
+        : check.error
+      : null;
+  const canResumeHold = check.status === "held" && Boolean(resumeUrl);
   const hint =
     tooShort
       ? claimLengthCopy()
@@ -113,13 +168,13 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
         ? "checking…"
         : check.status === "free"
           ? `${check.local}@lost.pink is available`
-          : check.status === "held" ||
-              check.status === "invalid" ||
-              check.status === "reserved"
-            ? check.error
-            : check.status === "taken"
-              ? null
-              : null;
+          : check.status === "held"
+            ? heldCopy
+            : check.status === "invalid" || check.status === "reserved"
+              ? check.error
+              : check.status === "taken"
+                ? null
+                : null;
 
   return (
     <div className="lp-shell relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
@@ -177,17 +232,24 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
                 </p>
               ) : null}
               {check.status === "taken" ? (
-                <p className="mark text-[11px] text-[var(--ink-muted)]">
-                  that name is taken.{" "}
-                  <a
-                    href={`/${check.slug}`}
-                    className="underline underline-offset-2"
-                  >
-                    view their page
-                  </a>
-                </p>
+                <TakenNamePreview
+                  slug={check.slug}
+                  word={check.word}
+                  line={check.line}
+                />
               ) : hint ? (
                 <p className="mark text-[11px] text-[var(--ink-muted)]">{hint}</p>
+              ) : null}
+              {canResumeHold ? (
+                <p className="mt-2">
+                  <button
+                    type="button"
+                    className="mark cursor-pointer text-[11px] text-[var(--ink)] underline underline-offset-2"
+                    onClick={resumeHold}
+                  >
+                    keep {slug}
+                  </button>
+                </p>
               ) : null}
               {error ? (
                 <p className="mark text-[11px] text-[var(--ink-muted)]" role="alert">

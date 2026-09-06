@@ -6,7 +6,7 @@ import { getAuthUserId } from "@/lib/supabase/server";
 export async function POST(request: NextRequest) {
   const userId = await getAuthUserId();
   if (!userId) {
-    return NextResponse.json({ error: "come back first." }, { status: 401 });
+    return NextResponse.json({ error: "sign in first." }, { status: 401 });
   }
 
   let body: { pageId?: unknown; token?: unknown } = {};

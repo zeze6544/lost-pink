@@ -9,45 +9,63 @@ export type MailboxOffer = {
   plan: MailboxPlan;
   env: string;
   label: string;
+  explanation: string;
   cents: number;
 };
 
-/** Button copy uses the user's wording. Polar still charges AUD. */
+/**
+ * Catalog of Polar checkout kinds (includes legacy once-year).
+ * Polar product IDs remain in env — checkout flow unchanged.
+ * Home UI uses HOME_MAILBOX_OFFERS (three prices only).
+ */
 export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
+  {
+    kind: "mailbox_day",
+    plan: "day",
+    env: "POLAR_PRODUCT_MAILBOX_DAY",
+    label: "A$1",
+    explanation: "/ day",
+    cents: 100,
+  },
   {
     kind: "mailbox_month",
     plan: "month",
     env: "POLAR_PRODUCT_MAILBOX_MONTH",
-    label: "$5 once for 1 month access",
+    label: "A$5",
+    explanation: "/ month",
     cents: 500,
   },
   {
     kind: "mailbox_subscription",
     plan: "subscription",
     env: "POLAR_PRODUCT_MAILBOX_SUB",
-    label: "$20 annually",
+    label: "A$20",
+    explanation: "/ year · cancel anytime",
     cents: 2000,
   },
   {
     kind: "mailbox_once",
     plan: "once",
     env: "POLAR_PRODUCT_MAILBOX",
-    label: "$20 once for 12 month access",
+    label: "A$20",
+    explanation: "once for 12 months",
     cents: 2000,
-  },
-  {
-    kind: "mailbox_day",
-    plan: "day",
-    env: "POLAR_PRODUCT_MAILBOX_DAY",
-    label: "$1 for 1 day access",
-    cents: 100,
   },
 ] as const;
 
-/** Old A$50 products. Existing live mailboxes keep working. */
+/** Home tray: day / month / year only — no duplicate A$20 cell. */
+export const HOME_MAILBOX_OFFERS: readonly MailboxOffer[] = [
+  MAILBOX_OFFERS[0],
+  MAILBOX_OFFERS[1],
+  MAILBOX_OFFERS[2],
+];
+
+/** Replaced products. Existing purchases and subscriptions keep working. */
 const LEGACY_PRODUCT_IDS: Record<string, MailboxPlan> = {
   "846e3bd5-3786-4ebb-9cf9-05bcdc7f2ba5": "once",
   "d3eed2e1-9306-4c02-8d0c-e7b6d830341b": "subscription",
+  "ea21abdf-9f3a-462e-806f-4f98a308e1aa": "once",
+  "24ec200c-d710-4da0-b4d8-cae9d99d4919": "subscription",
 };
 
 export function paidThroughMs(plan: MailboxPlan | null | undefined): number {
@@ -63,15 +81,17 @@ export function mailboxCheckoutKind(plan: MailboxPlan): Exclude<CheckoutKind, "k
   return "mailbox_once";
 }
 
-export function offerForKind(
-  kind: CheckoutKind,
-): MailboxOffer | null {
+export function offerForKind(kind: CheckoutKind): MailboxOffer | null {
   if (kind === "keep") return null;
   return MAILBOX_OFFERS.find((offer) => offer.kind === kind) ?? null;
 }
 
 export function offerForPlan(plan: MailboxPlan): MailboxOffer {
-  return MAILBOX_OFFERS.find((offer) => offer.plan === plan) ?? MAILBOX_OFFERS[2];
+  return (
+    MAILBOX_OFFERS.find((offer) => offer.plan === plan) ??
+    MAILBOX_OFFERS.find((offer) => offer.plan === "subscription") ??
+    MAILBOX_OFFERS[0]
+  );
 }
 
 export function mailboxProductId(plan: MailboxPlan): string | null {

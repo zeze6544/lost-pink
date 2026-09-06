@@ -1,8 +1,12 @@
 import { NAV_MARK } from "@/lib/product-rules";
 
+const SHORT_MARK = "lp.";
+
 type BrandMarkProps = {
   href?: string;
   className?: string;
+  /** Compact mark for login chrome. Full NAV_MARK stays the accessible name. */
+  short?: boolean;
   /** @deprecated Decorative only — never replaces the nav mark. */
   glyphOnly?: boolean;
 };
@@ -10,6 +14,7 @@ type BrandMarkProps = {
 export function BrandMark({
   href = "/",
   className = "",
+  short = false,
   glyphOnly = false,
 }: BrandMarkProps) {
   return (
@@ -19,7 +24,7 @@ export function BrandMark({
       aria-label={NAV_MARK}
     >
       {glyphOnly ? <span className="brand-glyph" aria-hidden /> : null}
-      <span>{NAV_MARK}</span>
+      <span>{short ? SHORT_MARK : NAV_MARK}</span>
     </a>
   );
 }

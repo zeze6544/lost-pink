@@ -2,10 +2,7 @@ import { Atmosphere } from "@/components/Atmosphere";
 import { BrandMark } from "@/components/BrandMark";
 import { TERMS_WHISPER_LINES } from "@/lib/landing-voice";
 import {
-  FREE_PAGE_HOURS,
-  graceCopy,
   MAIL_GRACE_DAYS,
-  NAMES_ARE_FIXED,
   PAYMENTS_VIA,
   REFUND_DAYS,
 } from "@/lib/product-rules";
@@ -14,55 +11,29 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "1. THE NAME IS THE PRODUCT",
     body: [
-      "lost.pink gives you one name: a public page and a private inbox.",
-      "private, not anonymous — we know your recovery email and payment references.",
-      "the inbox is part of the name. we do not offer a page without an inbox, or an inbox without a page.",
-      "you are responsible for what you send and receive.",
+      "one name = a public page and a private inbox.",
+      "private, not anonymous — we know recovery email and payment refs.",
+      "no page without inbox, no inbox without page.",
     ],
   },
   {
-    title: "2. PAYMENTS, RENEWAL & REFUNDS",
+    title: "2. PAYMENTS & RENEWAL",
     body: [
-      `payments are processed via ${PAYMENTS_VIA}.`,
-      "day and month plans are one-time. the year plan renews until you cancel.",
-      `you can request a refund within ${REFUND_DAYS} days of purchase; after that, sales are final.`,
-      "cancel anytime in the Polar customer portal. cancel stops the next renewal; it does not instantly wipe mail.",
+      `payments via ${PAYMENTS_VIA}. day/month one-time; year renews until cancel.`,
+      `refunds within ${REFUND_DAYS} days when approved.`,
     ],
   },
   {
     title: "3. WHEN PAYMENT ENDS",
     body: [
-      "when paid time ends or renewal fails, the inbox is suspended.",
-      `mail is kept for ${graceCopy()} (${MAIL_GRACE_DAYS} days) — not wiped at once.`,
-      "after that window, the mailbox and its contents are removed.",
-      "the name stays reserved while mail is retained; it may return to the pool only after deletion.",
+      "inbox suspends when paid time ends or renewal fails.",
+      `mail kept ${MAIL_GRACE_DAYS} days — not wiped at once — then removed.`,
+      "name stays reserved while mail is retained.",
     ],
   },
   {
-    title: "4. NAMES",
-    body: [
-      NAMES_ARE_FIXED
-        ? "names do not change. the page path and the address stay the same."
-        : "names may change under published policy.",
-      "reserved words (admin, support, abuse, postmaster, www, and others) cannot be claimed.",
-      "impersonation, squatting for abuse, or illegal use can get the name suspended.",
-      `a free page without purchase stays up to ${FREE_PAGE_HOURS} hours unless someone keeps it.`,
-    ],
-  },
-  {
-    title: "5. CONDUCT",
-    body: [
-      "abuse, spam, or phishing will get you suspended.",
-      "do not use lost.pink to threaten, harass, or harm others.",
-      "we cooperate with legal requests when required.",
-    ],
-  },
-  {
-    title: "6. CHANGES",
-    body: [
-      "we may update these terms. continued use means you accept the changes.",
-      "this page is the human-readable summary. concrete billing and deletion rules above are binding for how lost.pink runs.",
-    ],
+    title: "4. CONDUCT",
+    body: ["abuse, spam, or phishing gets you suspended."],
   },
 ];
 

@@ -1,85 +1,65 @@
 import { DocPage, DocSection } from "@/components/SiteFrame";
-import {
-  graceCopy,
-  MAIL_HOST,
-  MAIL_GRACE_DAYS,
-  PAYMENTS_VIA,
-} from "@/lib/product-rules";
+import { MAIL_HOST, MAIL_GRACE_DAYS, PAYMENTS_VIA } from "@/lib/product-rules";
 
 export default function PrivacyPage() {
   return (
-    <DocPage title="privacy">
-      <div className="space-y-2 font-mono text-[13px] leading-relaxed text-[var(--ink)]">
-        <p>private, not anonymous.</p>
-        <p className="text-[var(--ink-muted)]">
-          one name is a public page and an inbox. that has consequences for what
-          can stay private.
-        </p>
+    <DocPage title="privacy" tagline="private, not anonymous.">
+      <div className="divide-y divide-[var(--rule)]">
+        <div className="pb-8">
+          <DocSection title="WHAT IS PUBLIC">
+            <p>
+              your handle is the page path. because the address follows the
+              handle, lost.pink/mercy implies mercy@lost.pink — whether or not
+              the page prints it.
+            </p>
+          </DocSection>
+        </div>
+
+        <div className="py-8">
+          <DocSection title="RECOVERY EMAIL">
+            <p>used to get back in. never shown publicly. never sold.</p>
+          </DocSection>
+        </div>
+
+        <div className="py-8">
+          <DocSection title={PAYMENTS_VIA.toUpperCase()}>
+            <p>
+              payments are processed by {PAYMENTS_VIA}. not analytics.
+            </p>
+          </DocSection>
+        </div>
+
+        <div className="py-8">
+          <DocSection title="MAIL CONTENTS">
+            <p>
+              mail is stored with our email host ({MAIL_HOST}) so the inbox can
+              receive and sync. we do not use contents for ads or model training.
+              after suspend, mail is kept {MAIL_GRACE_DAYS} days, then removed.
+            </p>
+          </DocSection>
+        </div>
+
+        <div className="py-8">
+          <DocSection title="WE DO NOT TRAIN MODELS">
+            <p>
+              we do not use your messages or account data to train or improve
+              models.
+            </p>
+          </DocSection>
+        </div>
+
+        <div className="pt-8">
+          <p className="font-mono text-[12px] leading-relaxed text-[var(--ink-muted)]">
+            questions?{" "}
+            <a
+              href="mailto:privacy@lost.pink"
+              className="underline underline-offset-2"
+            >
+              privacy@lost.pink
+            </a>
+          </p>
+        </div>
       </div>
-
-      <DocSection title="what we keep">
-        <p>
-          the name you claim, the look of the public page, optional photos and a
-          line, {PAYMENTS_VIA} payment references, your sign-in as you@lost.pink,
-          and a recovery email.
-        </p>
-      </DocSection>
-
-      <DocSection title="mail contents">
-        <p>
-          mail is stored with our email infrastructure ({MAIL_HOST}) so your
-          inbox can receive and sync on phone and computer. we do not use message
-          contents for advertising or model training.
-        </p>
-        <p>
-          when paid time ends, the inbox is suspended. mail is retained for{" "}
-          {graceCopy()} ({MAIL_GRACE_DAYS} days), then removed with the mailbox.
-          deleting the account removes the page, the inbox, and the recovery
-          link.
-        </p>
-      </DocSection>
-
-      <DocSection title="what is public">
-        <p>
-          your handle is public as the page path. because the address always
-          follows the handle, anyone who sees lost.pink/mercy can infer
-          mercy@lost.pink — whether or not the page prints the address.
-        </p>
-        <p>
-          recovery email, {PAYMENTS_VIA} ids, and mailbox secrets stay private.
-        </p>
-      </DocSection>
-
-      <DocSection title="payments">
-        <p>
-          payment details are handled by {PAYMENTS_VIA}. we do not store your
-          full card number.
-        </p>
-      </DocSection>
-
-      <DocSection title="cookies">
-        <p>essential cookies keep you signed in. that&apos;s it.</p>
-      </DocSection>
-
-      <DocSection title="contact">
-        <p>
-          questions?{" "}
-          <a
-            href="mailto:privacy@lost.pink"
-            className="underline underline-offset-2"
-          >
-            privacy@lost.pink
-          </a>{" "}
-          or{" "}
-          <a
-            href="mailto:support@lost.pink"
-            className="underline underline-offset-2"
-          >
-            support@lost.pink
-          </a>
-          .
-        </p>
-      </DocSection>
     </DocPage>
   );
 }

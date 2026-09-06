@@ -1,60 +1,94 @@
-import { DocPage, DocQuestion } from "@/components/SiteFrame";
-import { graceCopy, MAIL_GRACE_DAYS, PAYMENTS_VIA } from "@/lib/product-rules";
+import type { ReactNode } from "react";
+import { DocPage, DocSection } from "@/components/SiteFrame";
+import { MAIL_GRACE_DAYS, PAYMENTS_VIA, REFUND_DAYS } from "@/lib/product-rules";
+
+const SECTIONS: { title: string; body: ReactNode }[] = [
+  {
+    title: "REACH",
+    body: (
+      <>
+        <p>
+          write{" "}
+          <a
+            href="mailto:support@lost.pink"
+            className="underline underline-offset-2"
+          >
+            support@lost.pink
+          </a>
+          .
+        </p>
+        <p>include the page name</p>
+        <p>and {PAYMENTS_VIA.toLowerCase()} order.</p>
+      </>
+    ),
+  },
+  {
+    title: "SIGN IN",
+    body: (
+      <>
+        <p>you@lost.pink + password.</p>
+        <p>forgot? recovery email,</p>
+        <p>not the inbox.</p>
+      </>
+    ),
+  },
+  {
+    title: "SETUP",
+    body: (
+      <>
+        <p>
+          <a href="/setup" className="underline underline-offset-2">
+            connect a mail app
+          </a>
+          .
+        </p>
+        <p>gmail app, apple mail,</p>
+        <p>outlook, or manual.</p>
+      </>
+    ),
+  },
+  {
+    title: "MAIL STUCK",
+    body: (
+      <>
+        <p>confirm still paid.</p>
+        <p>check spam. smtp uses</p>
+        <p>smtp.migadu.com.</p>
+      </>
+    ),
+  },
+  {
+    title: "BILLING",
+    body: (
+      <>
+        <p>{PAYMENTS_VIA.toLowerCase()} handles money.</p>
+        <p>refunds within {REFUND_DAYS} days.</p>
+        <p>year renews till cancel.</p>
+      </>
+    ),
+  },
+  {
+    title: "WHEN PAYMENT ENDS",
+    body: (
+      <>
+        <p>inbox suspends.</p>
+        <p>mail kept {MAIL_GRACE_DAYS} days —</p>
+        <p>not wiped at once.</p>
+      </>
+    ),
+  },
+];
 
 export default function SupportPage() {
   return (
-    <DocPage title="support">
-      <DocQuestion q="how do i reach you?">
-        <p>
-          email <a href="mailto:support@lost.pink">support@lost.pink</a>.
-          include the page name (lost.pink/yourword) and the {PAYMENTS_VIA.toLowerCase()}{" "}
-          order if you have it. a person will reply.
-        </p>
-      </DocQuestion>
-      <DocQuestion q="how do i sign in?">
-        <p>
-          use you@lost.pink and the password you set at join. forgot it? reset
-          through your recovery email — not the lost.pink address. left a page
-          without opening the inbox yet? we can send a sign-in link to recovery.
-        </p>
-      </DocQuestion>
-      <DocQuestion q="mail app setup">
-        <p>
-          start at <a href="/setup">connect a mail app</a>. choose gmail
-          app, apple mail on iphone, outlook, android (gmail app), or manual.
-          the next screen names the exact client and the migadu hosts. password
-          is the one you set on lost.pink — not a google app password.
-        </p>
-      </DocQuestion>
-      <DocQuestion q="mail not arriving / sending">
-        <p>
-          confirm the inbox is still paid and not suspended. check spam in the
-          client. for sending, smtp must use smtp.migadu.com with your
-          you@lost.pink login. still stuck? write support with the exact error.
-        </p>
-      </DocQuestion>
-      <DocQuestion q="billing, refunds, renewals">
-        <p>
-          {PAYMENTS_VIA.toLowerCase()} handles the money. refunds within 7 days
-          of purchase when approved. the year plan renews until you cancel in
-          the portal. day and month are one-time.
-        </p>
-      </DocQuestion>
-      <DocQuestion q="when payment ends">
-        <p>
-          the inbox suspends when paid time ends or renewal fails. mail is kept
-          for {graceCopy()} ({MAIL_GRACE_DAYS} days) — not wiped at once. after
-          that, the mailbox is removed. the name stays reserved while mail is
-          retained.
-        </p>
-      </DocQuestion>
-      <DocQuestion q="abuse / contact">
-        <p>
-          report abuse to <a href="mailto:abuse@lost.pink">abuse@lost.pink</a>.
-          privacy questions:{" "}
-          <a href="mailto:privacy@lost.pink">privacy@lost.pink</a>.
-        </p>
-      </DocQuestion>
+    <DocPage title="support" wide>
+      <div className="grid gap-x-12 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        {SECTIONS.map((section) => (
+          <DocSection key={section.title} title={section.title}>
+            {section.body}
+          </DocSection>
+        ))}
+      </div>
     </DocPage>
   );
 }

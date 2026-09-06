@@ -26,11 +26,14 @@ export function SiteFrame({
 
 export function HomeMark({
   className = "",
+  short = false,
 }: {
   className?: string;
+  short?: boolean;
 }) {
   return (
     <BrandMark
+      short={short}
       className={`mark text-[13px] tracking-[0.04em] text-[var(--ink)]/85 transition hover:text-[var(--ink)] ${className}`}
     />
   );
@@ -73,15 +76,21 @@ export function AuthTray({
   title,
   note,
   children,
+  shortMark = false,
 }: {
   title: string;
-  note: ReactNode;
+  note?: ReactNode;
   children: ReactNode;
+  /** Login uses the compact `lp.` mark. */
+  shortMark?: boolean;
 }) {
   return (
     <SiteFrame atmosphere="landing">
       <div className="flex min-h-[100dvh] flex-col">
-        <HomeMark className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8" />
+        <HomeMark
+          short={shortMark}
+          className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8"
+        />
         <p
           className="pointer-events-none absolute inset-x-0 top-[18%] z-0 text-center font-display text-[clamp(2.4rem,8vw,5.5rem)] leading-none tracking-[-0.04em] text-[var(--ink)]/[0.12]"
           aria-hidden
@@ -93,9 +102,11 @@ export function AuthTray({
             <h1 className="font-display text-[2.4rem] leading-none tracking-tight">
               {title}
             </h1>
-            <p className="mt-3 font-mono text-[13px] leading-relaxed text-[var(--ink)]/82">
-              {note}
-            </p>
+            {note ? (
+              <p className="mt-3 font-mono text-[13px] leading-relaxed text-[var(--ink)]/82">
+                {note}
+              </p>
+            ) : null}
             {children}
           </div>
         </div>
@@ -118,9 +129,13 @@ export function AuthTray({
 
 export function DocPage({
   title,
+  tagline,
+  wide = false,
   children,
 }: {
   title: string;
+  tagline?: ReactNode;
+  wide?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -131,7 +146,16 @@ export function DocPage({
           <h1 className="mt-20 max-w-xl font-display text-[clamp(3.4rem,11vw,6rem)] leading-none tracking-tight text-[var(--ink)] sm:mt-24">
             {title}
           </h1>
-          <div className="mt-10 max-w-xl space-y-10">{children}</div>
+          {tagline ? (
+            <p className="mt-4 max-w-xl font-mono text-[13px] leading-relaxed text-[var(--ink-muted)]">
+              {tagline}
+            </p>
+          ) : null}
+          <div
+            className={`mt-10 ${wide ? "max-w-5xl" : "max-w-xl"} space-y-10`}
+          >
+            {children}
+          </div>
         </div>
         <SiteFooter
           left={
@@ -160,10 +184,10 @@ export function DocSection({
 }) {
   return (
     <section>
-      <h2 className="font-display text-[1.65rem] leading-tight tracking-tight text-[var(--ink)]">
+      <h2 className="font-mono text-[12px] tracking-[0.08em] text-[var(--ink)]">
         {title}
       </h2>
-      <div className="mt-3 space-y-2 font-mono text-[15px] leading-relaxed text-[color-mix(in_srgb,var(--ink)_82%,transparent)]">
+      <div className="mt-3 space-y-1.5 font-mono text-[12px] leading-relaxed text-[var(--ink-muted)]">
         {children}
       </div>
     </section>
@@ -184,19 +208,37 @@ export function DocQuestion({
 export function AccountShell({
   title,
   children,
+  align = "center",
 }: {
   title: string;
   children: ReactNode;
+  /** Left-anchored account pages (yours, name settings, billing, delete). */
+  align?: "center" | "left";
 }) {
+  const left = align === "left";
   return (
     <SiteFrame atmosphere="default">
       <div className="flex min-h-[100dvh] flex-col">
         <HomeMark className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8" />
-        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center px-4 pb-10 pt-24 text-center sm:px-6">
-          <h1 className="font-display text-[2.75rem] leading-none tracking-tight text-[var(--ink)]">
-            {title}
-          </h1>
-          <div className="mt-10 w-full space-y-0 text-left">{children}</div>
+        <div
+          className={
+            left
+              ? "flex w-full flex-1 flex-col justify-center px-8 pb-16 pt-28 text-left sm:px-12 sm:pt-32 lg:px-20"
+              : "mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center px-4 pb-10 pt-24 text-center sm:px-6"
+          }
+        >
+          <div className={left ? "w-full max-w-lg" : "w-full"}>
+            <h1
+              className={`font-display leading-none tracking-tight text-[var(--ink)] ${
+                left
+                  ? "text-[clamp(2.75rem,8vw,4.5rem)]"
+                  : "text-[2.75rem]"
+              }`}
+            >
+              {title}
+            </h1>
+            <div className="mt-10 w-full space-y-0 text-left">{children}</div>
+          </div>
         </div>
       </div>
     </SiteFrame>

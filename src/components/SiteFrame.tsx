@@ -11,7 +11,9 @@ export function SiteFrame({
     >
       <div className="site-wash pointer-events-none absolute inset-0" aria-hidden />
       <div className="site-depth pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-horizon pointer-events-none absolute inset-0" aria-hidden />
       <div className="site-glow pointer-events-none absolute inset-0" aria-hidden />
+      <div className="site-grain pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative z-10">{children}</div>
     </main>
   );

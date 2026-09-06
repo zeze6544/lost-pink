@@ -3,6 +3,7 @@ import { SettingsClient } from "@/components/SettingsClient";
 import { AccountShell } from "@/components/SiteFrame";
 import { getMailboxByPageId } from "@/lib/mailbox-store";
 import { listOwnedPages, pageHandle } from "@/lib/pages";
+import { NAMES_ARE_FIXED, nameIsPageAndAddress } from "@/lib/product-rules";
 import { displayLostEmail } from "@/lib/slug";
 import { getAuthUserId } from "@/lib/supabase/server";
 
@@ -42,6 +43,11 @@ export default async function NameSettingsPage({ params }: Props) {
       <p className="mt-1 font-mono text-[12px] text-[var(--ink-muted)]">
         {inbox}
       </p>
+      {NAMES_ARE_FIXED ? (
+        <p className="mt-3 font-mono text-[12px] text-[var(--ink-muted)]">
+          {nameIsPageAndAddress()} names do not rename.
+        </p>
+      ) : null}
 
       <ul className="mt-10 space-y-4">
         {links.map((item) => (

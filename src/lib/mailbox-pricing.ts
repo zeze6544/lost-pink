@@ -23,7 +23,7 @@ export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
     kind: "mailbox_day",
     plan: "day",
     env: "POLAR_PRODUCT_MAILBOX_DAY",
-    label: "$1",
+    label: "A$1",
     explanation: "/ day",
     cents: 100,
   },
@@ -31,7 +31,7 @@ export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
     kind: "mailbox_month",
     plan: "month",
     env: "POLAR_PRODUCT_MAILBOX_MONTH",
-    label: "$5",
+    label: "A$5",
     explanation: "/ month",
     cents: 500,
   },
@@ -39,7 +39,7 @@ export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
     kind: "mailbox_subscription",
     plan: "subscription",
     env: "POLAR_PRODUCT_MAILBOX_SUB",
-    label: "$20",
+    label: "A$20",
     explanation: "/ year · cancel anytime",
     cents: 2000,
   },
@@ -47,13 +47,13 @@ export const MAILBOX_OFFERS: readonly MailboxOffer[] = [
     kind: "mailbox_once",
     plan: "once",
     env: "POLAR_PRODUCT_MAILBOX",
-    label: "$20",
+    label: "A$20",
     explanation: "once for 12 months",
     cents: 2000,
   },
 ] as const;
 
-/** Home tray: day / month / year only — no duplicate $20 cell. */
+/** Home tray: day / month / year only — no duplicate A$20 cell. */
 export const HOME_MAILBOX_OFFERS: readonly MailboxOffer[] = [
   MAILBOX_OFFERS[0],
   MAILBOX_OFFERS[1],

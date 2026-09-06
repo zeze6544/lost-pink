@@ -6,9 +6,9 @@ import type { CheckoutKind } from "@/lib/mailbox-status";
 import type { MailboxPlan } from "@/lib/mailbox-status";
 
 function offerPhrase(plan: MailboxPlan): string {
-  if (plan === "day") return "$1 day";
-  if (plan === "month") return "$5 month";
-  return "$20 year";
+  if (plan === "day") return "A$1 day";
+  if (plan === "month") return "A$5 month";
+  return "A$20 year";
 }
 
 export function BuyMoreTime({

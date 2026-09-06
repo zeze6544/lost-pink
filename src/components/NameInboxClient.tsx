@@ -30,6 +30,11 @@ export function NameInboxClient({ signedIn: _signedIn }: { signedIn: boolean }) 
   const slug = useMemo(() => normalizeWord(raw), [raw]);
 
   useEffect(() => {
+    const u = new URLSearchParams(window.location.search).get("u");
+    if (u) setRaw(u);
+  }, []);
+
+  useEffect(() => {
     if (slug.length < NAME_MIN_CHARS) {
       setCheck({ status: "idle" });
       return;

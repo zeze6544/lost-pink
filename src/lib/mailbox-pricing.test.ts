@@ -17,10 +17,10 @@ test("home offers are day / month / year only", () => {
   );
 });
 
-test("home offer labels match the locked $1 / $5 / $20 tray", () => {
+test("home offer labels match the locked A$1 / A$5 / A$20 tray", () => {
   assert.deepEqual(
     HOME_MAILBOX_OFFERS.map((offer) => offer.label),
-    ["$1", "$5", "$20"],
+    ["A$1", "A$5", "A$20"],
   );
 });
 

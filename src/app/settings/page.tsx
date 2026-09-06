@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/SiteFrame";
 import { listOwnedPages, pageHandle } from "@/lib/pages";
+import { NAMES_ARE_FIXED, nameIsPageAndAddress } from "@/lib/product-rules";
 import { displayLostEmail } from "@/lib/slug";
 import { getAuthUserId } from "@/lib/supabase/server";
 
@@ -14,6 +15,11 @@ export default async function SettingsPage() {
 
   return (
     <AccountShell title="yours" align="left">
+      {NAMES_ARE_FIXED ? (
+        <p className="mb-8 font-mono text-[12px] text-[var(--ink-muted)]">
+          {nameIsPageAndAddress()}
+        </p>
+      ) : null}
       {pages.length === 0 ? (
         <div className="border-y border-[var(--rule)] py-6">
           <p className="font-mono text-[13px] text-[var(--ink-muted)]">

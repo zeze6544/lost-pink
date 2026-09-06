@@ -31,7 +31,7 @@ test("privacy recovery is email only", () => {
 
 test("support, privacy, and terms share the same Q&A count shape", () => {
   assert.equal(privacyQuestions().length, 5);
-  assert.equal(supportQuestions().length, 5);
+  assert.equal(supportQuestions().length, 6);
   assert.equal(termsQuestions().length, 5);
   for (const item of [
     ...privacyQuestions(),

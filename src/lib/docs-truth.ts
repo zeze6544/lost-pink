@@ -4,6 +4,7 @@ import {
   MAIL_SMTP_HOST,
   NAMES_ARE_FIXED,
   NAMES_FIRST_COME,
+  NEVER_FOR_SALE,
   NO_ADS,
   NO_TRACKING_PIXELS,
   PAYMENTS_VIA,
@@ -84,6 +85,10 @@ export function supportQuestions(): DocQA[] {
     {
       q: "when does mail go away?",
       a: `after the inbox suspends, mail is kept ${MAIL_GRACE_DAYS} days — not wiped at once — then removed.`,
+    },
+    {
+      q: "which names are never for sale?",
+      a: `${NEVER_FOR_SALE.join(", ")}. those stay with lost.pink. everything else is first come, first served.`,
     },
   ];
 }

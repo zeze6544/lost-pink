@@ -48,6 +48,16 @@ export const NO_TRACKING_PIXELS = true;
 /** Names are first come, first served. There is no marketplace. */
 export const NAMES_FIRST_COME = true;
 
+/** These locals are never sold. Publish the list on support — not a new surface. */
+export const NEVER_FOR_SALE = [
+  "support",
+  "privacy",
+  "terms",
+  "abuse",
+  "postmaster",
+  "polar",
+] as const;
+
 /**
  * Public surface of a name.
  * The page path always implies the address: lost.pink/mercy → mercy@lost.pink.

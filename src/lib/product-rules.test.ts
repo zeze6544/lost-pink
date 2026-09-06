@@ -3,11 +3,12 @@ import { test } from "node:test";
 import {
   NAME_MAX_CHARS,
   NAME_MIN_CHARS,
+  NEVER_FOR_SALE,
   claimLengthCopy,
   impliedPageAndAddress,
   nameIsPageAndAddress,
 } from "./product-rules";
-import { validateSlug } from "./slug";
+import { validateSlug, isReservedName } from "./slug";
 
 test("the page path implies the inbox address", () => {
   assert.equal(
@@ -29,4 +30,11 @@ test("single-letter names are invalid in the whisper, not only the API", () => {
   if (!short.ok) {
     assert.match(short.error, /2/);
   }
+});
+
+test("never-for-sale names stay off the market", () => {
+  assert.ok(NEVER_FOR_SALE.includes("support"));
+  assert.ok(NEVER_FOR_SALE.includes("polar"));
+  assert.equal(isReservedName("polar"), true);
+  assert.equal(isReservedName("abuse"), true);
 });

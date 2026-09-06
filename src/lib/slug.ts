@@ -1,6 +1,7 @@
 import {
   NAME_MAX_CHARS,
   NAME_MIN_CHARS,
+  NEVER_FOR_SALE,
 } from "./product-rules";
 
 const RESERVED = new Set([
@@ -126,5 +127,9 @@ export function validRecoveryEmail(email: string): boolean {
 }
 
 export function isReservedName(local: string): boolean {
-  return RESERVED.has(local) || EMAIL_RESERVED.has(local);
+  return (
+    RESERVED.has(local) ||
+    EMAIL_RESERVED.has(local) ||
+    (NEVER_FOR_SALE as readonly string[]).includes(local)
+  );
 }

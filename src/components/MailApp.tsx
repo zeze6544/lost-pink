@@ -379,7 +379,7 @@ export function MailApp({
                   {gmailHint && empty && folder === "inbox" ? (
                     <p className="flex flex-wrap gap-2">
                       <a
-                        href="/setup/gmail"
+                        href="/setup"
                         className="tray-btn inline-flex items-center"
                       >
                         connect a mail app
@@ -745,7 +745,7 @@ function BottomNav({
         >
           page
         </button>
-        <a href="/setup/gmail" className="tray-btn inline-flex items-center">
+        <a href="/setup" className="tray-btn inline-flex items-center">
           gmail
         </a>
         <a href="/settings" className="tray-btn inline-flex items-center">

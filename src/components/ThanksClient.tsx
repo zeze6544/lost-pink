@@ -169,7 +169,7 @@ export function ThanksClient({
                 finish join
               </a>
               <span aria-hidden> · </span>
-              <a href="/setup/gmail">setup mail</a>
+              <a href="/setup">setup mail</a>
             </>
           }
           right={null}

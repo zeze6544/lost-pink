@@ -30,7 +30,7 @@ export default async function NameSettingsPage({ params }: Props) {
     },
     { href: "/come/forgot", label: "password" },
     { href: "/come/forgot", label: "recovery" },
-    { href: "/setup/gmail", label: "devices" },
+    { href: "/setup", label: "devices" },
     { href: "/billing", label: "billing" },
   ] as const;
 

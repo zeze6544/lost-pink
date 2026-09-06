@@ -20,7 +20,7 @@ export default function SupportPage() {
       </DocQuestion>
       <DocQuestion q="mail app setup">
         <p>
-          start at <a href="/setup/gmail">connect a mail app</a>. choose gmail
+          start at <a href="/setup">connect a mail app</a>. choose gmail
           app, apple mail on iphone, outlook, android (gmail app), or manual.
           the next screen names the exact client and the migadu hosts. password
           is the one you set on lost.pink — not a google app password.

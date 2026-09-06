@@ -85,7 +85,7 @@ export default async function ReceiptsPage() {
           <p className="text-[13px] text-[var(--ink-muted)]">
             no receipts yet.
           </p>
-          <a href="/settings" className="tray-btn mt-4 inline-flex items-center">
+          <a href="/billing" className="tray-btn mt-4 inline-flex items-center">
             settings
           </a>
         </div>
@@ -167,7 +167,7 @@ export default async function ReceiptsPage() {
                 you paid.
               </p>
             )}
-            <a href="/settings" className="tray-btn inline-flex items-center">
+            <a href="/billing" className="tray-btn inline-flex items-center">
               settings
             </a>
           </div>

@@ -15,6 +15,7 @@ type Check =
   | { status: "looking" }
   | { status: "invalid"; error: string }
   | { status: "taken"; error: string; slug: string }
+  | { status: "reserved"; error: string }
   | { status: "held"; error: string }
   | { status: "free"; local: string };
 
@@ -51,6 +52,13 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
       }
       if (data.status === "invalid") {
         setCheck({ status: "invalid", error: data.error ?? "not a name." });
+        return;
+      }
+      if (data.status === "reserved") {
+        setCheck({
+          status: "reserved",
+          error: data.error ?? `${slug} is reserved.`,
+        });
         return;
       }
       if (data.status === "held") {
@@ -92,7 +100,7 @@ export function HomeLanding({ signedIn }: { signedIn: boolean }) {
       ? "checking…"
       : check.status === "free"
         ? `${check.local}@lost.pink is available`
-        : check.status === "held" || check.status === "invalid"
+        : check.status === "held" || check.status === "invalid" || check.status === "reserved"
           ? check.error
           : check.status === "taken"
             ? null

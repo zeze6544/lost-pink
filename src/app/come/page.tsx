@@ -38,7 +38,7 @@ export default async function ComePage({ searchParams }: Props) {
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6">
         <div className="quiet-tray w-full max-w-sm px-5 py-5">
           <h1 className="font-display text-3xl tracking-tight">come back</h1>
-          <p className="mt-2 text-[13px] leading-relaxed text-[var(--ink-muted)]">
+          <p className="mt-2 text-[13px] leading-relaxed text-[var(--ink)]/70">
             sign in with you@lost.pink and your password. a shrine you left
             without an inbox still uses a quiet link.
           </p>

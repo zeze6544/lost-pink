@@ -51,7 +51,7 @@ export function ComeClient({ next }: { next: string }) {
 
   if (sent) {
     return (
-      <p className="mt-4 text-[13px] text-[var(--ink)]">
+      <p className="mt-4 text-[12px] text-[var(--ink)]/65">
         check your email — we sent a sign-in link. it won’t last forever.
       </p>
     );
@@ -102,7 +102,7 @@ export function ComeClient({ next }: { next: string }) {
           {pending ? "opening…" : inboxLogin ? "open" : "send the link"}
         </button>
       </form>
-      <p className="mt-4 text-[11px] text-[var(--ink-muted)]">
+      <p className="mt-4 text-[12px] text-[var(--ink)]/65">
         old shrines still use a quiet link. type that other email and we’ll send
         it. <ForgotLink email={email} />
       </p>

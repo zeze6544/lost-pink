@@ -33,8 +33,20 @@ export const NAME_MIN_CHARS = 2;
  */
 export const MAIL_HOST = "Migadu" as const;
 
+/** SMTP hostname for mail-app setup copy. */
+export const MAIL_SMTP_HOST = "smtp.migadu.com" as const;
+
 /** Payments are processed by Polar. Not analytics. */
 export const PAYMENTS_VIA = "Polar" as const;
+
+/** No ad network. Privacy copy must stay true. */
+export const NO_ADS = true;
+
+/** No analytics or tracking pixels. */
+export const NO_TRACKING_PIXELS = true;
+
+/** Names are first come, first served. There is no marketplace. */
+export const NAMES_FIRST_COME = true;
 
 /**
  * Public surface of a name.

@@ -259,6 +259,16 @@ a[aria-disabled="true"] {
   border-left: 1px solid var(--rule);
 }
 
+/* Docs type sits above atmosphere. Quiet any phrase so Q&A stays readable. */
+.site-frame:has(.docs-stack) .atmosphere-floor,
+.site-frame:has(.docs-stack) .atmosphere-bloom {
+  opacity: 0.42;
+}
+
+.site-frame:has(.docs-stack) .phrase-backdrop__text {
+  opacity: calc(var(--phrase-opacity, 0.42) * 0.28);
+}
+
 .site-footer {
   width: 100%;
 }

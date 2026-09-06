@@ -130,18 +130,16 @@ export function AuthTray({
 export function DocPage({
   title,
   tagline,
-  wide = false,
   children,
 }: {
   title: string;
   tagline?: ReactNode;
-  wide?: boolean;
   children: ReactNode;
 }) {
   return (
     <SiteFrame atmosphere="default">
-      <div className="flex min-h-[100dvh] flex-col">
-        <div className="w-full flex-1 px-8 py-16 sm:px-12 sm:py-20 lg:px-20">
+      <div className="docs-stack flex min-h-[100dvh] flex-col">
+        <div className="relative z-10 w-full flex-1 px-8 py-16 sm:px-12 sm:py-20 lg:px-20">
           <HomeMark />
           <h1 className="mt-20 max-w-xl font-display text-[clamp(3.4rem,11vw,6rem)] leading-none tracking-tight text-[var(--ink)] sm:mt-24">
             {title}
@@ -151,9 +149,7 @@ export function DocPage({
               {tagline}
             </p>
           ) : null}
-          <div
-            className={`mt-10 ${wide ? "max-w-5xl" : "max-w-xl"} space-y-10`}
-          >
+          <div className="mt-10 max-w-xl divide-y divide-[var(--ink)]/12">
             {children}
           </div>
         </div>
@@ -165,6 +161,8 @@ export function DocPage({
             <>
               <a href="/support">support</a>
               <span aria-hidden> · </span>
+              <a href="/privacy">privacy</a>
+              <span aria-hidden> · </span>
               <a href="/terms">terms</a>
             </>
           }
@@ -175,26 +173,7 @@ export function DocPage({
   );
 }
 
-export function DocSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section>
-      <h2 className="font-mono text-[12px] tracking-[0.08em] text-[var(--ink)]">
-        {title}
-      </h2>
-      <div className="mt-3 space-y-1.5 font-mono text-[12px] leading-relaxed text-[var(--ink-muted)]">
-        {children}
-      </div>
-    </section>
-  );
-}
-
-/** @deprecated Prefer DocSection — kept for older Q&A pages. */
+/** Shared docs Q&A stack — support, privacy, and terms must use this. */
 export function DocQuestion({
   q,
   children,
@@ -202,7 +181,52 @@ export function DocQuestion({
   q: string;
   children: ReactNode;
 }) {
-  return <DocSection title={q}>{children}</DocSection>;
+  return (
+    <section className="py-6 first:pt-0">
+      <h2 className="font-display text-[1.4rem] leading-tight tracking-tight text-[var(--ink)] sm:text-2xl">
+        {q}
+      </h2>
+      <div className="mt-3 space-y-3 text-[15px] leading-7 text-[var(--ink-muted)]">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+const DOCS_LINKABLE =
+  /(support@lost\.pink|privacy@lost\.pink|connect a mail app)/g;
+
+export function DocsAnswer({ text }: { text: string }) {
+  const matches = text.match(DOCS_LINKABLE) ?? [];
+  const parts = text.split(DOCS_LINKABLE);
+  const nodes: ReactNode[] = [];
+  parts.forEach((part, index) => {
+    if (part) nodes.push(<span key={`t-${index}`}>{part}</span>);
+    const token = matches[index];
+    if (!token) return;
+    if (token.includes("@")) {
+      nodes.push(
+        <a
+          key={`${token}-${index}`}
+          href={`mailto:${token}`}
+          className="underline underline-offset-2"
+        >
+          {token}
+        </a>,
+      );
+      return;
+    }
+    nodes.push(
+      <a
+        key={`setup-${index}`}
+        href="/setup"
+        className="underline underline-offset-2"
+      >
+        {token}
+      </a>,
+    );
+  });
+  return <p>{nodes}</p>;
 }
 
 export function AccountShell({

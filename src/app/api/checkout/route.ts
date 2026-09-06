@@ -163,7 +163,10 @@ async function mailboxCheckout(
     : null;
   const user = await getAuthUser();
 
-  if (page && input.action === "clear") {
+  if (input.action === "clear") {
+    if (!page) {
+      return NextResponse.json({ error: "nothing to clear." }, { status: 404 });
+    }
     if (!user) {
       return NextResponse.json({ error: "sign in first." }, { status: 401 });
     }

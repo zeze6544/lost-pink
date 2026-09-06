@@ -1,3 +1,4 @@
+import { graceCopy } from "./product-rules";
 export const JUST_LEFT_KEY = "lost.pink:just-left";
 
 const MONTHS = [
@@ -39,27 +40,27 @@ export function formatHereFor(expiresAt: string, now: number): string {
 }
 
 export function keepLabel(word: string): string {
-  return `keep ${word} — A$5 once`;
+  return `keep ${word}. A$5 once`;
 }
 
 export function inboxMonthLabel(): string {
-  return "$5 once for 1 month access";
+  return "A$5";
 }
 
 export function inboxYearlyLabel(): string {
-  return "$20 annually";
+  return "A$20 annually";
 }
 
 export function inboxOnceLabel(): string {
-  return "$20 once for 12 month access";
+  return "A$20 one-year";
 }
 
 export function inboxDayLabel(): string {
-  return "$1 for 1 day access";
+  return "A$1";
 }
 
 export function inboxLabel(): string {
-  return "an inbox — $5 a month, $20 a year, or $1 a day";
+  return "an inbox. A$1 a day, A$5 a month, or A$20 a year";
 }
 
 export function inboxNeedKeep(): string {
@@ -71,11 +72,11 @@ export function inboxNeedAlias(): string {
 }
 
 export function comeBackLabel(): string {
-  return "you're back";
+  return "log in";
 }
 
 export function inboxNeedComeBack(alreadyOpen = false): string {
-  return alreadyOpen ? "you're back to read it" : "you're back to open an inbox";
+  return alreadyOpen ? "log in to read mail" : "log in to open an inbox";
 }
 
 export function inboxDisplayOnly(): string {
@@ -83,7 +84,7 @@ export function inboxDisplayOnly(): string {
 }
 
 export function inboxOpenLabel(): string {
-  return "inbox open";
+  return "write";
 }
 
 export function inboxUntilKeep(): string {
@@ -91,7 +92,7 @@ export function inboxUntilKeep(): string {
 }
 
 export function inboxWaiting(local: string): string {
-  return `${local}@lost.pink is waiting — check the mail we sent.`;
+  return `${local}@lost.pink is waiting. check the mail we sent.`;
 }
 
 export function inboxDarkCopy(): string {
@@ -107,13 +108,55 @@ export function inboxFailedCopy(): string {
 }
 
 export function inboxTerminationNotice(): string {
-  return "cancel, refund, or a failed yearly charge closes the inbox immediately.";
+  return `cancel, refund, or a failed renewal suspends the inbox. mail is kept for ${graceCopy()}, then removed.`;
+}
+
+export function expiredInboxCopy(): string {
+  return `when paid time ends, the inbox suspends. mail is kept for ${graceCopy()}; the name stays reserved while mail is retained.`;
+}
+
+export function formatPaidDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
 export function formatPaidThrough(iso: string): string {
+  const date = formatPaidDate(iso);
+  return date ? `paid through ${date}` : "";
+}
+
+export function formatTimeLeft(iso: string, now = Date.now()): string {
+  const ms = new Date(iso).getTime() - now;
+  if (Number.isNaN(new Date(iso).getTime())) return "";
+  if (ms <= 0) return "paid time has ended";
+  const days = Math.floor(ms / 86_400_000);
+  if (days >= 60) {
+    const months = Math.floor(days / 30);
+    return `${months} month${months === 1 ? "" : "s"} left`;
+  }
+  if (days >= 14) {
+    const weeks = Math.floor(days / 7);
+    return `${weeks} week${weeks === 1 ? "" : "s"} left`;
+  }
+  if (days >= 2) return `${days} days left`;
+  if (days === 1) return "1 day left";
+  const hours = Math.max(1, Math.floor(ms / 3_600_000));
+  return hours === 1 ? "about an hour left" : `${hours} hours left`;
+}
+
+export function formatMemberSince(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return `paid through ${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+  return `on lost.pink since ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+export function planLabel(plan: string | null | undefined): string {
+  if (plan === "day") return "day";
+  if (plan === "month") return "month";
+  if (plan === "subscription") return "year, renews";
+  if (plan === "once") return "year";
+  return "unknown";
 }
 
 export async function shareOrCopy(

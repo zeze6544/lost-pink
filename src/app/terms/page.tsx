@@ -5,11 +5,10 @@ export default function TermsPage() {
     <DocPage title="terms">
       <DocQuestion q="what am i buying?">
         <p>
-          lost.pink sells an @lost.pink inbox. you choose a username, pay A$1
-          for a day, A$5 once for a month, A$25 once for a year, or A$25
-          annually, create an account, and get you@lost.pink plus a public page
-          at lost.pink/you. prices are in AUD. names are first come, first
-          served.
+          lost.pink sells an @lost.pink inbox. you choose a username, pay A$1,
+          A$5, A$25 one-year, or A$25 annually, create an account, and get
+          you@lost.pink plus a public page at lost.pink/you. prices are in AUD.
+          names are first come, first served.
         </p>
       </DocQuestion>
       <DocQuestion q="when does the inbox close?">

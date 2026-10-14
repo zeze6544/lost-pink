@@ -4,18 +4,19 @@ import { GmailSetup } from "@/components/GmailSetup";
 import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
 import { getMailboxByOwnerId } from "@/lib/mailbox-store";
 import { listOwnedPages } from "@/lib/pages";
+import { lostPath } from "@/lib/lost-nav";
 import { getAuthUserId } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function GmailSetupPage() {
   const userId = await getAuthUserId();
-  if (!userId) redirect("/come?next=/setup/gmail");
+  if (!userId) redirect(await lostPath("/come?next=/setup/gmail"));
 
   const cookieStore = await cookies();
   const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
   if (parsed) {
-    redirect("/you");
+    redirect(await lostPath("/you"));
   }
 
   const pages = await listOwnedPages(userId);

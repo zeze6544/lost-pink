@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useLostHref } from "@/components/LostBridge";
 import { InboxPanel } from "@/components/InboxPanel";
 import type { Look } from "@/lib/looks";
 import type { PublicMailboxLabel } from "@/lib/mailbox-status";
@@ -48,6 +49,7 @@ export function PageActions({
   mailbox = null,
   onDismissJustLeft,
 }: Props) {
+  const to = useLostHref();
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -81,7 +83,7 @@ export function PageActions({
   }
 
   async function share() {
-    const url = `${window.location.origin}/${slug}`;
+    const url = `${window.location.origin}${to(`/${slug}`)}`;
     const result = await shareOrCopy(url, `lost.pink/${slug}`);
     if (result === "copied") {
       setCopied(true);

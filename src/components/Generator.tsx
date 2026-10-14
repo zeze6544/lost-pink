@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useLostHref } from "@/components/LostBridge";
 import { Stage } from "@/components/Stage";
 import {
   DEFAULT_LOOK,
@@ -61,6 +62,7 @@ type StylePane = "color" | "type" | "font" | "motif";
 export function Generator({ page }: { page?: GeneratorPage }) {
   const editing = Boolean(page);
   const router = useRouter();
+  const to = useLostHref();
   const trayRef = useRef<HTMLDivElement>(null);
   const aliasRef = useRef<HTMLInputElement>(null);
   const [trayH, setTrayH] = useState(88);
@@ -239,10 +241,10 @@ export function Generator({ page }: { page?: GeneratorPage }) {
         if (data.slug) {
           if (!editing) sessionStorage.setItem(JUST_LEFT_KEY, data.slug);
           if (editing && data.slug !== slug) {
-            router.replace(`/${data.slug}`);
+            router.replace(to(`/${data.slug}`));
             return;
           }
-          router.push(`/${data.slug}`);
+          router.push(to(`/${data.slug}`));
           if (editing) router.refresh();
         }
       } catch (err) {
@@ -252,7 +254,7 @@ export function Generator({ page }: { page?: GeneratorPage }) {
   }
 
   async function share() {
-    const url = `${window.location.origin}/${slug || page?.word || ""}`;
+    const url = `${window.location.origin}${to(`/${slug || page?.word || ""}`)}`;
     const result = await shareOrCopy(url, `lost.pink/${slug}`);
     if (result === "copied") {
       setCopied(true);

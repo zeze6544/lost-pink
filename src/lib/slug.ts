@@ -33,6 +33,7 @@ const RESERVED = new Set([
   "callback",
   "enter",
   "support",
+  "lost",
 ]);
 
 const BLOCKLIST = new Set([

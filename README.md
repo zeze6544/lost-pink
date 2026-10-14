@@ -1,6 +1,14 @@
-# lost.pink
+# localsites
 
-A shrine you leave. Type a name, dress it (look, font, two photos, one line), publish at `/yourword`. Free for 48 hours. **$5** keeps the name forever.
+The directory is the apex site. Client sites and the existing lost.pink product each have a host.
+
+- `/` — localsites directory
+- `/jaws` and `jaws.localhost` — Jaws Fish & Chips
+- `/lost` and `lost.localhost` (production host `lost.pink`) — the lost.pink product
+
+## lost.pink
+
+A shrine you leave. Type a name, dress it (look, font, two photos, one line), publish at `/yourword` on the lost host. Free for 48 hours. **$5** keeps the name forever.
 
 Looks freeze at publish for visitors. Come back to tend your own. Keep is the slug, not extra skins. @lost.pink aliases are display-only.
 

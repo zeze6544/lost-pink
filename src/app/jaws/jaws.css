@@ -1,0 +1,394 @@
+.jaws {
+  --paper: #f1ebe2;
+  --ink: #1b1914;
+  --muted: #5c564c;
+  --faint: #8a8173;
+  --line: #d7cec0;
+  --gum: #3c4638;
+  --salt: #e3ebe3;
+  --brass: #8a6434;
+  --water: #6d8290;
+  min-height: 100dvh;
+  background:
+    linear-gradient(180deg, rgba(227, 235, 227, 0.55), transparent 18rem),
+    var(--paper);
+  color: var(--ink);
+  font-family: var(--font-jaws-sans), "Source Sans 3", system-ui, sans-serif;
+}
+
+.jaws a {
+  color: inherit;
+}
+
+.jaws-wrap {
+  width: min(1120px, calc(100% - 2.5rem));
+  margin: 0 auto;
+}
+
+.jaws-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 0 0.9rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.jaws-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--ink);
+  letter-spacing: 0.16em;
+  text-decoration: none;
+}
+
+.jaws-fin {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: var(--gum);
+}
+
+.jaws-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 2.5rem;
+  align-items: end;
+  padding: 2.2rem 0 2rem;
+}
+
+.jaws-logo {
+  width: min(100%, 280px);
+  height: auto;
+}
+
+.jaws-hero h1 {
+  margin: 0.85rem 0 0;
+  font-family: var(--font-jaws-display), Georgia, serif;
+  font-size: clamp(3.2rem, 7vw, 5.6rem);
+  font-weight: 460;
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+}
+
+.jaws-hero h1 span {
+  display: block;
+  font-size: 0.42em;
+  font-weight: 460;
+  letter-spacing: 0;
+  color: var(--gum);
+}
+
+.jaws-lede {
+  max-width: 28rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.jaws-photo {
+  margin: 0;
+}
+
+.jaws-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: var(--salt);
+}
+
+.jaws-photo figcaption {
+  margin-top: 0.45rem;
+  color: var(--faint);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.jaws-facts {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr 1fr;
+  gap: 1.5rem 2rem;
+  padding: 1.4rem 0 1.5rem;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+
+.jaws-facts h2,
+.jaws-order h2,
+.jaws-menu-head h2,
+.jaws-lunch-head h2 {
+  margin: 0;
+  font-family: var(--font-jaws-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gum);
+}
+
+.jaws-address {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-jaws-display), Georgia, serif;
+  font-size: 1.65rem;
+  line-height: 1.15;
+  font-weight: 460;
+}
+
+.jaws-phone {
+  display: inline-block;
+  margin-top: 0.7rem;
+  font-size: 1.05rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--brass);
+}
+
+.jaws-phone:hover,
+.jaws-order a:hover,
+.jaws-nav a:hover,
+.jaws-foot a:hover {
+  color: var(--brass);
+}
+
+.jaws-hours {
+  margin: 0.55rem 0 0;
+  padding: 0;
+}
+
+.jaws-hours div {
+  display: grid;
+  grid-template-columns: 7.2rem 1fr;
+  gap: 0.5rem;
+  padding: 0.18rem 0;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.jaws-hours dt {
+  color: var(--muted);
+}
+
+.jaws-hours dd {
+  margin: 0;
+}
+
+.jaws-fee {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.jaws-order {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+  padding: 1.2rem 0 0.4rem;
+}
+
+.jaws-order a {
+  display: flex;
+  min-height: 6.2rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.85rem 0.9rem 0.8rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 252, 247, 0.55);
+  text-decoration: none;
+}
+
+.jaws-order a strong {
+  font-family: var(--font-jaws-display), Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 460;
+  line-height: 1;
+}
+
+.jaws-order a span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.jaws-order a:hover {
+  border-color: var(--gum);
+  background: var(--salt);
+}
+
+.jaws-menu-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2.6rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--ink);
+}
+
+.jaws-menu-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.jaws-layout {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr);
+  gap: 2rem;
+  padding-top: 1.2rem;
+}
+
+.jaws-nav {
+  position: sticky;
+  top: 0.8rem;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.2rem;
+}
+
+.jaws-nav a {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.jaws-cat {
+  padding: 0.3rem 0 1.4rem;
+}
+
+.jaws-cat h3 {
+  margin: 0.4rem 0 0.15rem;
+  font-family: var(--font-jaws-display), Georgia, serif;
+  font-size: 2rem;
+  font-weight: 460;
+  letter-spacing: -0.03em;
+}
+
+.jaws-cat-note {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.jaws-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.15rem 1.25rem;
+  padding: 0.72rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.jaws-item h4 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.jaws-price {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.jaws-desc,
+.jaws-sub,
+.jaws-options,
+.jaws-stock {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.jaws-sub,
+.jaws-desc {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.jaws-stock {
+  color: var(--brass);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.jaws-options {
+  color: var(--faint);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.jaws-lunch {
+  margin-top: 2.4rem;
+  padding: 1.3rem 1.2rem 0.4rem;
+  background: var(--salt);
+  border-top: 1px solid var(--gum);
+}
+
+.jaws-lunch-head p {
+  max-width: 40rem;
+  margin: 0.45rem 0 0.8rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.jaws-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.6rem 1.5rem;
+  margin-top: 2rem;
+  padding: 1.2rem 0 2rem;
+  border-top: 1px solid var(--ink);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.jaws-foot a {
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.jaws-water {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: linear-gradient(90deg, var(--water), transparent 70%);
+}
+
+@media (max-width: 860px) {
+  .jaws-top {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .jaws-hero,
+  .jaws-facts,
+  .jaws-order,
+  .jaws-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .jaws-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.9rem;
+  }
+
+  .jaws-order a {
+    min-height: 0;
+    gap: 0.35rem;
+  }
+}

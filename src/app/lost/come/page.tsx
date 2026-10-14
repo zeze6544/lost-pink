@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ComeClient } from "@/components/ComeClient";
 import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
 import { claimPage } from "@/lib/pages";
+import { lostPath } from "@/lib/lost-nav";
 import { isAuthConfigured, safeNextPath } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 
@@ -21,9 +22,9 @@ export default async function ComePage({ searchParams }: Props) {
     const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
     if (parsed) {
       const claimed = await claimPage(parsed.pageId, userId, parsed.token);
-      if (claimed) redirect(`/${claimed.slug}`);
+      if (claimed) redirect(await lostPath(`/${claimed.slug}`));
     }
-    redirect(next === "/come" ? "/you" : next);
+    redirect(await lostPath(next === "/come" ? "/you" : next));
   }
 
   return (

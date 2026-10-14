@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLostHref } from "@/components/LostBridge";
 import { Stage } from "@/components/Stage";
 import { downloadLockScreen } from "@/lib/export-png";
 import type { Look } from "@/lib/looks";
@@ -44,6 +45,7 @@ export function ThanksClient({
   pageId = null,
   initialMailbox = null,
 }: Props) {
+  const to = useLostHref();
   const [copied, setCopied] = useState(false);
   const [mailbox, setMailbox] = useState(initialMailbox);
   const shown = word || slug || "kept";
@@ -77,13 +79,15 @@ export function ThanksClient({
 
   useEffect(() => {
     if (mailbox?.status === "awaiting_account" && mailbox.id) {
-      window.location.replace(`/join?mailbox=${encodeURIComponent(mailbox.id)}`);
+      window.location.replace(
+        to(`/join?mailbox=${encodeURIComponent(mailbox.id)}`),
+      );
     }
-  }, [mailbox?.id, mailbox?.status]);
+  }, [mailbox?.id, mailbox?.status, to]);
 
   async function share() {
     if (!slug) return;
-    const url = `${window.location.origin}/${slug}`;
+    const url = `${window.location.origin}${to(`/${slug}`)}`;
     const result = await shareOrCopy(url, `lost.pink/${slug}`);
     if (result === "copied") {
       setCopied(true);

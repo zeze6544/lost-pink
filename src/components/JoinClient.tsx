@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useLostHref } from "@/components/LostBridge";
 
 type Step = "name" | "recovery" | "phone" | "code" | "password" | "done";
 
@@ -24,6 +25,7 @@ export function JoinClient({
   mailboxId: string | null;
   checkoutId: string | null;
 }) {
+  const to = useLostHref();
   const [step, setStep] = useState<Step>("name");
   const [paid, setPaid] = useState<boolean | null>(null);
   const [boxId, setBoxId] = useState(mailboxId);
@@ -50,7 +52,7 @@ export function JoinClient({
           error?: string;
         };
         if (data.ready && data.email) {
-          window.location.assign(`/${data.email.split("@")[0]}`);
+          window.location.assign(to(`/${data.email.split("@")[0]}`));
           return;
         }
         setPaid(Boolean(data.paid));
@@ -152,7 +154,7 @@ export function JoinClient({
         return;
       }
       setStep("done");
-      window.location.assign(`/${data.slug}`);
+      window.location.assign(to(`/${data.slug}`));
     });
   }
 

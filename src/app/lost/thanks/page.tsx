@@ -4,6 +4,7 @@ import { DEFAULT_LOOK } from "@/lib/looks";
 import { getMailboxByPageId, toOwnerMailboxView } from "@/lib/mailbox-store";
 import { getPolar } from "@/lib/polar";
 import { getPageById, getPageBySlug, pageLook } from "@/lib/pages";
+import { lostPath } from "@/lib/lost-nav";
 import { formatLeftHere } from "@/lib/voice";
 import { redirect } from "next/navigation";
 
@@ -63,7 +64,7 @@ export default async function ThanksPage({ searchParams }: Props) {
   if (mailbox?.status === "awaiting_account") {
     const q = new URLSearchParams({ mailbox: mailbox.id });
     if (checkoutId) q.set("checkout_id", checkoutId);
-    redirect(`/join?${q.toString()}`);
+    redirect(await lostPath(`/join?${q.toString()}`));
   }
   inbox =
     inbox ||

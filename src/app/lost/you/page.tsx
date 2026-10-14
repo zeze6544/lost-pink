@@ -5,6 +5,7 @@ import { CLAIM_COOKIE, parseClaimCookie } from "@/lib/claim";
 import { listMailboxesByPageIds, toOwnerMailboxView } from "@/lib/mailbox-store";
 import { claimPage, listOwnedPages } from "@/lib/pages";
 import { displayLostEmail } from "@/lib/slug";
+import { lostPath } from "@/lib/lost-nav";
 import { getAuthUserId } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -12,14 +13,14 @@ export const dynamic = "force-dynamic";
 export default async function YouPage() {
   const userId = await getAuthUserId();
   if (!userId) {
-    redirect("/come?next=/you");
+    redirect(await lostPath("/come?next=/you"));
   }
 
   const cookieStore = await cookies();
   const parsed = parseClaimCookie(cookieStore.get(CLAIM_COOKIE)?.value);
   if (parsed) {
     const claimed = await claimPage(parsed.pageId, userId, parsed.token);
-    if (claimed) redirect(`/${claimed.slug}`);
+    if (claimed) redirect(await lostPath(`/${claimed.slug}`));
   }
 
   const pages = await listOwnedPages(userId);

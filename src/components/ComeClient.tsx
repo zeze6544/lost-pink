@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLostHref } from "@/components/LostBridge";
 
 export function ComeClient({ next }: { next: string }) {
+  const to = useLostHref();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sent, setSent] = useState(false);
@@ -27,7 +29,7 @@ export function ComeClient({ next }: { next: string }) {
         setError(data.error ?? "that didn’t open.");
         return;
       }
-      window.location.href = next;
+      window.location.href = to(next);
     });
   }
 

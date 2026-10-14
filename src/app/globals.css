@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-:root {
+.lost-app {
   --paper: #0c0c0e;
   --tray: rgba(14, 14, 16, 0.62);
   --ink: #e6e2da;
@@ -23,7 +23,8 @@
   --font-mono: var(--font-plex);
 }
 
-body {
+.lost-app {
+  min-height: 100%;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-outfit), system-ui, sans-serif;
@@ -89,11 +90,11 @@ body {
   opacity: 0.42;
 }
 
-.font-display {
+.lost-app .font-display {
   font-family: var(--font-newsreader), Georgia, serif;
 }
 
-.mark {
+.lost-app .mark {
   font-family: var(--font-plex), ui-monospace, monospace;
   letter-spacing: 0.06em;
   font-weight: 400;

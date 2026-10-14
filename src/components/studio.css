@@ -1,0 +1,182 @@
+.studio {
+  --paper: #f3efe6;
+  --ink: #1c1916;
+  --muted: #5f584e;
+  --faint: #8a8174;
+  --line: #d8d0c3;
+  --gum: #3d4a3a;
+  --rose: #8d4d5c;
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse 80% 40% at 100% -10%, rgba(61, 74, 58, 0.06), transparent 60%),
+    var(--paper);
+  color: var(--ink);
+  font-family: var(--font-studio-text), Georgia, serif;
+}
+
+.studio-mark {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: var(--ink);
+}
+
+.studio-kicker,
+.studio-index,
+.studio-meta {
+  font-family: var(--font-studio-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.studio-title {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-studio-display), Georgia, serif;
+  font-size: clamp(4.4rem, 12vw, 8.5rem);
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: -0.045em;
+}
+
+.studio-deck {
+  max-width: 38rem;
+  margin: 1.5rem 0 0;
+  font-size: 1.2rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.studio-rule {
+  margin: 2.5rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.studio-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.studio-card,
+.studio-slot {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.5rem 1.25rem;
+  padding: 1.75rem 0 1.9rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.studio-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+.studio-card:hover .studio-card-name,
+.studio-card:focus-visible .studio-card-name {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.studio-card:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 0.4rem;
+}
+
+.studio-card-live {
+  box-shadow: inset 3px 0 0 var(--gum);
+  padding-left: 1rem;
+}
+
+.studio-card-product {
+  box-shadow: inset 3px 0 0 var(--rose);
+  padding-left: 1rem;
+}
+
+.studio-card-name {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-studio-display), Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.studio-card p,
+.studio-slot p {
+  margin: 0.45rem 0 0;
+  max-width: 40rem;
+  color: var(--muted);
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+
+.studio-place {
+  margin-top: 0.35rem !important;
+  color: var(--ink) !important;
+  font-family: var(--font-studio-sans), system-ui, sans-serif;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.studio-go {
+  display: inline-block;
+  margin-top: 0.85rem;
+  font-family: var(--font-studio-sans), system-ui, sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.studio-slot {
+  min-height: 9rem;
+  align-items: center;
+  color: var(--faint);
+}
+
+.studio-slot .studio-empty {
+  margin: 0;
+  max-width: 22rem;
+  font-family: var(--font-studio-display), Georgia, serif;
+  font-size: 1.65rem;
+  line-height: 1.25;
+  color: var(--faint);
+}
+
+.studio-slot p {
+  color: var(--faint);
+}
+
+.studio-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: 1.5rem 0 0.25rem;
+  font-family: var(--font-studio-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.studio-text-link {
+  color: var(--ink);
+  text-underline-offset: 0.18em;
+}
+
+.studio-text-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .studio-card,
+  .studio-slot {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}

@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const pageId = searchParams.get("pageId")?.trim();
   if (!pageId) {
-    return NextResponse.json({ error: "Missing page." }, { status: 400 });
+    return NextResponse.json({ error: "missing page." }, { status: 400 });
   }
   const owned = await requireLiveMailbox(pageId);
   if ("error" in owned) {

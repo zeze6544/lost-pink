@@ -3,7 +3,7 @@ import { ThanksClient } from "@/components/ThanksClient";
 import { DEFAULT_LOOK } from "@/lib/looks";
 import { getMailboxByPageId, toOwnerMailboxView } from "@/lib/mailbox-store";
 import { getPolar } from "@/lib/polar";
-import { getPageById, getPageBySlug, pageLook } from "@/lib/pages";
+import { getPageByHandle, getPageById, pageLook } from "@/lib/pages";
 import { formatLeftHere } from "@/lib/voice";
 import { redirect } from "next/navigation";
 
@@ -57,7 +57,7 @@ export default async function ThanksPage({ searchParams }: Props) {
     }
   }
 
-  const page = slug ? await getPageBySlug(slug) : null;
+  const page = slug ? await getPageByHandle(slug) : null;
   pageId = page?.id ?? pageId;
   const mailbox = pageId ? await getMailboxByPageId(pageId) : null;
   if (mailbox?.status === "awaiting_account") {

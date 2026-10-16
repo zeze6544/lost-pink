@@ -11,15 +11,15 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON." }, { status: 400 });
   }
 
   const email = typeof body.email === "string" ? body.email.trim() : "";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: "that doesn’t look like an email." }, { status: 400 });
+    return NextResponse.json({ error: "that doesn't look like an email." }, { status: 400 });
   }
 
-  const next = safeNextPath(body.next, "/you");
+  const next = safeNextPath(body.next, "/settings");
   const supabase = await createServerSupabase();
   if (!supabase) {
     return NextResponse.json({ error: "not yet." }, { status: 503 });
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json(
-      { error: "couldn’t send that. try again in a moment." },
+      { error: "couldn't send that. try again in a moment." },
       { status: 400 },
     );
   }

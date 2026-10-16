@@ -6,7 +6,7 @@ import {
   fontWeightFor,
 } from "@/lib/looks";
 import { loadOgFont, resolveOgImageSrc } from "@/lib/og";
-import { getPageBySlug, pageLook } from "@/lib/pages";
+import { getPageByHandle, pageLook } from "@/lib/pages";
 
 export const alt = "lost.pink";
 export const size = { width: 1080, height: 1920 };
@@ -20,7 +20,7 @@ type Props = {
 export default async function Image({ params }: Props) {
   const { slug: raw } = await params;
   const slug = raw.toLowerCase();
-  const page = await getPageBySlug(slug);
+  const page = await getPageByHandle(slug);
 
   if (!page) {
     return new ImageResponse(
@@ -97,9 +97,8 @@ export default async function Image({ params }: Props) {
             width: "100%",
             height: "100%",
             display: "flex",
-            background: bgSrc
-              ? "linear-gradient(to top, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.12) 28%, transparent 55%)"
-              : `linear-gradient(160deg, ${colors.a}, ${colors.c} 45%, ${colors.b})`,
+            background: `linear-gradient(160deg, ${colors.a}, ${colors.c} 45%, ${colors.b})`,
+            opacity: bgSrc ? 0.45 : 1,
           }}
         />
         <div

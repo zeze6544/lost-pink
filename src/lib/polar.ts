@@ -1,24 +1,14 @@
 import { Checkout } from "@polar-sh/nextjs";
-import { Polar } from "@polar-sh/sdk";
 import { NextRequest } from "next/server";
+import { getPolar, polarServer } from "./polar-client";
 import { siteUrl } from "./site";
 
-export function polarServer(): "sandbox" | "production" {
-  return process.env.POLAR_SERVER === "production" ? "production" : "sandbox";
-}
+export { getPolar, polarServer } from "./polar-client";
 
 export function polarSuccessUrl(): string {
   const fromEnv = process.env.POLAR_SUCCESS_URL?.trim();
   if (fromEnv) return fromEnv;
   return `${siteUrl()}/thanks?checkout_id={CHECKOUT_ID}`;
-}
-
-export function getPolar(): Polar | null {
-  if (!process.env.POLAR_ACCESS_TOKEN) return null;
-  return new Polar({
-    accessToken: process.env.POLAR_ACCESS_TOKEN,
-    server: polarServer(),
-  });
 }
 
 function polarCheckout(returnUrl?: string, successUrlOverride?: string) {
@@ -52,6 +42,8 @@ export async function startPolarCheckout(
     productId: string;
     metadata: Record<string, string>;
     customerEmail?: string;
+    customerId?: string;
+    externalCustomerId?: string;
     returnUrl?: string;
     successUrl?: string;
   },
@@ -62,6 +54,12 @@ export async function startPolarCheckout(
   url.searchParams.set("metadata", JSON.stringify(input.metadata));
   if (input.customerEmail) {
     url.searchParams.set("customerEmail", input.customerEmail);
+  }
+  if (input.customerId) {
+    url.searchParams.set("customerId", input.customerId);
+  }
+  if (input.externalCustomerId) {
+    url.searchParams.set("customerExternalId", input.externalCustomerId);
   }
   return polarCheckout(input.returnUrl, input.successUrl)(
     new NextRequest(url, { headers: request.headers }),

@@ -24,11 +24,13 @@ import {
 } from "./pages-blob";
 import { hashClaimToken } from "./claim";
 import { isMailboxEmailTaken, isMailboxAliasLocked } from "./mailbox-store";
+import { pageStoreProblem } from "./page-store-error";
 import {
   isMailboxOpen,
   parsePublicMailboxLabel,
   type PublicMailboxLabel,
 } from "./mailbox-status";
+import { FREE_PAGE_HOURS } from "./product-rules";
 import { isBlobConfigured, isSupabaseConfigured, supabaseUrl } from "./site";
 
 export type { PublicMailboxLabel };
@@ -81,7 +83,8 @@ export type UpdateOwnedFields = {
   email_local: string | null;
 };
 
-const FREE_HOURS = 48;
+
+const FREE_HOURS = FREE_PAGE_HOURS;
 const DATA_DIR = path.join(process.cwd(), ".data");
 const DATA_FILE = path.join(DATA_DIR, "pages.json");
 
@@ -189,6 +192,49 @@ export function pageLook(page: LostPage): Look {
   };
 }
 
+/** Public URL is the page slug. Inbox alias is separate. */
+export function pageHandle(page: { slug: string; email_local?: string | null }): string {
+  return page.slug;
+}
+
+export async function getPageByHandle(handle: string): Promise<LostPage | null> {
+  const bySlug = await getPageBySlug(handle);
+  if (bySlug) return bySlug;
+  const byMail = await getPageByEmailLocal(handle);
+  if (byMail) return byMail;
+  return getPageByTitleToken(handle);
+}
+
+async function getPageByTitleToken(token: string): Promise<LostPage | null> {
+  if (pageStore() === "supabase") {
+    const { data, error } = await supabaseAdmin()
+      .from("pages")
+      .select("*")
+      .ilike("word", token)
+      .limit(3);
+    if (error) throw error;
+    const matches = (data ?? [])
+      .map((row) => mapRow(row))
+      .filter((page) => isActive(page) && page.word.trim().toLowerCase() === token);
+    return matches.length === 1 ? matches[0] : null;
+  }
+  const pages =
+    pageStore() === "blob"
+      ? (await blobListAll())
+          .map(coercePage)
+          .filter((page): page is LostPage => page !== null)
+      : await readLocal();
+  const matches = pages.filter(
+    (page) => isActive(page) && page.word.trim().toLowerCase() === token,
+  );
+  return matches.length === 1 ? matches[0] : null;
+}
+
+/** Lookup by slug, then inbox alias, then a unique exact title token. Never writes. */
+export async function resolvePageForHandle(handle: string): Promise<LostPage | null> {
+  return getPageByHandle(handle);
+}
+
 export async function getPageBySlug(slug: string): Promise<LostPage | null> {
   if (pageStore() === "supabase") {
     const { data, error } = await supabaseAdmin()
@@ -212,6 +258,50 @@ export async function getPageBySlug(slug: string): Promise<LostPage | null> {
   const page = pages.find((p) => p.slug === slug) ?? null;
   if (!page || !isActive(page)) return null;
   return page;
+}
+
+export async function getPageByEmailLocal(
+  local: string,
+  exceptId?: string,
+): Promise<LostPage | null> {
+  if (pageStore() === "supabase") {
+    let q = supabaseAdmin()
+      .from("pages")
+      .select("*")
+      .eq("email_local", local)
+      .limit(1);
+    if (exceptId) q = q.neq("id", exceptId);
+    const { data, error } = await q;
+    if (error) throw error;
+    const row = data?.[0];
+    if (!row) return null;
+    const page = mapRow(row);
+    return isActive(page) ? page : null;
+  }
+  if (pageStore() === "blob") {
+    const pages = await blobListAll();
+    const found = pages.find(
+      (p) => p.email_local === local && p.id !== exceptId && isActive(p),
+    );
+    return found ? coercePage(found) : null;
+  }
+  const pages = await readLocal();
+  return (
+    pages.find(
+      (p) => p.email_local === local && p.id !== exceptId && isActive(p),
+    ) ?? null
+  );
+}
+
+/** True if another page or mailbox already uses this as a URL word or inbox alias. */
+export async function isNameHeldByOtherPage(
+  name: string,
+  exceptId?: string,
+): Promise<boolean> {
+  const bySlug = await peekSlug(name);
+  if (bySlug && isActive(bySlug) && bySlug.id !== exceptId) return true;
+  if (await getPageByEmailLocal(name, exceptId)) return true;
+  return isMailboxEmailTaken(name, exceptId);
 }
 
 export async function getPageById(id: string): Promise<LostPage | null> {
@@ -732,19 +822,7 @@ export async function updateOwnedPage(
     return { error: "gone.", status: 404 };
   }
   if (current.owner_id !== ownerId) {
-    return { error: "not yours.", status: 403 };
-  }
-
-  if (fields.slug !== current.slug) {
-    const taken = await peekSlug(fields.slug);
-    if (taken && taken.id !== pageId && isActive(taken)) {
-      return {
-        error: taken.status === "kept"
-          ? "that word is already kept."
-          : "Someone just claimed that. Try another.",
-        status: 409,
-      };
-    }
+    return { error: "not your page.", status: 403 };
   }
 
   const mailboxLocked = await isMailboxAliasLocked(current.id);
@@ -755,19 +833,26 @@ export async function updateOwnedPage(
     };
   }
 
-  if (fields.email_local) {
-    const taken =
-      (await isEmailLocalTaken(fields.email_local, pageId)) ||
-      (await isMailboxEmailTaken(fields.email_local, pageId));
-    if (taken) {
-      return { error: "that alias is already spoken for.", status: 409 };
+  if (fields.email_local && fields.email_local !== current.email_local) {
+    if (await isNameHeldByOtherPage(fields.email_local, pageId)) {
+      return { error: "that inbox name is taken.", status: 409 };
+    }
+  }
+
+  const nextSlug = current.slug;
+  if (nextSlug !== current.slug) {
+    if (await isNameHeldByOtherPage(nextSlug, pageId)) {
+      return {
+        error: "that page name is taken.",
+        status: 409,
+      };
     }
   }
 
   const oldImages = [current.bg_url, current.token_url];
   const next: LostPage = {
     ...current,
-    slug: fields.slug,
+    slug: nextSlug,
     word: fields.word,
     line: fields.line,
     palette: fields.look.palette,
@@ -780,9 +865,9 @@ export async function updateOwnedPage(
   };
 
   if (pageStore() === "supabase") {
-    if (fields.slug !== current.slug) {
-      const leftover = await peekSlug(fields.slug);
-      if (leftover && leftover.id !== pageId) {
+    if (nextSlug !== current.slug) {
+      const leftover = await peekSlug(nextSlug);
+      if (leftover && leftover.id !== pageId && !isActive(leftover)) {
         await supabaseAdmin().from("pages").delete().eq("id", leftover.id);
       }
     }
@@ -806,9 +891,8 @@ export async function updateOwnedPage(
       .select("*")
       .single();
     if (error) {
-      if (error.code === "23505") {
-        return { error: "that word or alias is already spoken for.", status: 409 };
-      }
+      const problem = pageStoreProblem(error);
+      if (problem) return problem;
       throw error;
     }
     await deleteReplacedImages(oldImages, [next.bg_url, next.token_url]);

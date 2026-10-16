@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/mailbox-lifecycle.test.ts src/lib/voice.test.ts"
+    "test": "node scripts/run-tests.mjs",
+    "check": "npm run lint && npm test && tsc --noEmit && npm run build"
   },
   "dependencies": {
     "@polar-sh/nextjs": "^0.9.6",
@@ -17,7 +18,7 @@
     "@vercel/blob": "^2.8.0",
     "@vercel/speed-insights": "^2.0.0",
     "imapflow": "^1.7.8",
-    "next": "^15.5.24",
+    "next": "15.5.24",
     "nodemailer": "^9.1.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -28,8 +29,9 @@
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "^15.5.24",
+    "@eslint/eslintrc": "3.3.7",
+    "eslint": "9.39.5",
+    "eslint-config-next": "15.5.24",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5",

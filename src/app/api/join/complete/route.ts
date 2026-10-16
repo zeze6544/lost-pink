@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { ensureJoinPaid, mailboxFromJoinQuery } from "@/lib/join-paid";
-import { readJoinPhoneProof } from "@/lib/join-session";
 import { provisionMailbox } from "@/lib/mailbox";
 import { encryptSecret } from "@/lib/mailbox-secret";
 import { attachMailboxAccount } from "@/lib/mailbox-store";
 import { setPageOwner } from "@/lib/pages";
-import { displayLostEmail } from "@/lib/slug";
+import { displayLostEmail, validRecoveryEmail } from "@/lib/slug";
 import { supabaseAdminAuth } from "@/lib/supabase/admin";
 import { createRouteSupabase } from "@/lib/supabase/route";
-
-function validRecovery(email: string): boolean {
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false;
-  return !email.toLowerCase().endsWith("@lost.pink");
-}
 
 export async function POST(request: Request) {
   let body: {
@@ -25,7 +19,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON." }, { status: 400 });
   }
 
   const mailbox = await mailboxFromJoinQuery({
@@ -43,17 +37,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ slug: paid.email_local });
   }
 
-  const phone = await readJoinPhoneProof(paid.id);
-  if (!phone) {
-    return NextResponse.json({ error: "check your phone first." }, { status: 400 });
-  }
-
   const name = (body.name ?? "").trim().slice(0, 80);
   if (name.length < 2) {
     return NextResponse.json({ error: "we need a name." }, { status: 400 });
   }
   const recovery = (body.recovery ?? "").trim().toLowerCase();
-  if (!validRecovery(recovery)) {
+  if (!validRecoveryEmail(recovery)) {
     return NextResponse.json(
       { error: "use a recovery email that isn’t @lost.pink." },
       { status: 400 },
@@ -84,7 +73,7 @@ export async function POST(request: Request) {
   if (created.error || !created.data.user) {
     if (created.error?.message?.toLowerCase().includes("already")) {
       return NextResponse.json(
-        { error: "that inbox already has a sign-in. come back." },
+        { error: "that inbox already has a sign-in. log in." },
         { status: 409 },
       );
     }
@@ -99,7 +88,6 @@ export async function POST(request: Request) {
     ownerId,
     displayName: name,
     recoveryEmail: recovery,
-    phone,
     passwordSecret: encryptSecret(password),
   });
   const provisioned = await provisionMailbox(paid.id);
@@ -117,7 +105,7 @@ export async function POST(request: Request) {
   if (signed.error) {
     console.error("join sign-in", signed.error);
     return NextResponse.json(
-      { error: "the inbox is open. come back with that password." },
+      { error: "that inbox already exists. sign in with that password." },
       { status: 409 },
     );
   }

@@ -1,12 +1,9 @@
+import { BrandMark } from "@/components/BrandMark";
+
 export function Absence({ word }: { word?: string }) {
   return (
     <main className="relative min-h-[100dvh] overflow-hidden bg-[var(--paper)] text-[var(--ink)]">
-      <a
-        href="/"
-        className="mark absolute left-4 top-4 text-sm text-[var(--ink)]/85 sm:left-8 sm:top-8"
-      >
-        lost.pink
-      </a>
+      <BrandMark className="absolute left-4 top-4 text-sm text-[var(--ink)]/85 sm:left-8 sm:top-8" />
       <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
         {word ? (
           <>

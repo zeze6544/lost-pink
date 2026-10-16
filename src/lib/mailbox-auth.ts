@@ -8,7 +8,7 @@ export async function requireOwnedPage(pageId: string): Promise<
   const user = await getAuthUser();
   const page = await getPageById(pageId);
   if (!user || !page || !page.owner_id || user.id !== page.owner_id) {
-    return { error: "come back first.", status: 401 };
+    return { error: "sign in first.", status: 401 };
   }
   return { user, page };
 }

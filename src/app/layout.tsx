@@ -60,15 +60,29 @@ export const metadata: Metadata = {
     default: "lost.pink",
     template: "%s · lost.pink",
   },
-  description: "An inbox you keep. A page you can leave.",
+  description: "An @lost.pink inbox.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   ),
   openGraph: {
     title: "lost.pink",
-    description: "An inbox you keep. A page you can leave.",
+    description: "An @lost.pink inbox.",
     siteName: "lost.pink",
     type: "website",
+    images: [
+      {
+        url: "/brand/lost-pink-logo.png",
+        width: 1024,
+        height: 1024,
+        alt: "lost.pink",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "lost.pink",
+    description: "An @lost.pink inbox.",
+    images: ["/brand/lost-pink-logo.png"],
   },
 };
 

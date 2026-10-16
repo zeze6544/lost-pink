@@ -7,7 +7,7 @@ import { publicMailboxLabel } from "@/lib/mailbox-status";
 export async function GET(request: NextRequest) {
   const pageId = request.nextUrl.searchParams.get("pageId")?.trim();
   if (!pageId) {
-    return NextResponse.json({ error: "Missing page." }, { status: 400 });
+    return NextResponse.json({ error: "missing page." }, { status: 400 });
   }
 
   const owned = await requireOwnedPage(pageId);

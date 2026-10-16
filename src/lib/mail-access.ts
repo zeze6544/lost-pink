@@ -11,7 +11,7 @@ export async function requireLiveMailbox(pageId: string): Promise<
   const user = await getAuthUser();
   const page = await getPageById(pageId);
   if (!user || !page || page.owner_id !== user.id) {
-    return { error: "come back first.", status: 401 };
+    return { error: "sign in first.", status: 401 };
   }
   const mailbox = await getMailboxByPageId(page.id);
   if (!mailbox) {

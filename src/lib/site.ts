@@ -63,7 +63,11 @@ export function isAuthConfigured(): boolean {
 }
 
 /** In-app path only. Blocks open redirects. */
-export function safeNextPath(raw: unknown, fallback = "/you"): string {
+export function publicPagePath(slug: string): string {
+  return `/${slug}?view=public`;
+}
+
+export function safeNextPath(raw: unknown, fallback = "/settings"): string {
   if (typeof raw !== "string") return fallback;
   if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("://")) {
     return fallback;

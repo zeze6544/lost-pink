@@ -152,6 +152,27 @@ export async function setMailboxPassword(
   };
 }
 
+export async function setMailboxRecoveryEmail(
+  localPart: string,
+  recoveryEmail: string,
+): Promise<MailboxResult> {
+  if (!isMigaduConfigured()) {
+    return { ok: false, error: "the inbox isn't ready yet.", transient: false };
+  }
+  const updated = await migadu("PUT", mailboxUrl(localPart), {
+    local_part: localPart,
+    password_recovery_email: recoveryEmail,
+  });
+  if (updated.status === 200) {
+    return { ok: true, existed: true, invited: false };
+  }
+  return {
+    ok: false,
+    error: "couldn't reach the inbox.",
+    transient: isTransient(updated.status),
+  };
+}
+
 export async function setMailboxLive(localPart: string): Promise<MailboxResult> {
   return setMailboxAccess(localPart, true);
 }

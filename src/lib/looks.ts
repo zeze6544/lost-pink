@@ -7,6 +7,10 @@ export const PALETTES = [
   "veil",
   "wine",
   "gilt",
+  "moss",
+  "rose",
+  "frost",
+  "ember",
 ] as const;
 export type Palette = (typeof PALETTES)[number];
 
@@ -95,6 +99,34 @@ export const PALETTE_COLORS: Record<
     ink: "#ece4d6",
     swatch: "#4e463c",
   },
+  moss: {
+    a: "#1a221c",
+    b: "#2c3a30",
+    c: "#101612",
+    ink: "#d4e0d4",
+    swatch: "#2c3a30",
+  },
+  rose: {
+    a: "#24181c",
+    b: "#3e2a30",
+    c: "#160e12",
+    ink: "#edd8dc",
+    swatch: "#3e2a30",
+  },
+  frost: {
+    a: "#1a2228",
+    b: "#2a3a46",
+    c: "#101418",
+    ink: "#d4e4ee",
+    swatch: "#2a3a46",
+  },
+  ember: {
+    a: "#24180e",
+    b: "#4a2e18",
+    c: "#140c08",
+    ink: "#f0dcc4",
+    swatch: "#4a2e18",
+  },
 };
 
 export const PALETTE_LABELS: Record<Palette, string> = {
@@ -106,6 +138,10 @@ export const PALETTE_LABELS: Record<Palette, string> = {
   veil: "slate",
   wine: "umber",
   gilt: "bone",
+  moss: "moss",
+  rose: "rose",
+  frost: "frost",
+  ember: "ember",
 };
 
 export const FONT_META: Record<
@@ -172,6 +208,7 @@ export function stageStyle(look: Look) {
 }
 
 export const LINE_MAX = 120;
+export const TITLE_MAX = 80;
 
 export function isPalette(v: unknown): v is Palette {
   return typeof v === "string" && (PALETTES as readonly string[]).includes(v);
@@ -227,16 +264,16 @@ export function parseLook(input: {
   font?: unknown;
 }): Look | { error: string } {
   if (input.palette !== undefined && !isPalette(input.palette)) {
-    return { error: "Unknown palette." };
+    return { error: "unknown palette." };
   }
   if (input.treatment !== undefined && !isTreatment(input.treatment)) {
-    return { error: "Unknown type treatment." };
+    return { error: "unknown type treatment." };
   }
   if (input.motif !== undefined && coerceMotif(input.motif) === null) {
-    return { error: "Unknown motif." };
+    return { error: "unknown motif." };
   }
   if (input.font !== undefined && !isFontId(input.font)) {
-    return { error: "Unknown font." };
+    return { error: "unknown font." };
   }
   return {
     palette: isPalette(input.palette) ? input.palette : DEFAULT_LOOK.palette,
@@ -270,6 +307,13 @@ export function sanitizeLine(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const s = raw.replace(/\s+/g, " ").trim().slice(0, LINE_MAX);
   return s.length ? s : null;
+}
+
+/** Display title on the public page. Not the URL handle. */
+export function sanitizeTitle(raw: unknown, fallback = ""): string {
+  if (typeof raw !== "string") return fallback;
+  const s = raw.replace(/\s+/g, " ").trim().slice(0, TITLE_MAX);
+  return s || fallback;
 }
 
 export function fontWeightFor(font: FontId, treatment: Treatment): number {

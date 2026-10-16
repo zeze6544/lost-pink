@@ -6,9 +6,9 @@ import type {
 } from "./mailbox-status";
 import {
   MIGADU_IMAP,
-  MIGADU_RECOVERY_URL,
   MIGADU_SMTP,
   MIGADU_WEBMAIL_URL,
+  SITE_FORGOT_PATH,
 } from "./mailbox-settings";
 
 export type OwnerMailboxView = {
@@ -35,7 +35,7 @@ export type OwnerMailboxView = {
 
 export const MAILBOX_LINKS = {
   webmailUrl: MIGADU_WEBMAIL_URL,
-  recoveryUrl: MIGADU_RECOVERY_URL,
+  recoveryUrl: SITE_FORGOT_PATH,
   imap: MIGADU_IMAP,
   smtp: MIGADU_SMTP,
 } as const;
